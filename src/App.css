@@ -1,5 +1,5 @@
 * {
-  background-color: #252424;
+  
   font-family: "Tilt Neon";
   align-items: center;
   user-select: none;
@@ -8,31 +8,68 @@
   -ms-user-select: none;
 }
 
+body {
+  background-color: #252424;
+}
+
 .container {
+  
   display: flex;
   flex-direction: column;
+  height: 95vh;
+  justify-content: space-around;
   align-items: center;
   gap: 10px;
-  padding: 40px;
+  padding: 10px;
 }
 
 .subject-button {
-  font-size: 2em;
+  font-size: 1.2em;
   color: black;
   padding: 15px 30px;
   border-radius: 25px;
-  width: 100%;
+  
   text-align: center;
   cursor: pointer;
 }
 
+.subjects-container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  overflow-x: scroll;
+  @media (min-width: 768px) {
+    overflow-x: hidden;
+  }
+  gap: 10px;
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #333333;
+  border-radius: 20px;
+  @media (min-width: 768px) {
+    justify-content: center;
+  }
+  
+}
+
+.hero {
+  top: 0;
+  background-color: #333333;
+  width: 100%;
+  height: 10%;
+  position: absolute;
+  color: white;
+  font-size: 3rem;
+  display: flex;
+  padding-left: 30px;
+}
+
 .subject-button.active {
-  outline: 6px solid yellow;
+  outline: 3px solid yellow;
 }
 
 .board {
-  margin-top: 75px;
-  gap: 20px;
+  
   background-color: #252424;
   display: flex;
   flex-direction: column;
@@ -42,17 +79,29 @@
 
 .top-section {
   background-color: #333333;
-  border-radius: 47px;
-  width: 100%;
-  margin-top: 35px;
-  padding: 20px;
+  border-radius: 20%;
+  flex:1;
+  aspect-ratio: 1;
+  padding: 15px;
+  max-width: 200px;
+
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
 
 .title {
   background-color: #333333;
   color: white;
-  font-size: 50px;
+  font-size: 1.4rem;
+}
+
+.bunk-button-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .count-box {
@@ -61,14 +110,21 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  width: 100%;
-  border-radius: 47px;
-  font-size: 32px;
+  
+  width: 50%;
+  border-radius: 30px;
+  font-size: 2rem;
   color: black;
   user-select: text;
   -webkit-user-select: text;
   -moz-user-select: text;
   -ms-user-select: text;
+}
+
+.input-box-div {
+  background-color: #333333;
+  display: flex;
+  justify-content: center;
 }
 
 .count-description {
@@ -111,12 +167,12 @@
   box-sizing: border-box;
   border-radius: 100%;
   margin-left: 20px;
+  aspect-ratio: 1;
   width: 175px;
-  height: 125px;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 104px;
+  font-size: 5rem;
   color: #d55050;
 }
 .bunk-button:hover {
@@ -131,12 +187,15 @@
 }
 .bunk-button {
   background-color: white;
-  border-radius: 47px;
-  width: 90%;
-  margin-top: 20px;
-  padding: 10px;
+  border-radius: 20%;
+  max-width: 200px;
+  flex: 1;
+  aspect-ratio: 1;
+  margin-left: 18px;
   text-align: center;
-  font-size: 106px;
+  display: grid;
+  align-items: center;
+  font-size: 3rem;
   color: black;
   text-transform: uppercase;
   user-select: none;
@@ -171,13 +230,7 @@
   cursor: pointer;
 }
 
-.subjects-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
+
 
 .popup-overlay {
   position: fixed;

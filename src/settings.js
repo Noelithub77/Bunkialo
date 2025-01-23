@@ -1,6 +1,6 @@
 export const defaultSubjectConfig = {
   S1: { name: "Maths", subject_credit: 4, color: "cyan" },
-  S2: { name: "Comp Org", subject_credit: 4, color: "rgb(178, 54, 79)" },
+  S2: { name: "CO", subject_credit: 4, color: "rgb(178, 54, 79)" },
   S3: { name: "DSA", subject_credit: 5, color: "limegreen" },
   S4: { name: "EC", subject_credit: 5, color: "orange" },
   S5: { name: "PD", subject_credit: 1, color: "blueviolet" },

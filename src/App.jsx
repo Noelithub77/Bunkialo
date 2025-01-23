@@ -46,7 +46,7 @@ export default function App() {
 
   const handleClick = (subjectKey) => {
     setActiveButton(subjectKey);
-    document.querySelector(".board").scrollIntoView({ behavior: "smooth" });
+    // document.querySelector(".board").scrollIntoView({ behavior: "smooth" });
   };
 
   const handleBunkCountChange = (event) => {
@@ -90,6 +90,10 @@ export default function App() {
         </div>
       )}
 
+      <div className="hero">
+        <p>BUNKIALO</p>
+      </div>
+
       <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
         <button 
           className="config-button"
@@ -98,7 +102,8 @@ export default function App() {
           Edit
         </button>
       </div>
-
+      
+      
       <div className="subjects-container">
         {Object.keys(subjectConfig)
           .sort() 
@@ -115,12 +120,12 @@ export default function App() {
       </div>
 
       <div className="board">
-        <div className="course-button">
+        {/* <div className="course-button">
           {activeButton ? subjectConfig[activeButton].name : "Select a course"}
-        </div>
+        </div> */}
         <div className="bunks-section">
           <div className="bunks-text">
-            Bunks:-<br />
+            Bunks:<br />
             <p className="available"> (available)</p>
           </div>
           <div className="bunks-count">
@@ -131,27 +136,31 @@ export default function App() {
               : "?"}
           </div>
         </div>
-        <div className="bunk-button" 
-             onClick={incrementBunkCount}
-             style={{ userSelect: 'none' }}>
-          BUNK?
-        </div>
+        
       </div>
-      <div className="top-section">
-        <div className="title">Set your bunk count:-</div>
-        <input
-          type="number"
-          className="count-box"
-          value={bunkCounts[activeButton]}
-          onChange={handleBunkCountChange}
-        />
-        <div className="count-description">
-          (This would store the data locally on your browser so that you never
-          ever have to trace your bunk count again)
+      <div className="bunk-button-row">
+        <div className="top-section">
+          <div className="title">Classes bunked</div>
+          <div className="input-box-div">
+          <input
+            type="number"
+            className="count-box"
+            value={bunkCounts[activeButton]}
+            onChange={handleBunkCountChange}
+          />
+          </div>
+          <div className="count-description">
+            (Data stored locally)
+          </div>
         </div>
+        <div className="bunk-button" 
+              onClick={incrementBunkCount}
+              style={{ userSelect: 'none' }}>
+            BUNK
+          </div>
       </div>
       <div className="dev-info">
-        Developed by <a href="https://www.linkedin.com/in/noel-georgi-22521a303/" target="_blank" rel="noopener noreferrer">Noel Georgi</a>
+        Developed by <a href="https://www.linkedin.com/in/noel-georgi-22521a303/" target="_blank" rel="noopener noreferrer">Noel Georgi</a> and <a href="https://www.linkedin.com/in/mathewmanachery/" target="_blank" rel="noopener noreferrer">Mathew Manachery</a>
         <br />
         Idea of <a href="https://www.linkedin.com/in/srimoneyshankar-ajith-a5a6831ba/" target="_blank" rel="noopener noreferrer">Srimoneyshankar Ajith</a>
       </div>
