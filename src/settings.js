@@ -1,11 +1,11 @@
 export const defaultSubjectConfig = {
-  S1: { name: "Maths", subject_credit: 4, color: "cyan" },
-  S2: { name: "CO", subject_credit: 4, color: "rgb(178, 54, 79)" },
-  S3: { name: "DSA", subject_credit: 5, color: "limegreen" },
-  S4: { name: "EC", subject_credit: 5, color: "orange" },
-  S5: { name: "PD", subject_credit: 1, color: "blueviolet" },
-  S6: { name: "IT", subject_credit: 4, color: "greenyellow" },
-  S7: { name: "Signals", subject_credit: 4, color: "royalblue" },
+  S1: { name: "Maths", subject_credit: 4, color: "#077187" },
+  S2: { name: "CO", subject_credit: 4, color: "#cc2936" }, //
+  S3: { name: "DSA", subject_credit: 5, color: "#2F1847" },
+  S4: { name: "EC", subject_credit: 5, color: "#058c42" },
+  S5: { name: "PD", subject_credit: 1, color: "#2F1847" },
+  S6: { name: "IT", subject_credit: 4, color: "#cc2936" },
+  S7: { name: "Signals", subject_credit: 4, color: "#077187" },
 };
 
 export const noOfWeeks = 12;
