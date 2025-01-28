@@ -12,6 +12,6 @@ export const noOfWeeks = 12;
 //no. of weeks in a sem 
 
 export const credit_to_maxbunks = (subject_credit) => {
-  return Math.floor(subject_credit * noOfWeeks * 0.2); //-1 to make it safe 
+  return Math.floor(subject_credit * noOfWeeks * 0.2); //can do -1 to make it safe 
 };
 
