@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { SubjectForm } from './components/SubjectForm';
 import { credit_to_maxbunks, defaultSubjectConfig } from './settings';
 import "./App.css";
-
+import { SpeedInsights } from "@vercel/speed-insights/react"
 export default function App() {
   const [showPopup, setShowPopup] = useState(false);
   const [subjectConfig, setSubjectConfig] = useState(() => {
@@ -82,6 +82,7 @@ export default function App() {
 
   return (
     <div className="container">
+      <SpeedInsights/>
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
