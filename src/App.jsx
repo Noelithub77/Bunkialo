@@ -9,7 +9,7 @@ export default function App() {
     const stored = localStorage.getItem("subjectConfig");
     return stored ? JSON.parse(stored) : defaultSubjectConfig;
   });
-  
+
   const [activeButton, setActiveButton] = useState(null);
 
   const [bunkCounts, setBunkCounts] = useState(() => {
@@ -91,32 +91,37 @@ export default function App() {
       )}
 
       <div className="hero">
+        <div className="heroText">
         <p>BUNKIALO</p>
+
+        </div>
+        <button
+            className="config-button"
+            onClick={() => setShowPopup(true)}
+          >
+            Edit
+          </button>
+        {/* <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+          
+        </div> */}
       </div>
 
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
-        <button 
-          className="config-button"
-          onClick={() => setShowPopup(true)}
-        >
-          Edit
-        </button>
-      </div>
-      
-      
+
+
+
       <div className="subjects-container">
         {Object.keys(subjectConfig)
-          .sort() 
+          .sort()
           .map(key => (
-          <div
-            key={key}
-            className={`subject-button ${activeButton === key ? "active" : ""}`}
-            style={{ backgroundColor: subjectConfig[key].color }}
-            onClick={() => handleClick(key)}
-          >
-            {subjectConfig[key].name}
-          </div>
-        ))}
+            <div
+              key={key}
+              className={`subject-button ${activeButton === key ? "active" : ""}`}
+              style={{ backgroundColor: subjectConfig[key].color }}
+              onClick={() => handleClick(key)}
+            >
+              {subjectConfig[key].name}
+            </div>
+          ))}
       </div>
 
       <div className="board">
@@ -136,28 +141,28 @@ export default function App() {
               : "?"}
           </div>
         </div>
-        
+
       </div>
       <div className="bunk-button-row">
         <div className="top-section">
           <div className="title">Classes bunked</div>
           <div className="input-box-div">
-          <input
-            type="number"
-            className="count-box"
-            value={bunkCounts[activeButton]}
-            onChange={handleBunkCountChange}
-          />
+            <input
+              type="number"
+              className="count-box"
+              value={bunkCounts[activeButton]}
+              onChange={handleBunkCountChange}
+            />
           </div>
           <div className="count-description">
             (Data stored locally)
           </div>
         </div>
-        <div className="bunk-button" 
-              onClick={incrementBunkCount}
-              style={{ userSelect: 'none' }}>
-            BUNK
-          </div>
+        <div className="bunk-button"
+          onClick={incrementBunkCount}
+          style={{ userSelect: 'none' }}>
+          BUNK
+        </div>
       </div>
       <div className="dev-info">
         Developed by <a href="https://www.linkedin.com/in/noel-georgi-22521a303/" target="_blank" rel="noopener noreferrer">Noel Georgi</a> and <a href="https://www.linkedin.com/in/mathewmanachery/" target="_blank" rel="noopener noreferrer">Mathew Manachery</a>

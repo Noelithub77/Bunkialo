@@ -52,7 +52,7 @@ body {
     overflow-x: hidden;
   }
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 80px;
   padding: 8px;
   background-color: #333333;
   border-radius: 25px;
@@ -72,7 +72,16 @@ body {
   color: white;
   font-size: 3rem;
   display: flex;
-  padding-left: 30px;
+  
+  align-items: center;
+  justify-content: space-around;
+  
+}
+
+.heroText {
+  display: flex;
+  justify-content: flex-start;
+  width: 80%;
 }
 
 .subject-button.active {
@@ -231,11 +240,11 @@ body {
 }
 
 .config-button {
-  position: fixed;
-  top: 20px;
-  right: 20px;
+  /* position: fixed; */
+  /* top: 20px; */
+  /* right: 20px; */
   padding: 10px 20px;
-  background: #333;
+  background: #222;
   color: white;
   border: none;
   border-radius: 5px;
