@@ -209,7 +209,7 @@ export default function WifixScreen() {
         const errorMessage =
           error instanceof Error ? error.message : "WiFix request failed";
         setStatus("error");
-        setMessage(errorMessage);
+        setMessage("WiFix failed. See Settings > Developer > Logs for details.");
         wifixLogger.error(`WiFix screen error: ${errorMessage}`);
       } finally {
         setIsConnecting(false);

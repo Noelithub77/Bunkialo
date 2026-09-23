@@ -221,7 +221,7 @@ export function WifixQuickAction({ theme }: WifixQuickActionProps) {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
         setStatus("error");
-        setMessage(errorMessage);
+        setMessage("WiFix failed. See Settings > Developer > Logs for details.");
         wifixLogger.error(`Home WiFix error: ${errorMessage}`);
       } finally {
         setPhase(null);

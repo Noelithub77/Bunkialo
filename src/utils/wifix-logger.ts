@@ -1,4 +1,5 @@
 import { useWifixLogStore } from "@/stores/wifix-log-store";
+import { useDashboardStore } from "@/stores/dashboard-store";
 import type { DashboardLog } from "@/types";
 
 export const wifixLogger = {
@@ -13,5 +14,12 @@ export const wifixLogger = {
 
   info: (message: string) => wifixLogger.log(message, "info"),
   success: (message: string) => wifixLogger.log(message, "success"),
-  error: (message: string) => wifixLogger.log(message, "error"),
+  error: (message: string) => {
+    wifixLogger.log(message, "error");
+    try {
+      useDashboardStore.getState().addLog(message, "error");
+    } catch (error) {
+      console.debug("WiFix settings logging not available:", error);
+    }
+  },
 };
