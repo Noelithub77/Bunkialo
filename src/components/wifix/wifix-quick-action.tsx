@@ -13,7 +13,7 @@ import {
 } from "@/services/wifix";
 import { useWifixStore } from "@/stores/wifix-store";
 import type { WifixConnectionState, WifixConnectivityResult } from "@/types";
-import { wifixLogger } from "@/utils/wifix-logger";
+import { summarizeWifixFailure, wifixLogger } from "@/utils/wifix-logger";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -219,10 +219,12 @@ export function WifixQuickAction({ theme }: WifixQuickActionProps) {
           position: "top",
         });
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        const failure = summarizeWifixFailure(error);
         setStatus("error");
-        setMessage("WiFix failed. See Settings > Developer > Logs for details.");
-        wifixLogger.error(`Home WiFix error: ${errorMessage}`);
+        setMessage(`${failure.title}\n${failure.detail}`);
+        wifixLogger.error(
+          `Home WiFix error: ${failure.title} | ${failure.detail} | Details: ${failure.rawMessage}`,
+        );
       } finally {
         setPhase(null);
         inFlightRef.current = false;
