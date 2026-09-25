@@ -120,7 +120,7 @@ private fun DayMessMenu(
                 contentPadding = contentPadding,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
             meals.forEach { meal ->
