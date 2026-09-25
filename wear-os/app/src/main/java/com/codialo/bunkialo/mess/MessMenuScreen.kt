@@ -8,6 +8,7 @@ import androidx.wear.compose.foundation.hierarchicalFocusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,7 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,30 +40,25 @@ import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.Icon
-import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import com.codialo.bunkialo.R
 import com.codialo.bunkialo.schedule.Pastel
 import com.codialo.bunkialo.schedule.TimetableDay
-import com.codialo.bunkialo.ui.ScreenModeToggle
 import java.time.LocalDateTime
-import kotlinx.coroutines.launch
 
 @Composable
 fun MessMenuScreen(
     pagerState: PagerState,
     now: LocalDateTime,
     menu: Map<java.time.DayOfWeek, DayMenu>,
-    isMessSelected: Boolean,
-    onToggleMode: () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 72.dp),
     ) { page ->
         val day = TimetableDay.entries[page % TimetableDay.entries.size]
         val isCurrentMessPage = pagerState.currentPage == page
@@ -77,18 +72,6 @@ fun MessMenuScreen(
                 day = day,
                 now = now,
                 menu = menu,
-                isMessSelected = isMessSelected,
-                onToggleMode = onToggleMode,
-                onPreviousDay = {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                    }
-                },
-                onNextDay = {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                    }
-                },
             )
         }
     }
@@ -99,10 +82,6 @@ private fun DayMessMenu(
     day: TimetableDay,
     now: LocalDateTime,
     menu: Map<java.time.DayOfWeek, DayMenu>,
-    isMessSelected: Boolean,
-    onToggleMode: () -> Unit,
-    onPreviousDay: () -> Unit,
-    onNextDay: () -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
     val isToday = day.dayOfWeek == now.dayOfWeek
@@ -144,50 +123,6 @@ private fun DayMessMenu(
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-            item {
-                ListHeader(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clickable(onClick = onPreviousDay),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_chevron_left_24),
-                                contentDescription = "Previous Day",
-                                tint = Color(0xFF8A8A8A),
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
-
-                        Text(
-                            text = day.shortName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF8A8A8A),
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clickable(onClick = onNextDay),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_chevron_right_24),
-                                contentDescription = "Next Day",
-                                tint = Color(0xFF8A8A8A),
-                                modifier = Modifier.size(16.dp),
-                            )
-                        }
-                    }
-                }
-            }
-
             meals.forEach { meal ->
                 item {
                     val isNow = isToday && meal == currentMeal
@@ -221,16 +156,6 @@ private fun DayMessMenu(
                 }
             }
             }
-            ScreenModeToggle(
-                isMessSelected = isMessSelected,
-                onToggle = onToggleMode,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(
-                        top = contentPadding.calculateTopPadding() + 8.dp,
-                        end = 40.dp,
-                    ),
-            )
         }
     }
 }
