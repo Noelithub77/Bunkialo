@@ -62,6 +62,7 @@ import com.codialo.bunkialo.schedule.WearTimetableSource
 import com.codialo.bunkialo.schedule.breakLabelBetween
 import com.codialo.bunkialo.schedule.events
 import com.codialo.bunkialo.schedule.focusDay
+import com.codialo.bunkialo.schedule.nextScheduledEvent
 import com.codialo.bunkialo.ui.ScreenModeToggle
 import com.codialo.bunkialo.ui.DayHeader
 import java.time.LocalDateTime
@@ -73,29 +74,49 @@ import java.util.concurrent.Executors
 private val remoteActivityExecutor = Executors.newSingleThreadExecutor()
 
 class MainActivity : ComponentActivity() {
+    private val timetableLaunchRequest = mutableStateOf<TimetableLaunchRequest?>(null)
+    private var timetableLaunchRequestId = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { TimetableApp() }
+        recordTimetableLaunchRequest(intent)
+        setContent { TimetableApp(timetableLaunchRequest.value) }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        recordTimetableLaunchRequest(intent)
+    }
+
+    private fun recordTimetableLaunchRequest(intent: Intent) {
+        val nextRequestId = timetableLaunchRequestId + 1
+        TimetableLaunchRequest.fromIntent(intent, nextRequestId)?.let { request ->
+            timetableLaunchRequestId = nextRequestId
+            timetableLaunchRequest.value = request
+        }
     }
 }
 
 @Composable
-fun TimetableApp() {
+private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
     BunkialoTheme {
         AppScaffold {
             val now = remember { mutableStateOf(LocalDateTime.now()) }
             val context = LocalContext.current
             val repository = remember { WearTimetableRepository(context) }
             val timetable = remember { mutableStateOf(repository.load()) }
-            val initialDay = remember {
-                TimetableDay.entries.indexOf(focusDay(now.value, timetable.value.timetable))
+            val initialDay = remember(launchRequest?.requestId) {
+                launchRequest?.day?.ordinal
+                    ?: TimetableDay.entries.indexOf(focusDay(now.value, timetable.value.timetable))
             }
-            val initiallyShowMess = remember {
+            val initiallyShowMess = remember(launchRequest?.requestId) {
                 val day = TimetableDay.entries[initialDay]
-                (day == TimetableDay.SATURDAY || day == TimetableDay.SUNDAY) &&
+                launchRequest == null &&
+                    (day == TimetableDay.SATURDAY || day == TimetableDay.SUNDAY) &&
                     day.events(timetable.value.timetable).isEmpty()
             }
-            var isMessSelected by remember { mutableStateOf(initiallyShowMess) }
+            var isMessSelected by remember(launchRequest?.requestId) { mutableStateOf(initiallyShowMess) }
             LaunchedEffect(Unit) {
                 while (true) {
                     now.value = LocalDateTime.now()
@@ -138,6 +159,17 @@ fun TimetableApp() {
                         pagerState.scrollToPage(targetPage)
                     }
                 }
+            }
+
+            LaunchedEffect(launchRequest?.requestId) {
+                val request = launchRequest ?: return@LaunchedEffect
+                val requestedDay = request.day ?: TimetableDay.entries[initialDay]
+                val pageCount = TimetableDay.entries.size
+                val timetablePage = pagerState.currentPage - pagerState.currentPage % pageCount + requestedDay.ordinal
+                val messPage = messPagerState.currentPage - messPagerState.currentPage % pageCount + requestedDay.ordinal
+                messPagerState.scrollToPage(messPage)
+                pagerState.scrollToPage(timetablePage)
+                isMessSelected = false
             }
 
             BackHandler(enabled = isMessSelected) {
@@ -185,6 +217,7 @@ fun TimetableApp() {
                                 day = TimetableDay.entries[page % TimetableDay.entries.size],
                                 now = now.value,
                                 timetable = timetable.value,
+                                scrollToTopKey = launchRequest?.requestId,
                                 dayHeader = {
                                     DayHeader(
                                         day = TimetableDay.entries[page % TimetableDay.entries.size],
@@ -234,17 +267,20 @@ private fun DaySchedule(
     day: TimetableDay,
     now: LocalDateTime,
     timetable: WearTimetableData,
+    scrollToTopKey: Int?,
     dayHeader: @Composable () -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
     val context = LocalContext.current
     val events = day.events(timetable.timetable)
     val isToday = day.dayOfWeek == now.dayOfWeek
-    val isNextDay = day == nextTimetableDay(now)
     val currentEventIndex = events.indexOfFirst { it.isHappeningAt(now) }
-    val nextEventIndex = events.indexOfFirst {
-        it.startMinutes > now.hour * 60 + now.minute
+    val nextPeriod = nextScheduledEvent(now, timetable.timetable)
+
+    LaunchedEffect(scrollToTopKey, day) {
+        if (scrollToTopKey != null) listState.scrollToItem(0)
     }
+
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -305,8 +341,7 @@ private fun DaySchedule(
                         event = event,
                         highlight = when {
                             isToday && index == currentEventIndex -> EventHighlight.NOW
-                            (!isToday && isNextDay) && index == 0 -> EventHighlight.NEXT
-                            isToday && index == nextEventIndex -> EventHighlight.NEXT
+                            nextPeriod?.day == day && nextPeriod.event == event -> EventHighlight.NEXT
                             else -> EventHighlight.NONE
                         },
                     )
@@ -350,14 +385,6 @@ private fun BreakLabel(label: String) {
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.labelSmall,
     )
-}
-
-private fun nextTimetableDay(now: LocalDateTime): TimetableDay {
-    val todayIndex = TimetableDay.entries.indexOfFirst { it.dayOfWeek == now.dayOfWeek }
-    if (todayIndex == -1) {
-        return TimetableDay.MONDAY
-    }
-    return TimetableDay.entries[(todayIndex + 1) % TimetableDay.entries.size]
 }
 
 private enum class EventHighlight {
