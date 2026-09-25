@@ -21,8 +21,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,6 +41,7 @@ import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.Text
 import com.codialo.bunkialo.R
 import com.codialo.bunkialo.schedule.Pastel
@@ -53,25 +53,25 @@ fun MessMenuScreen(
     pagerState: PagerState,
     now: LocalDateTime,
     menu: Map<java.time.DayOfWeek, DayMenu>,
+    dayHeader: @Composable (TimetableDay) -> Unit,
 ) {
     HorizontalPager(
         state = pagerState,
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 72.dp),
+            .clipToBounds(),
     ) { page ->
         val day = TimetableDay.entries[page % TimetableDay.entries.size]
-        val isCurrentMessPage = pagerState.currentPage == page
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .hierarchicalFocusGroup(active = isCurrentMessPage),
+                .hierarchicalFocusGroup(active = pagerState.currentPage == page),
         ) {
             DayMessMenu(
                 day = day,
                 now = now,
                 menu = menu,
+                dayHeader = { dayHeader(day) },
             )
         }
     }
@@ -82,6 +82,7 @@ private fun DayMessMenu(
     day: TimetableDay,
     now: LocalDateTime,
     menu: Map<java.time.DayOfWeek, DayMenu>,
+    dayHeader: @Composable () -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
     val isToday = day.dayOfWeek == now.dayOfWeek
@@ -90,30 +91,18 @@ private fun DayMessMenu(
 
     var expandedMealType by remember { mutableStateOf<MealType?>(null) }
 
-    val centerOffset = with(LocalDensity.current) {
-        -8.dp.roundToPx()
-    }
-
     val meals = todayMenu?.meals ?: emptyList()
-    val focusedMealIndex = if (isToday) {
-        if (currentMeal != null) {
-            meals.indexOf(currentMeal)
-        } else if (nextMeal != null && meals.contains(nextMeal)) {
-            meals.indexOf(nextMeal)
-        } else {
-            0
-        }
-    } else {
-        0
-    }
-
-    LaunchedEffect(day, focusedMealIndex) {
-        if (focusedMealIndex >= 0) {
-            listState.scrollToItem(focusedMealIndex + 1, centerOffset)
-        }
-    }
-
-    ScreenScaffold(scrollState = listState) { contentPadding ->
+    ScreenScaffold(
+        scrollState = listState,
+        scrollIndicator = {
+            ScrollIndicator(
+                state = listState,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 12.dp),
+            )
+        },
+    ) { contentPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             TransformingLazyColumn(
                 state = listState,
@@ -123,6 +112,16 @@ private fun DayMessMenu(
                     .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    dayHeader()
+                }
+            }
             meals.forEach { meal ->
                 item {
                     val isNow = isToday && meal == currentMeal
