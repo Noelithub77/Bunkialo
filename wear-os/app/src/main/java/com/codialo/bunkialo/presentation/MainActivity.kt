@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import androidx.wear.remote.interactions.RemoteActivityHelper
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
@@ -119,9 +119,9 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
             var isMessSelected by remember(launchRequest?.requestId) { mutableStateOf(initiallyShowMess) }
             LaunchedEffect(Unit) {
                 while (true) {
+                    delay(30_000)
                     now.value = LocalDateTime.now()
                     timetable.value = repository.load()
-                    delay(30_000)
                 }
             }
             val middlePage = Int.MAX_VALUE / 2
@@ -167,9 +167,9 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
                 val pageCount = TimetableDay.entries.size
                 val timetablePage = pagerState.currentPage - pagerState.currentPage % pageCount + requestedDay.ordinal
                 val messPage = messPagerState.currentPage - messPagerState.currentPage % pageCount + requestedDay.ordinal
-                messPagerState.scrollToPage(messPage)
-                pagerState.scrollToPage(timetablePage)
                 isMessSelected = false
+                if (messPagerState.currentPage != messPage) messPagerState.scrollToPage(messPage)
+                if (pagerState.currentPage != timetablePage) pagerState.scrollToPage(timetablePage)
             }
 
             BackHandler(enabled = isMessSelected) {
@@ -217,7 +217,7 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
                                 day = TimetableDay.entries[page % TimetableDay.entries.size],
                                 now = now.value,
                                 timetable = timetable.value,
-                                scrollToTopKey = launchRequest?.requestId,
+                                launchRequest = launchRequest,
                                 dayHeader = {
                                     DayHeader(
                                         day = TimetableDay.entries[page % TimetableDay.entries.size],
@@ -267,18 +267,35 @@ private fun DaySchedule(
     day: TimetableDay,
     now: LocalDateTime,
     timetable: WearTimetableData,
-    scrollToTopKey: Int?,
+    launchRequest: TimetableLaunchRequest?,
     dayHeader: @Composable () -> Unit,
 ) {
-    val listState = rememberTransformingLazyColumnState()
     val context = LocalContext.current
     val events = day.events(timetable.timetable)
     val isToday = day.dayOfWeek == now.dayOfWeek
     val currentEventIndex = events.indexOfFirst { it.isHappeningAt(now) }
     val nextPeriod = nextScheduledEvent(now, timetable.timetable)
-
-    LaunchedEffect(scrollToTopKey, day) {
-        if (scrollToTopKey != null) listState.scrollToItem(0)
+    val requestedEventIndex = if (launchRequest?.day == day) {
+        launchRequest.startMinutes?.let { startMinutes ->
+            events.indexOfFirst { it.startMinutes == startMinutes }
+        } ?: -1
+    } else {
+        -1
+    }
+    val initialEventIndex = remember(day, launchRequest?.requestId) {
+        when {
+            requestedEventIndex >= 0 -> requestedEventIndex
+            currentEventIndex >= 0 -> currentEventIndex
+            isToday -> events.indexOfFirst { it.startMinutes > now.hour * 60 + now.minute }
+            nextPeriod?.day == day -> events.indexOf(nextPeriod.event)
+            else -> if (events.isEmpty()) -1 else 0
+        }
+    }
+    val initialListIndex = remember(day, launchRequest?.requestId) {
+        lazyListIndexForEvent(events, initialEventIndex)
+    }
+    val listState = remember(day, launchRequest?.requestId) {
+        TransformingLazyColumnState(initialAnchorItemIndex = initialListIndex)
     }
 
     ScreenScaffold(
@@ -372,6 +389,18 @@ private fun DaySchedule(
             }
         }
     }
+}
+
+private fun lazyListIndexForEvent(
+    events: List<TimetableEvent>,
+    eventIndex: Int,
+): Int {
+    if (eventIndex < 0) return 0
+
+    val breakCount = (1..eventIndex).count { index ->
+        breakLabelBetween(events[index - 1], events[index]) != null
+    }
+    return 1 + eventIndex + breakCount
 }
 
 @Composable

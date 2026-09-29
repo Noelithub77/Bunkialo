@@ -126,14 +126,12 @@ private fun DayMessMenu(
                 item {
                     val isNow = isToday && meal == currentMeal
                     val isNext = isToday && meal == nextMeal && currentMeal == null
-                    val isPast = isToday && !isNow && !isNext && meals.indexOf(meal) < meals.indexOf(currentMeal ?: nextMeal ?: meal)
                     val isExpanded = expandedMealType == meal.type
 
                     MealCard(
                         meal = meal,
                         isNow = isNow,
                         isNext = isNext,
-                        isPast = isPast,
                         isExpanded = isExpanded,
                         onClick = {
                             expandedMealType = if (isExpanded) null else meal.type
@@ -164,7 +162,6 @@ private fun MealCard(
     meal: Meal,
     isNow: Boolean,
     isNext: Boolean,
-    isPast: Boolean,
     isExpanded: Boolean,
     onClick: () -> Unit,
 ) {
@@ -193,8 +190,7 @@ private fun MealCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
-                    .let { if (isPast) it.background(Color.White.copy(alpha = 0.5f)) else it },
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.Top,
             ) {
@@ -229,9 +225,9 @@ private fun MealCard(
                     if (isExpanded) {
                         Text(
                             text = meal.time,
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.Black.copy(alpha = 0.7f),
+                            color = Color.Black.copy(alpha = 0.9f),
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Column(
@@ -268,8 +264,9 @@ private fun MealCard(
                         )
                         Text(
                             text = meal.time,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color.Black.copy(alpha = 0.65f),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.Black.copy(alpha = 0.9f),
                         )
                     }
                 }
