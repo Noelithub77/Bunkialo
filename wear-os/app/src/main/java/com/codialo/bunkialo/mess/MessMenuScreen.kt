@@ -109,7 +109,7 @@ private fun DayMessMenu(
                 contentPadding = contentPadding,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
+                    .padding(horizontal = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
             item {
