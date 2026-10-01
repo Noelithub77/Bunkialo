@@ -35,7 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
 import androidx.wear.compose.material3.Icon
@@ -84,14 +84,27 @@ private fun DayMessMenu(
     menu: Map<java.time.DayOfWeek, DayMenu>,
     dayHeader: @Composable () -> Unit,
 ) {
-    val listState = rememberTransformingLazyColumnState()
     val isToday = day.dayOfWeek == now.dayOfWeek
     val todayMenu = menu[day.dayOfWeek]
-    val (currentMeal, nextMeal) = if (isToday) currentOrNextMeal(now, menu) else (null to null)
-
-    var expandedMealType by remember { mutableStateOf<MealType?>(null) }
-
     val meals = todayMenu?.meals ?: emptyList()
+    val currentMeal = if (isToday) currentOrNextMeal(now, menu).first else null
+    val nowMinutes = now.hour * 60 + now.minute
+    val nextMeal = if (isToday) {
+        meals.firstOrNull { it.startMinutes > nowMinutes }
+    } else {
+        null
+    }
+    val mealToFocus = nextMeal ?: currentMeal
+    val mealIndex = meals.indexOf(mealToFocus)
+    val listState = androidx.compose.runtime.remember(day) {
+        TransformingLazyColumnState(
+            initialAnchorItemIndex = if (mealIndex >= 0) mealIndex + 1 else 0,
+        )
+    }
+    var expandedMealType by remember(day) {
+        mutableStateOf(if (isToday) nextMeal?.type else null)
+    }
+
     ScreenScaffold(
         scrollState = listState,
         scrollIndicator = {
@@ -125,7 +138,7 @@ private fun DayMessMenu(
             meals.forEach { meal ->
                 item {
                     val isNow = isToday && meal == currentMeal
-                    val isNext = isToday && meal == nextMeal && currentMeal == null
+                    val isNext = isToday && meal == nextMeal
                     val isExpanded = expandedMealType == meal.type
 
                     MealCard(

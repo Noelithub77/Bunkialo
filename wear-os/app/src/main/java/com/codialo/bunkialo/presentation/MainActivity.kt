@@ -63,6 +63,7 @@ import com.codialo.bunkialo.schedule.breakLabelBetween
 import com.codialo.bunkialo.schedule.events
 import com.codialo.bunkialo.schedule.focusDay
 import com.codialo.bunkialo.schedule.nextScheduledEvent
+import com.codialo.bunkialo.mess.nextMealDay
 import com.codialo.bunkialo.ui.ScreenModeToggle
 import com.codialo.bunkialo.ui.DayHeader
 import java.time.LocalDateTime
@@ -140,23 +141,33 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
             val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
 
             LaunchedEffect(isMessSelected) {
-                val currentDayIndex = if (isMessSelected) {
-                    pagerState.currentPage % TimetableDay.entries.size
-                } else {
-                    messPagerState.currentPage % TimetableDay.entries.size
-                }
-
                 if (isMessSelected) {
                     val messDayIndex = messPagerState.currentPage % TimetableDay.entries.size
-                    if (currentDayIndex != messDayIndex) {
-                        val targetPage = messPagerState.currentPage - messDayIndex + currentDayIndex
-                        messPagerState.scrollToPage(targetPage)
+                    val timetableDay = TimetableDay.entries[
+                        pagerState.currentPage % TimetableDay.entries.size
+                    ]
+                    val today = TimetableDay.entries.firstOrNull { it.dayOfWeek == now.value.dayOfWeek }
+                    val complicationOpenedTomorrow =
+                        launchRequest?.startMinutes != null &&
+                            launchRequest.day == timetableDay &&
+                            timetableDay != today
+                    val targetDay = if (complicationOpenedTomorrow) {
+                        nextMealDay(now.value, messMenu) ?: timetableDay
+                    } else {
+                        timetableDay
+                    }
+                    val targetPage = messPagerState.currentPage - messDayIndex + targetDay.ordinal
+                    if (messPagerState.currentPage != targetPage) {
+                        messPagerState.animateScrollToPage(targetPage)
                     }
                 } else {
                     val timetableDayIndex = pagerState.currentPage % TimetableDay.entries.size
-                    if (currentDayIndex != timetableDayIndex) {
-                        val targetPage = pagerState.currentPage - timetableDayIndex + currentDayIndex
-                        pagerState.scrollToPage(targetPage)
+                    val messDay = TimetableDay.entries[
+                        messPagerState.currentPage % TimetableDay.entries.size
+                    ]
+                    val targetPage = pagerState.currentPage - timetableDayIndex + messDay.ordinal
+                    if (pagerState.currentPage != targetPage) {
+                        pagerState.animateScrollToPage(targetPage)
                     }
                 }
             }
@@ -274,6 +285,12 @@ private fun DaySchedule(
     val events = day.events(timetable.timetable)
     val isToday = day.dayOfWeek == now.dayOfWeek
     val currentEventIndex = events.indexOfFirst { it.isHappeningAt(now) }
+    val nowMinutes = now.hour * 60 + now.minute
+    val nextEventIndex = if (isToday) {
+        events.indexOfFirst { it.startMinutes > nowMinutes }
+    } else {
+        -1
+    }
     val nextPeriod = nextScheduledEvent(now, timetable.timetable)
     val requestedEventIndex = if (launchRequest?.day == day) {
         launchRequest.startMinutes?.let { startMinutes ->
@@ -285,8 +302,8 @@ private fun DaySchedule(
     val initialEventIndex = remember(day, launchRequest?.requestId) {
         when {
             requestedEventIndex >= 0 -> requestedEventIndex
+            nextEventIndex >= 0 -> nextEventIndex
             currentEventIndex >= 0 -> currentEventIndex
-            isToday -> events.indexOfFirst { it.startMinutes > now.hour * 60 + now.minute }
             nextPeriod?.day == day -> events.indexOf(nextPeriod.event)
             else -> if (events.isEmpty()) -1 else 0
         }
