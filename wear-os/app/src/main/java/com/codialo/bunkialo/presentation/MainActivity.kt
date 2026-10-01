@@ -151,7 +151,8 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
                         launchRequest?.startMinutes != null &&
                             launchRequest.day == timetableDay &&
                             timetableDay != today
-                    val targetDay = if (complicationOpenedTomorrow) {
+                    val shouldFollowNextMeal = timetableDay == today || complicationOpenedTomorrow
+                    val targetDay = if (shouldFollowNextMeal) {
                         nextMealDay(now.value, messMenu) ?: timetableDay
                     } else {
                         timetableDay
