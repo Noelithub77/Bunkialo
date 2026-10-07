@@ -222,8 +222,8 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?, modeToggleId: I
                 if (pagerState.currentPage != timetablePage) pagerState.scrollToPage(timetablePage)
             }
 
-            BackHandler(enabled = isMessSelected) {
-                isMessSelected = false
+            BackHandler {
+                isMessSelected = !isMessSelected
             }
 
             Box(modifier = Modifier.fillMaxSize()) {
