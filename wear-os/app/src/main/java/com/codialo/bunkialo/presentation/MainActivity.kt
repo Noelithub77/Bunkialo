@@ -61,6 +61,7 @@ import com.codialo.bunkialo.schedule.TimetableEvent
 import com.codialo.bunkialo.schedule.WearTimetableData
 import com.codialo.bunkialo.schedule.WearTimetableRepository
 import com.codialo.bunkialo.schedule.WearTimetableSource
+import com.codialo.bunkialo.schedule.complicationEvent
 import com.codialo.bunkialo.schedule.breakLabelBetween
 import com.codialo.bunkialo.schedule.events
 import com.codialo.bunkialo.schedule.focusedEventForToday
@@ -177,38 +178,34 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?, modeToggleId: I
             val messMenu = remember { messRepository.loadMenu() }
             val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
             var previousMessSelected by remember { mutableStateOf(initiallyShowMess) }
+            var classFocusRequest by remember(launchRequest?.requestId) { mutableStateOf(launchRequest) }
+            var classFocusRequestId by remember { mutableStateOf(0) }
+            var messFocusId by remember { mutableStateOf(0) }
 
             LaunchedEffect(isMessSelected) {
                 if (isMessSelected == previousMessSelected) return@LaunchedEffect
                 previousMessSelected = isMessSelected
+                val switchTime = LocalDateTime.now()
+                now.value = switchTime
+                timetable.value = repository.load()
+                val today = TimetableDay.entries.first { it.dayOfWeek == switchTime.dayOfWeek }
+                val pageCount = TimetableDay.entries.size
                 if (isMessSelected) {
-                    val messDayIndex = messPagerState.currentPage % TimetableDay.entries.size
-                    val timetableDay = TimetableDay.entries[
-                        pagerState.currentPage % TimetableDay.entries.size
-                    ]
-                    val today = TimetableDay.entries.firstOrNull { it.dayOfWeek == now.value.dayOfWeek }
-                    val complicationOpenedTomorrow =
-                        launchRequest?.startMinutes != null &&
-                            launchRequest.day == timetableDay &&
-                            timetableDay != today
-                    val targetDay = if (timetableDay == today || complicationOpenedTomorrow) {
-                        today ?: timetableDay
-                    } else {
-                        timetableDay
-                    }
-                    val targetPage = messPagerState.currentPage - messDayIndex + targetDay.ordinal
-                    if (messPagerState.currentPage != targetPage) {
-                        messPagerState.animateScrollToPage(targetPage)
-                    }
+                    messFocusId += 1
+                    val targetPage = messPagerState.currentPage - messPagerState.currentPage % pageCount + today.ordinal
+                    messPagerState.scrollToPage(targetPage)
                 } else {
-                    val timetableDayIndex = pagerState.currentPage % TimetableDay.entries.size
-                    val messDay = TimetableDay.entries[
-                        messPagerState.currentPage % TimetableDay.entries.size
-                    ]
-                    val targetPage = pagerState.currentPage - timetableDayIndex + messDay.ordinal
-                    if (pagerState.currentPage != targetPage) {
-                        pagerState.animateScrollToPage(targetPage)
-                    }
+                    val target = complicationEvent(switchTime, timetable.value.timetable)
+                    val targetDay = target?.day ?: today
+                    // A fresh request also resets the class anchor when the day is unchanged.
+                    classFocusRequestId -= 1
+                    classFocusRequest = TimetableLaunchRequest(
+                        requestId = classFocusRequestId,
+                        day = targetDay,
+                        startMinutes = target?.event?.startMinutes,
+                    )
+                    val targetPage = pagerState.currentPage - pagerState.currentPage % pageCount + targetDay.ordinal
+                    pagerState.scrollToPage(targetPage)
                 }
             }
 
@@ -228,28 +225,30 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?, modeToggleId: I
 
             Box(modifier = Modifier.fillMaxSize()) {
                 if (isMessSelected) {
-                    com.codialo.bunkialo.mess.MessMenuScreen(
-                        pagerState = messPagerState,
-                        now = now.value,
-                        menu = messMenu,
-                        dayHeader = { day ->
-                            DayHeader(
-                                day = day,
-                                canResetTimetable = false,
-                                onResetTimetable = {},
-                                onPreviousDay = {
-                                    coroutineScope.launch {
-                                        activePagerState.animateScrollToPage(activePagerState.currentPage - 1)
-                                    }
-                                },
-                                onNextDay = {
-                                    coroutineScope.launch {
-                                        activePagerState.animateScrollToPage(activePagerState.currentPage + 1)
-                                    }
-                                },
-                            )
-                        },
-                    )
+                    key(messFocusId) {
+                        com.codialo.bunkialo.mess.MessMenuScreen(
+                            pagerState = messPagerState,
+                            now = now.value,
+                            menu = messMenu,
+                            dayHeader = { day ->
+                                DayHeader(
+                                    day = day,
+                                    canResetTimetable = false,
+                                    onResetTimetable = {},
+                                    onPreviousDay = {
+                                        coroutineScope.launch {
+                                            activePagerState.animateScrollToPage(activePagerState.currentPage - 1)
+                                        }
+                                    },
+                                    onNextDay = {
+                                        coroutineScope.launch {
+                                            activePagerState.animateScrollToPage(activePagerState.currentPage + 1)
+                                        }
+                                    },
+                                )
+                            },
+                        )
+                    }
                 } else {
                     HorizontalPager(
                         state = pagerState,
@@ -267,7 +266,7 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?, modeToggleId: I
                                 day = TimetableDay.entries[page % TimetableDay.entries.size],
                                 now = now.value,
                                 timetable = timetable.value,
-                                launchRequest = launchRequest,
+                                launchRequest = classFocusRequest,
                                 dayHeader = {
                                     DayHeader(
                                         day = TimetableDay.entries[page % TimetableDay.entries.size],
