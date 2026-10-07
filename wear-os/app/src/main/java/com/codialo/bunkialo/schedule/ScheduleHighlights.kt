@@ -2,6 +2,15 @@ package com.codialo.bunkialo.schedule
 
 import java.time.LocalDateTime
 
+fun focusedEventForToday(
+    now: LocalDateTime,
+    timetable: Map<TimetableDay, List<TimetableEvent>> = weeklyTimetable,
+): TimetableEvent? {
+    val today = TimetableDay.entries.first { it.dayOfWeek == now.dayOfWeek }
+    val highlighted = complicationEvent(now, timetable)
+    return if (highlighted?.day == today) highlighted.event else today.events(timetable).lastOrNull()
+}
+
 fun nextScheduledEvent(
     now: LocalDateTime,
     timetable: Map<TimetableDay, List<TimetableEvent>> = weeklyTimetable,

@@ -94,7 +94,7 @@ private fun DayMessMenu(
     } else {
         null
     }
-    val mealToFocus = nextMeal ?: currentMeal
+    val mealToFocus = if (isToday) focusedMealForToday(now, menu) else null
     val mealIndex = meals.indexOf(mealToFocus)
     val listState = androidx.compose.runtime.remember(day) {
         TransformingLazyColumnState(
@@ -102,7 +102,7 @@ private fun DayMessMenu(
         )
     }
     var expandedMealType by remember(day) {
-        mutableStateOf(if (isToday) nextMeal?.type else null)
+        mutableStateOf(mealToFocus?.type)
     }
 
     ScreenScaffold(

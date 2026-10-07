@@ -79,6 +79,7 @@ android {
         // Keep Wear releases in their own high range so they never collide with phone builds.
         versionCode = 1_000_001
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
 

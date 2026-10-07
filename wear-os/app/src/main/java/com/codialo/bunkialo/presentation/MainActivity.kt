@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -30,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -61,9 +63,8 @@ import com.codialo.bunkialo.schedule.WearTimetableRepository
 import com.codialo.bunkialo.schedule.WearTimetableSource
 import com.codialo.bunkialo.schedule.breakLabelBetween
 import com.codialo.bunkialo.schedule.events
-import com.codialo.bunkialo.schedule.focusDay
+import com.codialo.bunkialo.schedule.focusedEventForToday
 import com.codialo.bunkialo.schedule.nextScheduledEvent
-import com.codialo.bunkialo.mess.nextMealDay
 import com.codialo.bunkialo.ui.ScreenModeToggle
 import com.codialo.bunkialo.ui.DayHeader
 import java.time.LocalDateTime
@@ -77,30 +78,59 @@ private val remoteActivityExecutor = Executors.newSingleThreadExecutor()
 class MainActivity : ComponentActivity() {
     private val timetableLaunchRequest = mutableStateOf<TimetableLaunchRequest?>(null)
     private var timetableLaunchRequestId = 0
+    private val openingId = mutableStateOf(0)
+    private val modeToggleId = mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         recordTimetableLaunchRequest(intent)
-        setContent { TimetableApp(timetableLaunchRequest.value) }
+        setContent {
+            key(openingId.value) {
+                TimetableApp(timetableLaunchRequest.value, modeToggleId.value)
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        openingId.value += 1
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // A complication target applies only to the opening that received it.
+        timetableLaunchRequest.value = null
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         recordTimetableLaunchRequest(intent)
+        openingId.value += 1
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_STEM_1) return true
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_STEM_1) {
+            if (event?.isCanceled == false) modeToggleId.value += 1
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
     }
 
     private fun recordTimetableLaunchRequest(intent: Intent) {
         val nextRequestId = timetableLaunchRequestId + 1
-        TimetableLaunchRequest.fromIntent(intent, nextRequestId)?.let { request ->
-            timetableLaunchRequestId = nextRequestId
-            timetableLaunchRequest.value = request
-        }
+        timetableLaunchRequestId = nextRequestId
+        timetableLaunchRequest.value = TimetableLaunchRequest.fromIntent(intent, nextRequestId)
     }
 }
 
 @Composable
-private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
+private fun TimetableApp(launchRequest: TimetableLaunchRequest?, modeToggleId: Int) {
     BunkialoTheme {
         AppScaffold {
             val now = remember { mutableStateOf(LocalDateTime.now()) }
@@ -109,7 +139,7 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
             val timetable = remember { mutableStateOf(repository.load()) }
             val initialDay = remember(launchRequest?.requestId) {
                 launchRequest?.day?.ordinal
-                    ?: TimetableDay.entries.indexOf(focusDay(now.value, timetable.value.timetable))
+                    ?: TimetableDay.entries.indexOfFirst { it.dayOfWeek == now.value.dayOfWeek }
             }
             val initiallyShowMess = remember(launchRequest?.requestId) {
                 val day = TimetableDay.entries[initialDay]
@@ -118,6 +148,13 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
                     day.events(timetable.value.timetable).isEmpty()
             }
             var isMessSelected by remember(launchRequest?.requestId) { mutableStateOf(initiallyShowMess) }
+            var handledModeToggleId by remember { mutableStateOf(modeToggleId) }
+            LaunchedEffect(modeToggleId) {
+                if (modeToggleId != handledModeToggleId) {
+                    isMessSelected = !isMessSelected
+                    handledModeToggleId = modeToggleId
+                }
+            }
             LaunchedEffect(Unit) {
                 while (true) {
                     delay(30_000)
@@ -139,8 +176,11 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
             val messRepository = remember { com.codialo.bunkialo.mess.MessMenuRepository(context) }
             val messMenu = remember { messRepository.loadMenu() }
             val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+            var previousMessSelected by remember { mutableStateOf(initiallyShowMess) }
 
             LaunchedEffect(isMessSelected) {
+                if (isMessSelected == previousMessSelected) return@LaunchedEffect
+                previousMessSelected = isMessSelected
                 if (isMessSelected) {
                     val messDayIndex = messPagerState.currentPage % TimetableDay.entries.size
                     val timetableDay = TimetableDay.entries[
@@ -151,9 +191,8 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
                         launchRequest?.startMinutes != null &&
                             launchRequest.day == timetableDay &&
                             timetableDay != today
-                    val shouldFollowNextMeal = timetableDay == today || complicationOpenedTomorrow
-                    val targetDay = if (shouldFollowNextMeal) {
-                        nextMealDay(now.value, messMenu) ?: timetableDay
+                    val targetDay = if (timetableDay == today || complicationOpenedTomorrow) {
+                        today ?: timetableDay
                     } else {
                         timetableDay
                     }
@@ -174,12 +213,11 @@ private fun TimetableApp(launchRequest: TimetableLaunchRequest?) {
             }
 
             LaunchedEffect(launchRequest?.requestId) {
-                val request = launchRequest ?: return@LaunchedEffect
-                val requestedDay = request.day ?: TimetableDay.entries[initialDay]
+                val requestedDay = launchRequest?.day ?: TimetableDay.entries[initialDay]
                 val pageCount = TimetableDay.entries.size
                 val timetablePage = pagerState.currentPage - pagerState.currentPage % pageCount + requestedDay.ordinal
                 val messPage = messPagerState.currentPage - messPagerState.currentPage % pageCount + requestedDay.ordinal
-                isMessSelected = false
+                isMessSelected = initiallyShowMess
                 if (messPagerState.currentPage != messPage) messPagerState.scrollToPage(messPage)
                 if (pagerState.currentPage != timetablePage) pagerState.scrollToPage(timetablePage)
             }
@@ -286,12 +324,7 @@ private fun DaySchedule(
     val events = day.events(timetable.timetable)
     val isToday = day.dayOfWeek == now.dayOfWeek
     val currentEventIndex = events.indexOfFirst { it.isHappeningAt(now) }
-    val nowMinutes = now.hour * 60 + now.minute
-    val nextEventIndex = if (isToday) {
-        events.indexOfFirst { it.startMinutes > nowMinutes }
-    } else {
-        -1
-    }
+    val focusEventIndex = if (isToday) events.indexOf(focusedEventForToday(now, timetable.timetable)) else -1
     val nextPeriod = nextScheduledEvent(now, timetable.timetable)
     val requestedEventIndex = if (launchRequest?.day == day) {
         launchRequest.startMinutes?.let { startMinutes ->
@@ -303,8 +336,9 @@ private fun DaySchedule(
     val initialEventIndex = remember(day, launchRequest?.requestId) {
         when {
             requestedEventIndex >= 0 -> requestedEventIndex
-            nextEventIndex >= 0 -> nextEventIndex
+            focusEventIndex >= 0 -> focusEventIndex
             currentEventIndex >= 0 -> currentEventIndex
+            isToday -> events.lastIndex
             nextPeriod?.day == day -> events.indexOf(nextPeriod.event)
             else -> if (events.isEmpty()) -1 else 0
         }

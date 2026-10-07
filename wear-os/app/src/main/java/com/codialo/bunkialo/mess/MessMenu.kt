@@ -3,7 +3,6 @@ package com.codialo.bunkialo.mess
 import android.content.Context
 import com.codialo.bunkialo.R
 import com.codialo.bunkialo.schedule.Pastel
-import com.codialo.bunkialo.schedule.TimetableDay
 import org.json.JSONArray
 import java.io.InputStreamReader
 import java.time.DayOfWeek
@@ -167,20 +166,13 @@ fun currentOrNextMeal(
     return current to next
 }
 
-fun nextMealDay(
+fun focusedMealForToday(
     now: LocalDateTime,
     menu: Map<DayOfWeek, DayMenu>,
-): TimetableDay? {
-    val todayIndex = TimetableDay.entries.indexOfFirst { it.dayOfWeek == now.dayOfWeek }
-    if (todayIndex < 0) return null
-
-    val nowMinutes = now.hour * 60 + now.minute
-    return (0 until TimetableDay.entries.size)
-        .asSequence()
-        .map { offset -> TimetableDay.entries[(todayIndex + offset) % TimetableDay.entries.size] }
-        .firstOrNull { day ->
-            menu[day.dayOfWeek]?.meals.orEmpty().any { meal ->
-                day != TimetableDay.entries[todayIndex] || meal.startMinutes > nowMinutes
-            }
-        }
+): Meal? {
+    val meals = menu[now.dayOfWeek]?.meals.orEmpty()
+    val minutes = now.hour * 60 + now.minute
+    return meals.firstOrNull { it.isHappeningAt(minutes) }
+        ?: meals.firstOrNull { it.startMinutes > minutes }
+        ?: meals.lastOrNull()
 }
