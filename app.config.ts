@@ -14,6 +14,17 @@ function requirePackageVersion(): string {
 
 export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
   const pkgVersion = requirePackageVersion();
+  const otaRuntime = process.env.OTA_RUNTIME_VERSION;
+  if (
+    otaRuntime &&
+    ![
+      "1.4.1-sdk58-widgets-v1",
+      "1.5.0-sdk58-widgets-v1",
+      `${pkgVersion}-sdk58-widgets-pdf-v1`,
+    ].includes(otaRuntime)
+  ) {
+    throw new Error("Unsupported SDK 58 OTA runtime");
+  }
   const isExpoGoPreview = process.env.EXPO_GO_PREVIEW === "1";
 
   return {
@@ -25,8 +36,8 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
     icon: "./src/assets/images/icon.png",
     scheme: "bunkialo",
     userInterfaceStyle: "automatic",
-    newArchEnabled: true,
     ios: {
+      bundleIdentifier: "com.codialo.Bunkialo2",
       supportsTablet: true,
       icon: {
         light: "./src/assets/images/ios-icon-light.png",
@@ -40,16 +51,12 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
     // Developer-facing build numbers are managed by EAS remote versioning.
     android: {
       softwareKeyboardLayoutMode: "resize",
-      permissions: [
-        "RECEIVE_BOOT_COMPLETED",
-        "ACCESS_NETWORK_STATE",
-      ],
+      permissions: ["RECEIVE_BOOT_COMPLETED", "ACCESS_NETWORK_STATE"],
       adaptiveIcon: {
         backgroundColor: "#FFAB00",
         foregroundImage: "./src/assets/images/android-icon-foreground.png",
         monochromeImage: "./src/assets/images/android-icon-monochrome.png",
       },
-      edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: "com.codialo.Bunkialo2",
     },
@@ -60,6 +67,67 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
     },
     plugins: [
       "expo-router",
+      [
+        "expo-sharing",
+        {
+          android: {
+            enabled: true,
+            singleShareMimeTypes: ["image/*", "application/pdf"],
+            multipleShareMimeTypes: ["image/*", "application/pdf"],
+          },
+          ios: {
+            enabled: true,
+            activationRule:
+              'SUBQUERY(extensionItems, $item, SUBQUERY($item.attachments, $attachment, ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "public.image" OR ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO "com.adobe.pdf").@count == $item.attachments.@count).@count == extensionItems.@count',
+          },
+        },
+      ],
+      // Dangerous mods run in reverse registration order: patch after widget files exist.
+      "./plugins/with-widget-refresh",
+      [
+        "expo-widgets",
+        {
+          enableAndroid: true,
+          widgets: [
+            {
+              name: "BunkialoTimetable",
+              displayName: "Timetable",
+              description: "Now and next",
+              ios: {
+                supportedFamilies: ["systemSmall", "systemMedium"],
+                contentMarginsDisabled: true,
+                initialLayout: "./src/widgets/timetable.ios.tsx",
+              },
+              android: {
+                targetCellWidth: 2,
+                targetCellHeight: 2,
+                minWidth: 150,
+                minHeight: 160,
+                resizeMode: "both",
+                initialLayout: "./src/widgets/timetable.android.tsx",
+              },
+            },
+            {
+              name: "BunkialoMess",
+              displayName: "Mess",
+              description: "Next meal",
+              ios: {
+                supportedFamilies: ["systemSmall", "systemMedium"],
+                contentMarginsDisabled: true,
+                initialLayout: "./src/widgets/mess.ios.tsx",
+              },
+              android: {
+                targetCellWidth: 3,
+                targetCellHeight: 2,
+                minWidth: 180,
+                minHeight: 180,
+                resizeMode: "both",
+                initialLayout: "./src/widgets/mess.android.tsx",
+              },
+            },
+          ],
+        },
+      ],
       "expo-build-properties",
       "expo-background-task",
       "expo-font",
@@ -93,7 +161,9 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
       },
     },
     // Expo Go needs the SDK runtime; EAS builds use the app version contract.
-    runtimeVersion: isExpoGoPreview ? { policy: "sdkVersion" } : pkgVersion,
+    runtimeVersion: isExpoGoPreview
+      ? { policy: "sdkVersion" }
+      : (otaRuntime ?? `${pkgVersion}-sdk58-widgets-pdf-v1`),
     updates: {
       url: "https://u.expo.dev/7cbe49d9-9827-4df3-b86e-849443804d63",
     },

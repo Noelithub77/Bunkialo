@@ -1,3 +1,4 @@
+import { useFacultyPhotoCaching } from "@/hooks/use-faculty-photo";
 import "react-native-reanimated";
 import "../global.css";
 import "@/background";
@@ -8,14 +9,12 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useDashboardStore } from "@/stores/dashboard-store";
 import { ToastProviderWithViewport } from "@/components/shared/ui/molecules/toast";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
 import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from "@react-navigation/native";
-import { useFonts } from "expo-font";
-import * as SplashScreen from "expo-splash-screen";
-import {
   Stack,
   router,
   useGlobalSearchParams,
@@ -29,9 +28,14 @@ import { PaperProvider, Portal } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AttendanceSetupSheet } from "@/components/auth/attendance-setup-sheet";
+import { CalendarNotificationController } from "@/components/sync/calendar-notification-controller";
 import { AppSyncController } from "@/components/sync/app-sync-controller";
 import { PwaInstallPrompt } from "@/components/pwa/pwa-install-prompt";
 import { DESKTOP_PAIRING_ROUTE } from "@/services/desktop-pairing";
+import { useHomeWidgets } from "@/hooks/use-home-widgets";
+import { useAssignmentShareIntent } from "@/hooks/use-assignment-share-intent";
+import { useAssignmentShareStore } from "@/stores/assignment-share-store";
+import { SHARED_ASSIGNMENT_ROUTE } from "@/utils/assignment-share";
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -57,9 +61,15 @@ const CustomLightTheme = {
 };
 
 export default function RootLayout() {
+  useFacultyPhotoCaching();
+  useAssignmentShareIntent();
+  useHomeWidgets();
   const colorScheme = useColorScheme();
   const { isLoggedIn, isCheckingAuth, isOffline, checkAuth } = useAuthStore();
   const dashboardHydrated = useDashboardStore((state) => state.hasHydrated);
+  const hasSharedFiles = useAssignmentShareStore(
+    (state) => state.files.length > 0,
+  );
   const pathname = usePathname();
   const params = useGlobalSearchParams<{ returnTo?: string }>();
   const isDark = colorScheme === "dark";
@@ -92,19 +102,25 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isCheckingAuth) {
-      const returnTo = params.returnTo === DESKTOP_PAIRING_ROUTE
-        ? DESKTOP_PAIRING_ROUTE
-        : "/(tabs)";
-      const publicPath = pathname === "/login" || pathname === DESKTOP_PAIRING_ROUTE;
+      const returnTo =
+        hasSharedFiles || params.returnTo === SHARED_ASSIGNMENT_ROUTE
+          ? SHARED_ASSIGNMENT_ROUTE
+          : params.returnTo === DESKTOP_PAIRING_ROUTE
+            ? DESKTOP_PAIRING_ROUTE
+            : "/(tabs)";
+      const publicPath =
+        pathname === "/login" || pathname === DESKTOP_PAIRING_ROUTE;
       if (isLoggedIn && pathname === "/login") {
         router.replace(returnTo as never);
       } else if (!isLoggedIn && !publicPath) {
         router.replace(`/login?returnTo=${encodeURIComponent(pathname)}`);
       } else if (!isLoggedIn && pathname === DESKTOP_PAIRING_ROUTE) {
-        router.replace(`/login?returnTo=${encodeURIComponent(DESKTOP_PAIRING_ROUTE)}`);
+        router.replace(
+          `/login?returnTo=${encodeURIComponent(DESKTOP_PAIRING_ROUTE)}`,
+        );
       }
     }
-  }, [isCheckingAuth, isLoggedIn, params.returnTo, pathname]);
+  }, [hasSharedFiles, isCheckingAuth, isLoggedIn, params.returnTo, pathname]);
 
   useEffect(() => {
     if (!fontsReady || isCheckingAuth || !appHydrated) return;
@@ -156,6 +172,7 @@ export default function RootLayout() {
                 <Stack.Screen name="faculty/[id]" />
                 <Stack.Screen name="settings" />
                 <Stack.Screen name="pair/desktop" />
+                <Stack.Screen name="share-assignment" />
                 <Stack.Screen
                   name="(fab-group)/gpa"
                   options={{
@@ -222,6 +239,7 @@ export default function RootLayout() {
               }
             />
             <AppSyncController />
+            <CalendarNotificationController />
             {process.env.EXPO_OS === "web" ? (
               <PwaInstallPrompt isLoggedIn={isLoggedIn} />
             ) : null}

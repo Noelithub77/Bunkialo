@@ -3,7 +3,6 @@ import {
   Dimensions,
   StyleSheet,
   TouchableOpacity,
-  ViewStyle,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -22,8 +21,7 @@ import { BlurView, type BlurViewProps } from "expo-blur";
 import { impactAsync, ImpactFeedbackStyle } from "expo-haptics";
 import { scheduleOnRN } from "react-native-worklets";
 
-const AnimatedBlurView =
-  Animated.createAnimatedComponent<Partial<BlurViewProps>>(BlurView);
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const width = Dimensions.get("screen").width - 32;
 
@@ -101,9 +99,7 @@ const SegmentedControl: React.FC<ISegmentedControl> &
     });
   }, [currentIndex, translateValue]);
 
-  const animatedTabStyle = useAnimatedStyle<
-    Partial<Pick<ViewStyle, "transform">>
-  >(() => {
+  const animatedTabStyle = useAnimatedStyle(() => {
     return {
       transform: [
         { translateX: tabTranslate.value },
@@ -174,8 +170,10 @@ const SegmentedControl: React.FC<ISegmentedControl> &
         <Animated.View
           style={[
             {
-              ...StyleSheet.absoluteFillObject,
               position: "absolute",
+              right: 0,
+              bottom: 0,
+              left: 0,
               width: (width - 4) / tabsCount,
               top: 0,
               marginVertical: 2,
@@ -218,7 +216,11 @@ const SegmentedControl: React.FC<ISegmentedControl> &
             {
               overflow: "hidden",
               borderRadius,
-              ...StyleSheet.absoluteFillObject,
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
             },
           ]}
           animatedProps={animatedBlurViewProps}

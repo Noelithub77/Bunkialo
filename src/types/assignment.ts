@@ -22,6 +22,7 @@ export interface AssignmentDetails {
   descriptionHtml: string | null;
   descriptionText: string | null;
   resources: { id: string; name: string; url: string }[];
+  submittedFiles?: { id: string; name: string; url: string }[];
   submissionStatusText: string | null;
   gradingStatusText: string | null;
   timeRemainingText: string | null;
@@ -46,6 +47,7 @@ export interface AssignmentUploadLocalFile {
   uri: string;
   name: string;
   mimeType?: string | null;
+  size?: number | null;
 }
 
 export interface AssignmentEditSession {

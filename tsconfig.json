@@ -2,13 +2,13 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["react-native", "bun"]
   },
   "include": [
     "**/*.ts",
@@ -25,6 +25,8 @@
     "src/services/archive/**",
     "worker/**",
     "worker-configuration.d.ts",
-    "tests/unit/desktop-snapshot.test.ts"
+    "tests/unit/desktop-snapshot.test.ts",
+    "tests/unit/notifications/worker-scheduler.test.ts",
+    "artifacts/**"
   ]
 }

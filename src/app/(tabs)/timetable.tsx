@@ -1,3 +1,4 @@
+import { scheduleDeferredTask } from "@/utils/scheduling";
 import { CourseEditModal } from "@/components/attendance/course-edit-modal";
 import { CreateCourseModal } from "@/components/attendance/create-course-modal";
 import { SlotConflictModal } from "@/components/modals/slot-conflict-modal";
@@ -23,14 +24,12 @@ import type {
   ManualSlotInput,
 } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect, useGlobalSearchParams } from "expo-router";
+import { useFocusEffect, useGlobalSearchParams, useIsFocused } from "expo-router";
 import type { ErrorBoundaryProps } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  InteractionManager,
   Pressable,
   RefreshControl,
   Text,
@@ -115,7 +114,7 @@ export default function TimetableScreen() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const hasGenerated = useRef(false);
   const recomputeTaskRef = useRef<ReturnType<
-    typeof InteractionManager.runAfterInteractions
+    typeof scheduleDeferredTask
   > | null>(null);
   const isFocused = useIsFocused();
   const params = useGlobalSearchParams<{ wear?: string }>();
@@ -143,7 +142,7 @@ export default function TimetableScreen() {
 
   const scheduleTimetableRecompute = useCallback(() => {
     recomputeTaskRef.current?.cancel();
-    recomputeTaskRef.current = InteractionManager.runAfterInteractions(() => {
+    recomputeTaskRef.current = scheduleDeferredTask(() => {
       syncFromLms();
       generateTimetable();
     });
@@ -167,7 +166,7 @@ export default function TimetableScreen() {
       attendanceCourses.length > 0 &&
       slots.length === 0
     ) {
-      const task = InteractionManager.runAfterInteractions(() => {
+      const task = scheduleDeferredTask(() => {
         scheduleTimetableRecompute();
         hasGenerated.current = true;
       });

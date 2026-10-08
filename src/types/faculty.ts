@@ -23,6 +23,7 @@ export interface Faculty {
   areas: string[];
   contact: FacultyContact;
   page: FacultyPage;
+  hostelRoles?: { hostelId: string; role: string }[];
 }
 
 export interface FacultyData {
@@ -37,4 +38,19 @@ export interface FacultyState {
   recentSearches: string[];
   isLoading: boolean;
   error: string | null;
+}
+
+export interface HostelGroup {
+  id: string;
+  name: string;
+  wardenIds: string[];
+}
+
+export interface FacultyPhotoStorage {
+  directory: string | null;
+  exists: (path: string) => Promise<boolean>;
+  prepareDirectory: () => Promise<void>;
+  download: (url: string, path: string) => Promise<boolean>;
+  move: (from: string, to: string) => Promise<void>;
+  remove: (path: string) => Promise<void>;
 }

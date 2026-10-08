@@ -10,6 +10,7 @@ export * from "./course-link";
 export * from "./notification";
 export * from "./academic-calendar";
 export * from "./assignment";
+export * from "./widget";
 export * from "./bunk";
 export * from "./calendar";
 export * from "./common";
@@ -25,3 +26,7 @@ export * from "./timetable";
 export * from "./wifix";
 export * from "./popup";
 export * from "./pwa";
+
+export * from "./attachment-preview";
+export * from "./saved-lms-file";
+export * from "./lms-forum";

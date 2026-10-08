@@ -1,4 +1,5 @@
 import * as Notifications from "expo-notifications";
+import { AndroidImportance } from "expo-notifications";
 import { Platform } from "react-native";
 import { zustandStorage } from "@/stores/storage";
 import type { NotificationChannelConfig } from "./notifications.types";
@@ -25,7 +26,7 @@ export const ensureNotificationChannels = async (
     channels.map((channel) =>
       Notifications.setNotificationChannelAsync(channel.id, {
         name: channel.name,
-        importance: Notifications.AndroidImportance.HIGH,
+        importance: AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: channel.lightColor ?? "#FF231F7C",
       }),
@@ -45,13 +46,7 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
   let finalStatus = existingStatus;
 
   if (existingStatus !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync({
-      ios: {
-        allowAlert: true,
-        allowBadge: true,
-        allowSound: true,
-      },
-    });
+    const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
 
@@ -74,6 +69,7 @@ export const initializeNotifications = async (): Promise<void> => {
 };
 
 export const scheduleDateNotification = async (params: {
+  identifier?: string;
   body: string;
   channelId?: string;
   data?: Record<string, unknown>;
@@ -81,6 +77,7 @@ export const scheduleDateNotification = async (params: {
   title: string;
 }): Promise<string> => {
   return Notifications.scheduleNotificationAsync({
+    identifier: params.identifier,
     content: {
       title: params.title,
       body: params.body,
@@ -95,12 +92,14 @@ export const scheduleDateNotification = async (params: {
 };
 
 export const sendImmediateNotification = async (params: {
+  identifier?: string;
   body: string;
   channelId?: string;
   data?: Record<string, unknown>;
   title: string;
 }): Promise<string> => {
   return Notifications.scheduleNotificationAsync({
+    identifier: params.identifier,
     content: {
       title: params.title,
       body: params.body,
@@ -132,3 +131,5 @@ export const requestNotificationPermissionsWithExplanation =
   async (): Promise<boolean> => {
     return requestNotificationPermissions();
   };
+
+export const getScheduledNotificationIds = async (): Promise<string[]> => (await Notifications.getAllScheduledNotificationsAsync()).map((request) => request.identifier);

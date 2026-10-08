@@ -1,3 +1,4 @@
+import { useFacultyPhoto } from "@/hooks/use-faculty-photo";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import type { Faculty } from "@/types";
@@ -11,13 +12,16 @@ interface FacultyCardProps {
   faculty: Faculty;
   onPress: () => void;
   matchedFields?: string[];
+  role?: string;
 }
 
 export const FacultyCard = memo(function FacultyCard({
   faculty,
   onPress,
   matchedFields,
+  role,
 }: FacultyCardProps) {
+  const imageUrl = useFacultyPhoto(faculty.imageUrl);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const theme = isDark ? Colors.dark : Colors.light;
@@ -50,7 +54,7 @@ export const FacultyCard = memo(function FacultyCard({
       <View className="flex-1 flex-row items-center gap-4">
         {faculty.imageUrl ? (
           <Image
-            source={{ uri: faculty.imageUrl }}
+            source={{ uri: imageUrl }}
             className="h-12 w-12 rounded-full"
             contentFit="cover"
             style={{ height: 48, width: 48, borderRadius: 999 }}
@@ -65,7 +69,11 @@ export const FacultyCard = memo(function FacultyCard({
         )}
 
         <View className="flex-1">
-          <Text className="text-[15px] font-semibold" style={{ color: theme.text }} numberOfLines={1}>
+          <Text
+            className="text-[15px] font-semibold"
+            style={{ color: theme.text }}
+            numberOfLines={role ? 2 : 1}
+          >
             {faculty.name}
           </Text>
           <Text
@@ -73,7 +81,7 @@ export const FacultyCard = memo(function FacultyCard({
             style={{ color: theme.textSecondary }}
             numberOfLines={1}
           >
-            {faculty.designation}
+            {role || faculty.designation}
           </Text>
           {faculty.contact.room && (
             <View className="mt-0.5 flex-row items-center gap-1">
@@ -82,7 +90,10 @@ export const FacultyCard = memo(function FacultyCard({
                 size={12}
                 color={Colors.status.info}
               />
-              <Text className="text-[11px] font-medium" style={{ color: Colors.status.info }}>
+              <Text
+                className="text-[11px] font-medium"
+                style={{ color: Colors.status.info }}
+              >
                 {faculty.contact.room}
               </Text>
             </View>
@@ -103,8 +114,12 @@ export const FacultyCard = memo(function FacultyCard({
         {faculty.contact.phone && (
           <Pressable
             className="h-9 w-9 items-center justify-center rounded-full"
-            style={{ backgroundColor: isDark ? Colors.gray[800] : Colors.gray[200] }}
+            style={{
+              backgroundColor: isDark ? Colors.gray[800] : Colors.gray[200],
+            }}
             onPress={handlePhone}
+            accessibilityRole="button"
+            accessibilityLabel={`Call ${faculty.name}`}
             hitSlop={8}
           >
             <Ionicons name="call-outline" size={18} color={theme.text} />
@@ -113,18 +128,26 @@ export const FacultyCard = memo(function FacultyCard({
         {faculty.contact.email && (
           <Pressable
             className="h-9 w-9 items-center justify-center rounded-full"
-            style={{ backgroundColor: isDark ? Colors.gray[800] : Colors.gray[200] }}
+            style={{
+              backgroundColor: isDark ? Colors.gray[800] : Colors.gray[200],
+            }}
             onPress={handleEmail}
+            accessibilityRole="button"
+            accessibilityLabel={`Email ${faculty.name}`}
             hitSlop={8}
           >
             <Ionicons name="mail-outline" size={18} color={theme.text} />
           </Pressable>
         )}
-        {faculty.page.link && (
+        {faculty.page.link && !role && (
           <Pressable
             className="h-9 w-9 items-center justify-center rounded-full"
-            style={{ backgroundColor: isDark ? Colors.gray[800] : Colors.gray[200] }}
+            style={{
+              backgroundColor: isDark ? Colors.gray[800] : Colors.gray[200],
+            }}
             onPress={handleWebpage}
+            accessibilityRole="button"
+            accessibilityLabel={`Website of ${faculty.name}`}
             hitSlop={8}
           >
             <Ionicons name="globe-outline" size={18} color={theme.text} />

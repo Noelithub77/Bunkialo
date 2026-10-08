@@ -1,3 +1,5 @@
+import { presentPortalNotification } from "@/utils/portal-notification";
+import { useAttendanceStore } from "@/stores/attendance-store";
 import { NotificationInboxControls } from "@/components/dashboard/notification-inbox-controls";
 import { NotificationListItem } from "@/components/dashboard/notification-list-item";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
@@ -48,6 +50,7 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
     null,
   );
 
+  const courses = useAttendanceStore((state) => state.courses);
   const portalItems = usePortalNotificationStore((state) => state.items);
   const markPortalRead = usePortalNotificationStore((state) => state.markRead);
   const markAllPortalRead = usePortalNotificationStore(
@@ -58,7 +61,6 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
   const seenPopupIds = usePopupStore((state) => state.seenPopupIds);
   const dismissedPopupIds = usePopupStore((state) => state.dismissedPopupIds);
   const markPopupSeen = usePopupStore((state) => state.markAsSeen);
-  const markAllPopupsSeen = usePopupStore((state) => state.markAllAsSeen);
   const dismissPopups = usePopupStore((state) => state.dismissPopups);
   const prunePopups = usePopupStore((state) => state.pruneExpiredPopups);
 
@@ -76,8 +78,8 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
         sourceId: item.id,
         source: "attendance",
         priority: getNotificationPriority(item.kind),
-        title: item.title,
-        body: item.body,
+        ...presentPortalNotification(item, courses),
+        kind: item.kind,
         createdAt: item.createdAt,
         isRead: item.readAt !== null,
         action: item.link
@@ -97,6 +99,7 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
       id: `app-${notice.id}`,
       sourceId: notice.id,
       source: "app",
+      kind: "APP",
       priority: getNotificationPriority("APP", notice.isImportant),
       title: notice.title,
       body: notice.description,
@@ -124,9 +127,10 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
     return [...attendanceItems, ...appItems].sort(
       (first, second) =>
         new Date(second.createdAt).getTime() -
-        new Date(first.createdAt).getTime(),
+          new Date(first.createdAt).getTime() ||
+        first.id.localeCompare(second.id),
     );
-  }, [dismissedPopupIds, isDark, portalItems, seenPopupIds]);
+  }, [courses, dismissedPopupIds, isDark, portalItems, seenPopupIds]);
 
   const filteredNotifications = React.useMemo(
     () =>
@@ -145,16 +149,21 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
   );
   const concernCounts = React.useMemo<Record<NotificationConcern, number>>(
     () => ({
-      all: notifications.length,
-      attendance: notifications.filter((item) => item.source === "attendance")
+      all: notifications.filter((item) => !item.isRead).length,
+      attendance: notifications.filter(
+        (item) => item.source === "attendance" && !item.isRead,
+      ).length,
+      app: notifications.filter((item) => item.source === "app" && !item.isRead)
         .length,
-      app: notifications.filter((item) => item.source === "app").length,
     }),
     [notifications],
   );
   const markCurrentRead = (): void => {
     if (concern !== "app") void markAllPortalRead();
-    if (concern !== "attendance") markAllPopupsSeen();
+    if (concern !== "attendance")
+      currentItems
+        .filter((item) => item.source === "app" && !item.isRead)
+        .forEach((item) => markPopupSeen(item.sourceId));
   };
 
   const clearNotifications = (target: ClearTarget): void => {
@@ -238,6 +247,7 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
                 concern={concern}
                 counts={concernCounts}
                 hasCurrentItems={currentItems.length > 0}
+                hasCurrentUnread={currentItems.some((item) => !item.isRead)}
                 hasAnyItems={notifications.length > 0}
                 theme={theme}
                 onConcernChange={setConcern}

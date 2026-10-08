@@ -2,11 +2,6 @@ name: Full Update (Build + Publish)
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [closed]
-    branches: [main]
-    paths-ignore:
-      - "bunkialo-landing/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,7 +9,7 @@ concurrency:
 
 jobs:
   build-android:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 240
     permissions:
@@ -25,12 +20,12 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -41,7 +36,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
 
       - name: Restore Gradle cache
         id: cache-gradle
@@ -117,7 +112,7 @@ jobs:
           retention-days: 7
 
   github-release:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: build-android
@@ -130,12 +125,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -181,11 +176,11 @@ jobs:
         with:
           tag_name: v${{ steps.versions.outputs.package_version }}${{ steps.versions.outputs.version_code && format('({0})', steps.versions.outputs.version_code) || '' }}
           name: v${{ steps.versions.outputs.package_version }}${{ steps.versions.outputs.version_code && format(' ({0})', steps.versions.outputs.version_code) || '' }}
-          generate_release_notes: true
+          body_path: releases/v${{ steps.versions.outputs.package_version }}.md
           files: ${{ runner.temp }}/artifacts/app-production.aab
 
   publish-google-play:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: github-release
@@ -197,12 +192,12 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

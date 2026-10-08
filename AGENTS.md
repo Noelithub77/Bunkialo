@@ -10,9 +10,17 @@ ALWAYS USE NATIVEWIND (TAILWIND FOR REACT NATIVE) and preffer it over stylesheet
 
 **Key Features**: Secure auth, Dashboard with timeline, Attendance tracking, Bunk management, Timetable generation, Mess menu, Academic calendar, GPA calculator, Background refresh, Local notifications, Offline cache, ICS export.
 
+## Supported Targets
+
+- Android is the only native app target.
+- Web/PWA is the iOS experience; support iPhone and iPad browsers and installed PWAs.
+- Do not build, publish, or add native iOS features unless the user explicitly changes this target policy.
+- Native OTA releases are Android-only and must preserve each installed Android runtime.
+- Validate UI and notification work on Android and web. Android periodic background work has a 15-minute minimum and is OS-controlled; browser timers stop when the page is suspended, so closed-page web push needs server scheduling.
+
 ## Tech Stack
 
-- **Framework**: Expo SDK 54 + Expo Router 6
+- **Framework**: Expo SDK 58 + Expo Router (matching SDK)
 - **Language**: TypeScript (strict, no `any`)
 - **State**: Zustand + AsyncStorage
 - **HTTP**: Axios with cookie interceptors
@@ -365,6 +373,12 @@ background task uses the same portal check before attempting login.
 
 ## Background Tasks & Notifications
 
+- Poll the attendance notification endpoint independently of LMS sync every 15 minutes, with a stale-data check when the app resumes.
+- Expo shares one Android worker among tasks: keep every native registration at a 15-minute minimum and throttle longer preferences inside the relevant handler.
+- WorkManager survives normal restarts and reboots; Doze, battery saver, manufacturer restrictions, force-stop and denied notification permission can still delay or block delivery. Never promise a guaranteed 15-minute cadence or silently request battery exemptions. Keep the user-controlled battery settings shortcut available.
+- Persist stable notification IDs, pending deliveries and successful receipts. Retry failures without alerting again for successful deliveries.
+- Schedule calendar reminders locally on Android and on the server for subscribed PWAs. Respect event deadlines and alarm data; otherwise remind 30 minutes before the event. Never schedule private, hidden or tentative calendar entries.
+
 ```typescript
 // background/dashboard-background.ts
 startBackgroundRefresh(); // Starts setInterval for sync
@@ -404,8 +418,60 @@ debug.scraper("Dashboard refresh triggered", data);
 ## Keyboard-aware inputs
 
 - Every screen or modal that contains input boxes must wrap its form content in `KeyboardAwareScrollView` from `react-native-keyboard-controller`.
-- Set `keyboardShouldPersistTaps="handled"` and a suitable `bottomOffset` so the focused input stays visible while the keyboard is open on both iOS and Android.
+- Set `keyboardShouldPersistTaps="handled"` and a suitable `bottomOffset` so the focused input stays visible while the keyboard is open on Android and mobile web.
 - Keep `KeyboardProvider` mounted at the app root and do not use a plain `ScrollView` as the container for an interactive form.
+
+## Android development and emulators
+
+For Android and Wear OS setup, emulator use, and native build steps, read
+[`bunkialo-android-development`](.agents/skills/bunkialo-android-development/SKILL.md)
+and the installed Android CLI skills under `.agents/skills/`. Use the existing
+checkout; do not create a Git worktree.
+
+This repository has two Android targets:
+
+- The Expo SDK 58 phone app builds against Android API 37 and React Native 0.88 uses
+  NDK `27.1.12297006`.
+- The native Compose watch app is in `wear-os/`, compiles against API 37, and
+  uses the Wear OS Android 37.0 system image for emulator checks.
+
+The cloud setup keeps Android SDK files, AVD data, Gradle caches, and Expo
+state under `/workspace`. Set `ANDROID_HOME` and `ANDROID_SDK_ROOT` to
+`/workspace/android-sdk`, `ANDROID_USER_HOME` and `ANDROID_EMULATOR_HOME` to
+`/workspace/.android`, `ANDROID_AVD_HOME` to `/workspace/.android/avd`,
+`JAVA_HOME` to `/workspace/jdk21`, and `GRADLE_USER_HOME` to
+`/workspace/.gradle`. Gradle must use the managed HTTP proxy via JVM options
+`-Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080` and
+`-Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080`, plus
+`-Djavax.net.ssl.trustStore=/workspace/java-cacerts` and
+`-Djavax.net.ssl.trustStorePassword=changeit`. This trust store includes the
+runtime-provided proxy CA; keep TLS verification enabled. Set
+`EXPO_NO_TELEMETRY=1` when invoking Expo CLI in
+the managed container.
+
+Run the checks that match the target being changed:
+
+```bash
+bun test
+bun run lint
+bunx tsc --noEmit
+(cd android && ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64)
+(cd wear-os && ./gradlew :app:assembleDebug)
+```
+
+To start the phone emulator, use `emulator -avd Bunkialo_Phone_API_36`. For the
+watch, use `emulator -avd Bunkialo_Wear_API_37`. In a headless container add
+`-no-window -no-audio -no-boot-anim -no-snapshot -no-metrics -gpu software`;
+add `-accel off` when `/dev/kvm` is unavailable. Wait for
+`adb shell getprop sys.boot_completed` to return `1` before installing an APK.
+
+The cloud host has no `/dev/kvm`; AVD profiles are configured, but software
+emulation did not reach boot completion during setup. Use a KVM-enabled host
+for interactive app testing.
+
+Use the Wear OS emulator for watch layouts and install checks. Building the APK
+does not test phone/watch Data Layer pairing; that check needs both emulators
+running with Google Play services.
 
 ## Testing
 
@@ -428,10 +494,14 @@ bun run test:e2e:hosted-auth -- --headed
 
 ## OTA Runtime Compatibility
 
-- Production OTA updates must keep runtime version `1.4.1` so they remain compatible
-  with installed app version `1.4.1 (59)`.
+- New v1.5 PDF-capable SDK 58 builds use runtime `1.5.0-sdk58-widgets-pdf-v1`.
+- v1.5 build 63 uses runtime `1.5.0-sdk58-widgets-v1`; select `previous-v15` for its compatible OTA.
+- PDF rendering and public Android Downloads require the optional AttachmentPreview native module. Older runtimes must fall back to external PDF viewing and persistent app-local downloads.
+- Previous SDK 58 build 62 uses `1.4.1-sdk58-widgets-v1`; select `previous-sdk58` in the manual OTA workflow.
+- The `OTA_RUNTIME_VERSION` override is only for publishing compatible JavaScript to an existing SDK 58 runtime; do not use it for native builds.
+- Updates targeting legacy app `1.4.1 (59)` must retain runtime `1.4.1`.
 - Do not bump `package.json` or the Expo runtime version inside the OTA workflow.
-- If a change requires new native Android or iOS code, publish a new native build with
+- If a change requires new native Android code, publish a new native build with
   its matching runtime instead of sending that change as a `1.4.1` OTA update.
 
 ## Script Session Utility
@@ -445,4 +515,4 @@ bun run test:e2e:hosted-auth -- --headed
 
 ---
 
-**Expo SDK**: 54 | **React Native**: 0.81.5 | **TypeScript**: 5.9.2 (strict) | **React**: 19.1.0 | **Preferred package manager**: bun
+**Expo SDK**: 58 | **React Native**: 0.88.0-rc.3 | **TypeScript**: 6.0.3 (strict) | **React**: 19.3.0 | **Preferred package manager**: bun
