@@ -8,8 +8,10 @@ import androidx.wear.watchface.complications.data.ComplicationType
 import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
 import com.codialo.bunkialo.presentation.MainActivity
+import com.codialo.bunkialo.presentation.TimetableLaunchRequest
 import com.codialo.bunkialo.schedule.complicationEvent
 import com.codialo.bunkialo.schedule.WearTimetableRepository
+import com.codialo.bunkialo.schedule.ScheduledEvent
 import java.time.LocalDateTime
 
 class CourseComplicationService : SuspendingComplicationDataSourceService() {
@@ -27,7 +29,7 @@ class CourseComplicationService : SuspendingComplicationDataSourceService() {
             text = text,
             contentDescription = contentDesc,
         )
-            .setTapAction(openAppIntent())
+            .setTapAction(openAppIntent(scheduledEvent))
             .build()
     }
 
@@ -37,15 +39,22 @@ class CourseComplicationService : SuspendingComplicationDataSourceService() {
             text = text,
             contentDescription = text,
         )
-            .setTapAction(openAppIntent())
+            .setTapAction(openAppIntent(null))
             .build()
     }
 
-    private fun openAppIntent(): PendingIntent = PendingIntent.getActivity(
+    private fun openAppIntent(scheduledEvent: ScheduledEvent?): PendingIntent = PendingIntent.getActivity(
         this,
         0,
         Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(TimetableLaunchRequest.EXTRA_OPEN_TIMETABLE, true)
+            scheduledEvent?.let {
+                putExtra(TimetableLaunchRequest.EXTRA_TIMETABLE_DAY, it.day.name)
+                putExtra(TimetableLaunchRequest.EXTRA_TIMETABLE_START_MINUTES, it.event.startMinutes)
+            }
         },
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )

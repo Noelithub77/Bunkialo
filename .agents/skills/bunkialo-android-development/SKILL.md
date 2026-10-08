@@ -125,9 +125,12 @@ cd wear-os
 ./gradlew :app:assembleDebug
 ```
 
-The root `bun test` suite covers app modules. The Wear OS module currently has
-no test source files, so its debug APK build is the available compilation
-check. When an emulator boots, install the phone APK with `adb install -r`
+The root `bun test` suite covers app modules. The Wear OS module has
+instrumentation tests under `app/src/androidTest/` for opening focus, mode
+switching, and reopening behavior. Build them with
+`./gradlew :app:assembleDebugAndroidTest` and run them on a connected Wear OS
+emulator with `ANDROID_SERIAL=<emulator-serial> ./gradlew :app:connectedDebugAndroidTest`.
+When an emulator boots, install the phone APK with `adb install -r`
 from `android/app/build/outputs/apk/debug/` and the watch APK from
 `wear-os/app/build/outputs/apk/debug/`. Check the running app with `adb logcat`
 and a representative screen flow.

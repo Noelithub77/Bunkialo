@@ -165,3 +165,14 @@ fun currentOrNextMeal(
 
     return current to next
 }
+
+fun focusedMealForToday(
+    now: LocalDateTime,
+    menu: Map<DayOfWeek, DayMenu>,
+): Meal? {
+    val meals = menu[now.dayOfWeek]?.meals.orEmpty()
+    val minutes = now.hour * 60 + now.minute
+    return meals.firstOrNull { it.isHappeningAt(minutes) }
+        ?: meals.firstOrNull { it.startMinutes > minutes }
+        ?: meals.lastOrNull()
+}

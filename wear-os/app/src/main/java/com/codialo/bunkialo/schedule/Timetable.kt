@@ -25,7 +25,7 @@ enum class Course(
 ) {
     DSP("DSP", "DSP", "Nisha", Pastel.ROSE),
     AI("AI", "AI", "Sreeja", Pastel.LAVENDER),
-    OPTIMISATION("Optimisation", "OPT", "Susheel", Pastel.MINT),
+    OPTIMISATION("OPT", "OPT", "Susheel", Pastel.MINT),
     PDC("PDC", "PDC", "Sridhar", Pastel.BLUE),
     SAPD("SAPD", "SAPD", "Dakshu", Pastel.PEACH),
     HR("HR", "HR", "Mathew Joseph", Pastel.YELLOW),

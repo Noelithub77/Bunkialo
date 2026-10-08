@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -11,10 +12,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clipToBounds
 import androidx.wear.compose.foundation.hierarchicalFocusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,8 +28,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -40,13 +45,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import androidx.wear.remote.interactions.RemoteActivityHelper
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Card
 import androidx.wear.compose.material3.CardDefaults
-import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.ScreenScaffold
+import androidx.wear.compose.material3.ScrollIndicator
 import androidx.wear.compose.material3.Text
 import com.codialo.bunkialo.presentation.theme.BunkialoTheme
 import com.codialo.bunkialo.R
@@ -56,41 +61,106 @@ import com.codialo.bunkialo.schedule.TimetableEvent
 import com.codialo.bunkialo.schedule.WearTimetableData
 import com.codialo.bunkialo.schedule.WearTimetableRepository
 import com.codialo.bunkialo.schedule.WearTimetableSource
+import com.codialo.bunkialo.schedule.complicationEvent
 import com.codialo.bunkialo.schedule.breakLabelBetween
 import com.codialo.bunkialo.schedule.events
-import com.codialo.bunkialo.schedule.focusDay
+import com.codialo.bunkialo.schedule.focusedEventForToday
+import com.codialo.bunkialo.schedule.nextScheduledEvent
 import com.codialo.bunkialo.ui.ScreenModeToggle
+import com.codialo.bunkialo.ui.DayHeader
 import java.time.LocalDateTime
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.text.style.TextAlign
 import java.util.concurrent.Executors
 
 private val remoteActivityExecutor = Executors.newSingleThreadExecutor()
 
 class MainActivity : ComponentActivity() {
+    private val timetableLaunchRequest = mutableStateOf<TimetableLaunchRequest?>(null)
+    private var timetableLaunchRequestId = 0
+    private val openingId = mutableStateOf(0)
+    private val modeToggleId = mutableStateOf(0)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { TimetableApp() }
+        recordTimetableLaunchRequest(intent)
+        setContent {
+            key(openingId.value) {
+                TimetableApp(timetableLaunchRequest.value, modeToggleId.value)
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        openingId.value += 1
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // A complication target applies only to the opening that received it.
+        timetableLaunchRequest.value = null
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        recordTimetableLaunchRequest(intent)
+        openingId.value += 1
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_STEM_1) return true
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_STEM_1) {
+            if (event?.isCanceled == false) modeToggleId.value += 1
+            return true
+        }
+        return super.onKeyUp(keyCode, event)
+    }
+
+    private fun recordTimetableLaunchRequest(intent: Intent) {
+        val nextRequestId = timetableLaunchRequestId + 1
+        timetableLaunchRequestId = nextRequestId
+        timetableLaunchRequest.value = TimetableLaunchRequest.fromIntent(intent, nextRequestId)
     }
 }
 
 @Composable
-fun TimetableApp() {
+private fun TimetableApp(launchRequest: TimetableLaunchRequest?, modeToggleId: Int) {
     BunkialoTheme {
         AppScaffold {
             val now = remember { mutableStateOf(LocalDateTime.now()) }
             val context = LocalContext.current
             val repository = remember { WearTimetableRepository(context) }
             val timetable = remember { mutableStateOf(repository.load()) }
-            var isMessSelected by remember { mutableStateOf(false) }
-            val initialDay = remember {
-                TimetableDay.entries.indexOf(focusDay(now.value, timetable.value.timetable))
+            val initialDay = remember(launchRequest?.requestId) {
+                launchRequest?.day?.ordinal
+                    ?: TimetableDay.entries.indexOfFirst { it.dayOfWeek == now.value.dayOfWeek }
+            }
+            val initiallyShowMess = remember(launchRequest?.requestId) {
+                val day = TimetableDay.entries[initialDay]
+                launchRequest == null &&
+                    (day == TimetableDay.SATURDAY || day == TimetableDay.SUNDAY) &&
+                    day.events(timetable.value.timetable).isEmpty()
+            }
+            var isMessSelected by remember(launchRequest?.requestId) { mutableStateOf(initiallyShowMess) }
+            var handledModeToggleId by remember { mutableStateOf(modeToggleId) }
+            LaunchedEffect(modeToggleId) {
+                if (modeToggleId != handledModeToggleId) {
+                    isMessSelected = !isMessSelected
+                    handledModeToggleId = modeToggleId
+                }
             }
             LaunchedEffect(Unit) {
                 while (true) {
+                    delay(30_000)
                     now.value = LocalDateTime.now()
                     timetable.value = repository.load()
-                    delay(30_000)
                 }
             }
             val middlePage = Int.MAX_VALUE / 2
@@ -103,66 +173,129 @@ fun TimetableApp() {
                 initialPage = firstPage,
                 pageCount = { Int.MAX_VALUE },
             )
+            val activePagerState = if (isMessSelected) messPagerState else pagerState
+            val messRepository = remember { com.codialo.bunkialo.mess.MessMenuRepository(context) }
+            val messMenu = remember { messRepository.loadMenu() }
+            val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+            var previousMessSelected by remember { mutableStateOf(initiallyShowMess) }
+            var classFocusRequest by remember(launchRequest?.requestId) { mutableStateOf(launchRequest) }
+            var classFocusRequestId by remember { mutableStateOf(0) }
+            var messFocusId by remember { mutableStateOf(0) }
 
             LaunchedEffect(isMessSelected) {
-                val currentDayIndex = if (isMessSelected) {
-                    pagerState.currentPage % TimetableDay.entries.size
-                } else {
-                    messPagerState.currentPage % TimetableDay.entries.size
-                }
-
+                if (isMessSelected == previousMessSelected) return@LaunchedEffect
+                previousMessSelected = isMessSelected
+                val switchTime = LocalDateTime.now()
+                now.value = switchTime
+                timetable.value = repository.load()
+                val today = TimetableDay.entries.first { it.dayOfWeek == switchTime.dayOfWeek }
+                val pageCount = TimetableDay.entries.size
                 if (isMessSelected) {
-                    val messDayIndex = messPagerState.currentPage % TimetableDay.entries.size
-                    if (currentDayIndex != messDayIndex) {
-                        val targetPage = messPagerState.currentPage - messDayIndex + currentDayIndex
-                        messPagerState.animateScrollToPage(targetPage)
-                    }
+                    messFocusId += 1
+                    val targetPage = messPagerState.currentPage - messPagerState.currentPage % pageCount + today.ordinal
+                    messPagerState.scrollToPage(targetPage)
                 } else {
-                    val timetableDayIndex = pagerState.currentPage % TimetableDay.entries.size
-                    if (currentDayIndex != timetableDayIndex) {
-                        val targetPage = pagerState.currentPage - timetableDayIndex + currentDayIndex
-                        pagerState.animateScrollToPage(targetPage)
-                    }
+                    val target = complicationEvent(switchTime, timetable.value.timetable)
+                    val targetDay = target?.day ?: today
+                    // A fresh request also resets the class anchor when the day is unchanged.
+                    classFocusRequestId -= 1
+                    classFocusRequest = TimetableLaunchRequest(
+                        requestId = classFocusRequestId,
+                        day = targetDay,
+                        startMinutes = target?.event?.startMinutes,
+                    )
+                    val targetPage = pagerState.currentPage - pagerState.currentPage % pageCount + targetDay.ordinal
+                    pagerState.scrollToPage(targetPage)
                 }
             }
 
-            BackHandler(enabled = isMessSelected) {
-                isMessSelected = false
+            LaunchedEffect(launchRequest?.requestId) {
+                val requestedDay = launchRequest?.day ?: TimetableDay.entries[initialDay]
+                val pageCount = TimetableDay.entries.size
+                val timetablePage = pagerState.currentPage - pagerState.currentPage % pageCount + requestedDay.ordinal
+                val messPage = messPagerState.currentPage - messPagerState.currentPage % pageCount + requestedDay.ordinal
+                isMessSelected = initiallyShowMess
+                if (messPagerState.currentPage != messPage) messPagerState.scrollToPage(messPage)
+                if (pagerState.currentPage != timetablePage) pagerState.scrollToPage(timetablePage)
             }
 
-            if (isMessSelected) {
-                val messRepo = remember { com.codialo.bunkialo.mess.MessMenuRepository(context) }
-                val messMenu = remember { messRepo.loadMenu() }
-                com.codialo.bunkialo.mess.MessMenuScreen(
-                    pagerState = messPagerState,
-                    now = now.value,
-                    menu = messMenu,
-                    isMessSelected = true,
-                    onToggleMode = { isMessSelected = false },
-                )
-            } else {
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                ) { page ->
-                    val isCurrentTimetablePage = pagerState.currentPage == page
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .hierarchicalFocusGroup(active = isCurrentTimetablePage),
-                    ) {
-                        DaySchedule(
-                            day = TimetableDay.entries[page % TimetableDay.entries.size],
+            BackHandler {
+                isMessSelected = !isMessSelected
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (isMessSelected) {
+                    key(messFocusId) {
+                        com.codialo.bunkialo.mess.MessMenuScreen(
+                            pagerState = messPagerState,
                             now = now.value,
-                            timetable = timetable.value,
-                            onReset = {
-                                timetable.value = repository.resetToTemplate()
+                            menu = messMenu,
+                            dayHeader = { day ->
+                                DayHeader(
+                                    day = day,
+                                    canResetTimetable = false,
+                                    onResetTimetable = {},
+                                    onPreviousDay = {
+                                        coroutineScope.launch {
+                                            activePagerState.animateScrollToPage(activePagerState.currentPage - 1)
+                                        }
+                                    },
+                                    onNextDay = {
+                                        coroutineScope.launch {
+                                            activePagerState.animateScrollToPage(activePagerState.currentPage + 1)
+                                        }
+                                    },
+                                )
                             },
-                            isMessSelected = false,
-                            onToggleMode = { isMessSelected = true },
                         )
                     }
+                } else {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clipToBounds(),
+                    ) { page ->
+                        val isCurrentTimetablePage = pagerState.currentPage == page
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .hierarchicalFocusGroup(active = isCurrentTimetablePage),
+                        ) {
+                            DaySchedule(
+                                day = TimetableDay.entries[page % TimetableDay.entries.size],
+                                now = now.value,
+                                timetable = timetable.value,
+                                launchRequest = classFocusRequest,
+                                dayHeader = {
+                                    DayHeader(
+                                        day = TimetableDay.entries[page % TimetableDay.entries.size],
+                                        canResetTimetable = timetable.value.source != WearTimetableSource.TEMPLATE,
+                                        onResetTimetable = { timetable.value = repository.resetToTemplate() },
+                                        onPreviousDay = {
+                                            coroutineScope.launch {
+                                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                            }
+                                        },
+                                        onNextDay = {
+                                            coroutineScope.launch {
+                                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                            }
+                                        },
+                                    )
+                                },
+                            )
+                        }
+                    }
                 }
+
+                ScreenModeToggle(
+                    isMessSelected = isMessSelected,
+                    onToggle = { isMessSelected = !isMessSelected },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 36.dp, end = 40.dp),
+                )
             }
         }
     }
@@ -183,77 +316,67 @@ private fun DaySchedule(
     day: TimetableDay,
     now: LocalDateTime,
     timetable: WearTimetableData,
-    onReset: () -> Unit,
-    isMessSelected: Boolean,
-    onToggleMode: () -> Unit,
+    launchRequest: TimetableLaunchRequest?,
+    dayHeader: @Composable () -> Unit,
 ) {
-    val listState = rememberTransformingLazyColumnState()
     val context = LocalContext.current
     val events = day.events(timetable.timetable)
     val isToday = day.dayOfWeek == now.dayOfWeek
-    val isNextDay = day == nextTimetableDay(now)
     val currentEventIndex = events.indexOfFirst { it.isHappeningAt(now) }
-    val nextEventIndex = events.indexOfFirst {
-        it.startMinutes > now.hour * 60 + now.minute
-    }
-    val focusedEventIndex = if (!isToday) 0 else {
-        if (currentEventIndex >= 0) currentEventIndex else nextEventIndex
-    }
-    val breaksBeforeFocusedEvent = if (focusedEventIndex > 0) {
-        (0 until focusedEventIndex).count { index ->
-            breakLabelBetween(events[index], events[index + 1]) != null
-        }
+    val focusEventIndex = if (isToday) events.indexOf(focusedEventForToday(now, timetable.timetable)) else -1
+    val nextPeriod = nextScheduledEvent(now, timetable.timetable)
+    val requestedEventIndex = if (launchRequest?.day == day) {
+        launchRequest.startMinutes?.let { startMinutes ->
+            events.indexOfFirst { it.startMinutes == startMinutes }
+        } ?: -1
     } else {
-        0
+        -1
     }
-    val centerOffset = with(androidx.compose.ui.platform.LocalDensity.current) {
-        -8.dp.roundToPx()
-    }
-
-    LaunchedEffect(day, focusedEventIndex) {
-        if (focusedEventIndex >= 0) {
-            listState.scrollToItem(focusedEventIndex + breaksBeforeFocusedEvent + 1, centerOffset)
+    val initialEventIndex = remember(day, launchRequest?.requestId) {
+        when {
+            requestedEventIndex >= 0 -> requestedEventIndex
+            focusEventIndex >= 0 -> focusEventIndex
+            currentEventIndex >= 0 -> currentEventIndex
+            isToday -> events.lastIndex
+            nextPeriod?.day == day -> events.indexOf(nextPeriod.event)
+            else -> if (events.isEmpty()) -1 else 0
         }
     }
+    val initialListIndex = remember(day, launchRequest?.requestId) {
+        lazyListIndexForEvent(events, initialEventIndex)
+    }
+    val listState = remember(day, launchRequest?.requestId) {
+        TransformingLazyColumnState(initialAnchorItemIndex = initialListIndex)
+    }
 
-    ScreenScaffold(scrollState = listState) { contentPadding ->
+    ScreenScaffold(
+        scrollState = listState,
+        scrollIndicator = {
+            ScrollIndicator(
+                state = listState,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 12.dp),
+            )
+        },
+    ) { contentPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             TransformingLazyColumn(
                 state = listState,
                 contentPadding = contentPadding,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
             item {
-                ListHeader(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = day.shortName,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        if (timetable.source != WearTimetableSource.TEMPLATE) {
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable(onClick = onReset),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                androidx.wear.compose.material3.Icon(
-                                    painter = painterResource(R.drawable.ic_reset_24),
-                                    contentDescription = "Reset timetable to template",
-                                    tint = Color(0xFF8A8A8A),
-                                    modifier = Modifier.size(12.dp),
-                                )
-                            }
-                        }
-                    }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    dayHeader()
                 }
             }
             if (events.isEmpty()) {
@@ -286,8 +409,7 @@ private fun DaySchedule(
                         event = event,
                         highlight = when {
                             isToday && index == currentEventIndex -> EventHighlight.NOW
-                            (!isToday && isNextDay) && index == focusedEventIndex -> EventHighlight.NEXT
-                            isToday && index == focusedEventIndex -> EventHighlight.NEXT
+                            nextPeriod?.day == day && nextPeriod.event == event -> EventHighlight.NEXT
                             else -> EventHighlight.NONE
                         },
                     )
@@ -316,18 +438,20 @@ private fun DaySchedule(
                 }
             }
             }
-            ScreenModeToggle(
-                isMessSelected = isMessSelected,
-                onToggle = onToggleMode,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(
-                        top = contentPadding.calculateTopPadding() + 8.dp,
-                        end = 40.dp,
-                    ),
-            )
         }
     }
+}
+
+private fun lazyListIndexForEvent(
+    events: List<TimetableEvent>,
+    eventIndex: Int,
+): Int {
+    if (eventIndex < 0) return 0
+
+    val breakCount = (1..eventIndex).count { index ->
+        breakLabelBetween(events[index - 1], events[index]) != null
+    }
+    return 1 + eventIndex + breakCount
 }
 
 @Composable
@@ -341,14 +465,6 @@ private fun BreakLabel(label: String) {
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.labelSmall,
     )
-}
-
-private fun nextTimetableDay(now: LocalDateTime): TimetableDay {
-    val todayIndex = TimetableDay.entries.indexOfFirst { it.dayOfWeek == now.dayOfWeek }
-    if (todayIndex == -1) {
-        return TimetableDay.MONDAY
-    }
-    return TimetableDay.entries[(todayIndex + 1) % TimetableDay.entries.size]
 }
 
 private enum class EventHighlight {
@@ -417,12 +533,12 @@ private fun TimetableCard(event: TimetableEvent, highlight: EventHighlight) {
                             modifier = Modifier
                                 .background(
                                     color = Color.Black.copy(alpha = 0.14f),
-                                    shape = RoundedCornerShape(4.dp),
+                                    shape = CircleShape,
                                 )
-                                .padding(horizontal = 5.dp, vertical = 1.dp),
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
                         ) {
                             Text(
-                                text = "LAB",
+                                text = "L",
                                 color = Color.Black,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.labelSmall,
