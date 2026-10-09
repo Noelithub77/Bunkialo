@@ -61,3 +61,6 @@ credentials.json
 /public/pdf-preview/
 
 /tests/android-attachments/app/src/main/kotlin/
+
+# Cloudflare CLI build output
+.cloudflare/

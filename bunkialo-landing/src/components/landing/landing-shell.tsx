@@ -30,7 +30,7 @@ export interface LandingShellProps {
 
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.codialo.Bunkialo2";
-const IOS_WEB_APP_URL = "https://bunkialo.noelmcv7.workers.dev";
+const IOS_WEB_APP_URL = "https://bunkialo.allpyq.in";
 const GITHUB_REPO_URL = "https://github.com/Noelithub77/bunkialo2";
 const BUY_ME_COFFEE_UPI_URL =
   "upi://pay?pa=noelmcv7@oksbi&pn=Noel%20Georgi&tn=Support%20Bunkialo&cu=INR";

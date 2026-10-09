@@ -38,6 +38,23 @@ LMS test variables are optional and only needed if you run the test scripts:
 bunx expo start
 ```
 
+### Cloudflare web deployment
+
+Use the Cloudflare `cf` CLI for web development, build checks, and deployment.
+`bun install` installs the pinned CLI and its compatible build runtime.
+The Worker configuration is in `cloudflare.config.ts`; `wrangler.config.ts`
+configures the bundler used internally by `cf`.
+
+```bash
+bun run web:build
+bun run worker:check
+bun run worker:deploy
+```
+
+Deployments require Cloudflare authentication through `cf auth login` or
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. The account must own the
+`allpyq.in` zone to activate `https://bunkialo.allpyq.in`.
+
 ### Android development build
 
 Download the latest Android development APK from the [GitHub Releases page](https://github.com/Noelithub77/bunkialo2/releases), install it on an Android device, and open the EAS Update preview link from a manually started preview run.
