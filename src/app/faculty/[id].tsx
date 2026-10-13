@@ -1,11 +1,13 @@
 import { useFacultyPhoto } from "@/hooks/use-faculty-photo";
 import { Container } from "@/components/ui/container";
 import { FacultyImageViewer } from "@/components/faculty/faculty-image-viewer";
+import { Toast } from "@/components/shared/ui/molecules/toast";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFacultyStore } from "@/stores/faculty-store";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
@@ -67,6 +69,19 @@ export default function FacultyDetailScreen() {
   const handleWebpage = () => {
     if (faculty.page.link) {
       Linking.openURL(faculty.page.link);
+    }
+  };
+
+  const handleCopyContact = async (value: string, label: string) => {
+    try {
+      const copied = await Clipboard.setStringAsync(value);
+      if (!copied) {
+        Toast.show(`Could not copy ${label.toLowerCase()}`, { type: "error" });
+        return;
+      }
+      Toast.show(`${label} copied`, { type: "success" });
+    } catch {
+      Toast.show(`Could not copy ${label.toLowerCase()}`, { type: "error" });
     }
   };
 
@@ -220,7 +235,7 @@ export default function FacultyDetailScreen() {
           )}
 
           {faculty.contact.phone && (
-            <View className="mb-4 flex-row items-start gap-4">
+            <View className="mb-4 flex-row items-center gap-4">
               <Ionicons
                 name="call-outline"
                 size={18}
@@ -237,11 +252,28 @@ export default function FacultyDetailScreen() {
                   {faculty.contact.phone}
                 </Text>
               </View>
+              <Pressable
+                onPress={() =>
+                  void handleCopyContact(
+                    faculty.contact.phone ?? "",
+                    "Phone number",
+                  )
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Copy phone number"
+                className="h-11 w-11 items-center justify-center rounded-full active:opacity-60"
+              >
+                <Ionicons
+                  name="copy-outline"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+              </Pressable>
             </View>
           )}
 
           {faculty.contact.email && (
-            <View className="flex-row items-start gap-4">
+            <View className="flex-row items-center gap-4">
               <Ionicons
                 name="mail-outline"
                 size={18}
@@ -258,6 +290,23 @@ export default function FacultyDetailScreen() {
                   {faculty.contact.email}
                 </Text>
               </View>
+              <Pressable
+                onPress={() =>
+                  void handleCopyContact(
+                    faculty.contact.email ?? "",
+                    "Email address",
+                  )
+                }
+                accessibilityRole="button"
+                accessibilityLabel="Copy email address"
+                className="h-11 w-11 items-center justify-center rounded-full active:opacity-60"
+              >
+                <Ionicons
+                  name="copy-outline"
+                  size={20}
+                  color={theme.textSecondary}
+                />
+              </Pressable>
             </View>
           )}
         </View>
