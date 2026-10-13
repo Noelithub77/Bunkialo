@@ -44,12 +44,12 @@ Moodle submissions require confirmation for draft upload, save, and final gradin
 
 `BUNKIALO_LMS_URL` may select an official `https://lmsugYY.iiitkottayam.ac.in` cohort host. The CLI also accepts `BUNKIALO_LMS_USERNAME`, `BUNKIALO_LMS_PASSWORD`, `BUNKIALO_ATTENDANCE_EMAIL`, and `BUNKIALO_ATTENDANCE_PASSWORD` for the current process; avoid passwords in shell history. The `ACADS_` names remain as compatibility fallbacks.
 
-## Agent-assisted install
+## Agent skill via npx
 
-The reusable [Bunkialo academic portals skill](skills/bunkialo-academic-portals/SKILL.md) guides an agent through installing and operating this CLI. From a checkout, an agent should:
+Install the reusable [Bunkialo academic portals skill](../skills/bunkialo-academic-portals/SKILL.md) for Codex with the [Skills CLI](https://github.com/vercel-labs/skills):
 
-1. Confirm Rust and Cargo are available, inspect the checkout and user-local `PATH`, then build the locked release binary using the command above.
-2. Install the binary to a user-local directory on `PATH`, such as `~/.local/bin/bunkialo`. Install `cli/skills/bunkialo-academic-portals/SKILL.md` to `${CODEX_HOME:-$HOME/.codex}/skills/bunkialo-academic-portals/SKILL.md` (create its directory first). Replace an existing installation only after the new build and skill source are ready; leave differently named skills alone.
-3. Check `bunkialo --help` and `bunkialo auth status`. If the user requested account setup, use `bunkialo login` and verify one live LMS read and one official attendance read. `auth status` alone only confirms that credentials exist.
+```bash
+npx --yes skills add Noelithub77/bunkialo2 --skill bunkialo-academic-portals --agent codex --global --yes
+```
 
-An agent can be asked: “Install the Bunkialo CLI and its academic portals skill from this checkout, connect my accounts if I provide credentials, and verify both portals.” Credentials belong in the OS keyring, never in the repository or skill.
+The command installs the agent skill, not the Rust executable. Ask the agent to install the CLI from source using the locked Cargo build above. It should install the binary in a user-local directory on `PATH`, check `bunkialo --help` and `bunkialo auth status`, and perform live reads from both portals if account setup was requested. Credentials belong in the OS keyring, never in the repository or skill. An existing differently named personal skill can remain installed alongside this one.

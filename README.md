@@ -40,7 +40,7 @@ bunx expo start
 
 ### Rust CLI
 
-The optional [`bunkialo` CLI](cli/README.md) provides terminal LMS and official attendance reports. Build it with `cargo build --release --locked --manifest-path cli/Cargo.toml`, install `cli/target/release/bunkialo`, and run `bunkialo login` to connect both accounts through a local browser page. The page is bundled with Vite and credentials are saved to the OS keyring. The [companion agent skill](cli/skills/bunkialo-academic-portals/SKILL.md) and [agent-assisted install steps](cli/README.md#agent-assisted-install) are included with the CLI.
+The optional [`bunkialo` CLI](cli/README.md) provides terminal LMS and official attendance reports. Build it with `cargo build --release --locked --manifest-path cli/Cargo.toml`, install `cli/target/release/bunkialo`, and run `bunkialo login` to connect both accounts through a local browser page. The page is bundled with Vite and credentials are saved to the OS keyring. The [companion agent skill](skills/bunkialo-academic-portals/SKILL.md) can be installed with `npx skills`; see the [CLI setup guide](cli/README.md#agent-skill-via-npx).
 
 ### Cloudflare web deployment
 
