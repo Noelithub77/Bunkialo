@@ -38,6 +38,10 @@ LMS test variables are optional and only needed if you run the test scripts:
 bunx expo start
 ```
 
+### Rust CLI
+
+The optional [`bunkialo` CLI](cli/README.md) provides terminal LMS and official attendance reports. Build it with `cargo build --release --manifest-path cli/Cargo.toml`, install `cli/target/release/bunkialo`, and run `bunkialo login` to connect both accounts through a local browser page. The page is bundled with Vite and credentials are saved to the OS keyring.
+
 ### Cloudflare web deployment
 
 Use the Cloudflare `cf` CLI for web development, build checks, and deployment.
