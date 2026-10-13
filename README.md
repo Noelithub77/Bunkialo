@@ -2,11 +2,14 @@
 
 Bunkialo is a full ecosystem of apps for IIIT Kottayam students that aggregates Moodle attendance, assignment timeline, timetable, mess menu, and utility tools.
 
+## cli:-
+
+On macOS or Linux, this installs the latest bunkialo cli:-
+
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Noelithub77/bunkialo2/main/cli/install.sh | sh
 ```
 
-On macOS or Linux, this installs the latest `bunkialo` CLI, offers the companion agent skill, then opens browser login.
 
 On Windows, run in PowerShell:
 
@@ -21,13 +24,11 @@ bunkialo wifix
 bunkialo wifix logout
 ```
 
-WiFix logs campus Wi-Fi in with your saved LMS account; logout keeps Wi-Fi connected. It uses the active Wi-Fi DNS servers and only handles `IIITKottayam` and `IIITKottayam_5G`.
 
-[CLI commands and supported systems](cli/README.md) · [AGPL-3.0 license](LICENSE.md) · [Contributing](.github/CONTRIBUTING.md) · [Security](.github/SECURITY.md)
-
-Bunkialo also includes an Expo app for Moodle attendance, assignment timelines, timetables, mess menus, and utility tools. Android is the native target; iPhone and iPad use the web/PWA experience. The Next.js onboarding site lives in `bunkialo-landing/`.
 
 ## App development
+
+Bunkialo also includes an Expo app for Moodle attendance, assignment timelines, timetables, mess menus, and utility tools. Android is the native target; iPhone and iPad use the web/PWA experience. The Next.js onboarding site lives in `bunkialo-landing/`.
 
 ### Prerequisites
 
