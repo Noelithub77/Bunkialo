@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111113" />
+    <title>Bunkialo · Connect accounts</title>
+    <script type="module" crossorigin src="./assets/app.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="flow" aria-labelledby="brand">
+        <header class="intro">
+          <h1 id="brand">Bunkialo</h1>
+          <div class="step-line">
+            <span id="step-pill" class="step-pill">Step 1 of 2</span>
+            <span id="step-hint">Connect your LMS account first.</span>
+          </div>
+        </header>
+
+        <form id="login-form" class="card" autocomplete="on">
+          <div class="heading">
+            <span id="account-label" class="eyebrow">LMS</span>
+            <h2>Connect your account</h2>
+          </div>
+          <div class="fields">
+            <label for="identifier" id="identifier-label">Roll number</label>
+            <input id="identifier" name="username" type="text" autocomplete="username" required autofocus />
+            <label for="password">Password</label>
+            <div class="password-wrap">
+              <input id="password" name="password" type="password" autocomplete="current-password" required />
+              <button id="show-password" class="show-password" type="button" aria-label="Show password">Show</button>
+            </div>
+          </div>
+          <p id="message" class="message" role="status" aria-live="polite" hidden></p>
+          <button id="submit-button" class="primary" type="submit">Continue</button>
+        </form>
+
+        <nav class="secondary" aria-label="Login options">
+          <button id="back-button" type="button" hidden>Back</button>
+          <a id="portal-link" href="https://attendance.iiitkottayam.ac.in/login" target="_blank" rel="noopener noreferrer" hidden>Open attendance portal ↗</a>
+        </nav>
+        <p class="privacy">Credentials are saved in your OS keyring on this computer. This page runs only on localhost.</p>
+      </section>
+    </main>
+  </body>
+</html>

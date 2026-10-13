@@ -7,6 +7,10 @@ node_modules/
 .expo/
 .expo-export-*/
 dist/
+!cli/login-ui/dist/
+!cli/login-ui/dist/**
+/cli/target/
+/cli/login-ui/.impeccable/
 web-build/
 expo-env.d.ts
 
