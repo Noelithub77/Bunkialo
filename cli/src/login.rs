@@ -46,7 +46,7 @@ pub(crate) fn run() -> CliResult<()> {
         .map(|byte| format!("{byte:02x}"))
         .collect::<String>();
     let url = format!("{origin}/#{token}");
-    println!("Opening Bunkialo sign in at {origin}/");
+    println!("Opening Bunkialo sign in at {url}");
     if webbrowser::open(&url).is_err() {
         println!("Open this one-time local URL in your browser: {url}");
     }
