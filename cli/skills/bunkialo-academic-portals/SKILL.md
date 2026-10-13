@@ -1,16 +1,16 @@
 ---
 name: bunkialo-academic-portals
-description: "Agent-led access to IIIT Kottayam Moodle LMS and the official attendance portal for courses, assignments, quizzes, downloads, submissions, attendance, appeals, and leave requests."
+description: "Agent-led access to IIIT Kottayam Moodle LMS and the official attendance portal for courses, assignments, quizzes, downloads, submissions, attendance, appeals, leave requests, and campus Wi-Fi login or logout."
 ---
 
-# IIITK Academic Portals
+# IIITK academic portals
 
 Complete the student's requested LMS or attendance task using the live portal. Use `bunkialo` when its CLI covers the task; use the authenticated website when a portal interaction needs browser context. Execute the workflow and report the state the portal confirms, instead of only suggesting commands.
 
 ## Connect and install
 
 - The LMS host depends on the student's UG cohort: `https://lmsugYY.iiitkottayam.ac.in/`. The CLI defaults to the 2024 cohort; for another known cohort set `BUNKIALO_LMS_URL` to its official host before login or LMS commands. Do not guess a student's cohort. Attendance uses `https://attendance.iiitkottayam.ac.in/` and is a separate account.
-- Check `command -v bunkialo`. When installation is requested or needed, locate the `bunkialo` Cargo package and this `SKILL.md` in the available source checkout. On Linux, build with `cargo build --release --locked --manifest-path <path-to-Cargo.toml>`, install its release binary into a user-local directory on `PATH`, and install this skill as `${CODEX_HOME:-$HOME/.codex}/skills/bunkialo-academic-portals/SKILL.md`. Adapt paths to the checkout; do not use a maintainer's home directory.
+- Check whether `bunkialo` is on PATH (`command -v bunkialo` on macOS/Linux; `Get-Command bunkialo` on Windows). When installation is requested, follow `cli/README.md` in the source repository, or https://github.com/Noelithub77/bunkialo2/blob/main/cli/README.md. The shell and PowerShell installers download verified native binaries. For agent-led installation, use `--no-skill --no-login` or `-SkipSkill -SkipLogin`, then complete only the setup the user requested. Build from source when the installed platform is not covered. Install this companion skill through `npx skills add https://github.com/Noelithub77/bunkialo2/tree/main/cli/skills/bunkialo-academic-portals --global`, selecting the requested agent.
 - Verify the installed binary with `bunkialo --help` and `bunkialo auth status`. If login is requested, run `bunkialo login`, complete its two-step localhost page with user-provided credentials or let the user enter them, and confirm both services connect. Then read a small live LMS and attendance result. `auth status` checks only whether credentials exist; it does not prove they work.
 - Credentials belong in the OS keyring, never in the skill, source files, command arguments, shell history, reports, or screenshots. Enter them only in Bunkialo's localhost login form or the two official portals. If the login page does not open automatically, use the one-time local URL printed by the CLI. Stop after a rejected login; ask the user to complete any OTP or CAPTCHA challenge.
 
@@ -30,3 +30,9 @@ Complete the student's requested LMS or attendance task using the live portal. U
 - Assignment actions: `bunkialo lms submit ACTIVITY_ID --file PATH` (repeat `--file`; online text uses `--text` or `--text-file`) and `bunkialo lms unsubmit ACTIVITY_ID [--dry-run]`.
 - Attendance: `bunkialo attendance profile`, `terms`, `summary`, `sessions [COURSE_ID]`, `report [COURSE_ID]`, `appeal SESSION_ID`, `apply-leave`, and `apply-medical-leave`.
 - Accounts: `bunkialo login`, `bunkialo auth status`, and `bunkialo auth store`.
+
+## Campus Wi-Fi
+
+- For a requested campus login, run `bunkialo wifix`; for logout, run `bunkialo wifix logout`. Use `bunkialo wifix status` for a read-only check. The CLI supports only the campus SSIDs `IIITKottayam` and `IIITKottayam_5G`, reuses LMS credentials, and leaves Wi-Fi connected when logging out.
+- WiFix queries the active Wi-Fi DNS servers and pins the official authentication portal's address. Its certificate exception matches the Omarchy plugin and applies only to that portal. Network/location permission errors require fixing platform access, not changing global DNS or disabling TLS in other clients.
+- Report login or logout as successful only when the command confirms its connectivity check. A completed portal request with an unverified check remains unverified. The command performs one action and does not install a reconnect daemon.

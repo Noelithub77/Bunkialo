@@ -1,0 +1,137 @@
+name: Build and release CLI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cli/src/**'
+      - 'cli/Cargo.toml'
+      - 'cli/Cargo.lock'
+      - 'cli/login-ui/**'
+      - 'cli/install.sh'
+      - 'cli/install.ps1'
+      - 'cli/tests/**'
+      - 'cli/skills/**'
+      - '.github/workflows/cli-release.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: cli-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - runner: ubuntu-22.04-arm
+            target: aarch64-unknown-linux-gnu
+          - runner: macos-15-intel
+            target: x86_64-apple-darwin
+          - runner: macos-14
+            target: aarch64-apple-darwin
+          - runner: windows-2022
+            target: x86_64-pc-windows-msvc
+          - runner: windows-11-arm
+            target: aarch64-pc-windows-msvc
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Rebuild bundled login page
+        working-directory: cli/login-ui
+        run: |
+          bun install --frozen-lockfile
+          bunx tsc --noEmit
+          bun run build
+      - name: Install Linux build libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libssl-dev pkg-config
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          components: clippy
+      - name: Test and build
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          if [[ "$RUNNER_OS" == 'Windows' ]]; then export RUSTFLAGS='-C target-feature=+crt-static'; fi
+          cargo test --locked --manifest-path cli/Cargo.toml --target "$TARGET"
+          cargo clippy --locked --manifest-path cli/Cargo.toml --target "$TARGET" --all-targets -- -D warnings
+          cargo build --release --locked --manifest-path cli/Cargo.toml --target "$TARGET"
+      - name: Test shell installer
+        if: runner.os != 'Windows'
+        run: python3 cli/tests/test_install.py
+      - name: Test Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./cli/tests/test-install.ps1 -BinaryPath "cli/target/${{ matrix.target }}/release/bunkialo.exe"
+      - name: Package binary and checksum
+        env:
+          TARGET: ${{ matrix.target }}
+        run: |
+          mkdir -p release-artifacts
+          suffix=''
+          if [[ "$RUNNER_OS" == 'Windows' ]]; then suffix='.exe'; fi
+          asset="bunkialo-$TARGET$suffix"
+          cp "cli/target/$TARGET/release/bunkialo$suffix" "release-artifacts/$asset"
+          "cli/target/$TARGET/release/bunkialo$suffix" --help
+          cd release-artifacts
+          if command -v sha256sum >/dev/null; then
+            sha256sum "$asset" > "$asset.sha256"
+          else
+            shasum -a 256 "$asset" > "$asset.sha256"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.target }}
+          path: release-artifacts/*
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cli-*
+          merge-multiple: true
+          path: release-artifacts
+      - name: Publish rolling CLI release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          cat > release-notes.md <<EOF_NOTES
+          Bunkialo CLI built from commit $BUILD_SHA.
+
+          Install commands and supported platforms: https://github.com/$GH_REPO/blob/$BUILD_SHA/cli/README.md
+
+          The binaries include the browser login page. Each binary has a matching SHA-256 checksum.
+          EOF_NOTES
+          if gh release view cli-latest >/dev/null 2>&1; then
+            gh release upload cli-latest release-artifacts/* --clobber
+            gh release edit cli-latest --title 'Bunkialo CLI (latest main build)' --notes-file release-notes.md --latest=false
+          else
+            gh release create cli-latest release-artifacts/* --target "$BUILD_SHA" --title 'Bunkialo CLI (latest main build)' --notes-file release-notes.md --latest=false
+          fi

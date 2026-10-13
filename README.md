@@ -1,16 +1,33 @@
 # Bunkialo
 
-Bunkialo is an Expo React Native app for IIIT Kottayam students that aggregates Moodle attendance, assignment timeline, timetable, mess menu, and utility tools.
+Bunkialo is a full ecosystem of apps for IIIT Kottayam students that aggregates Moodle attendance, assignment timeline, timetable, mess menu, and utility tools.
 
-Bunkialo landing is the Next.js onboarding page for Bunkialo, in bunkialo-landing folder.
+```sh
+curl -fsSL https://raw.githubusercontent.com/Noelithub77/bunkialo2/main/cli/install.sh | sh
+```
 
-## License
+On macOS or Linux, this installs the latest `bunkialo` CLI, offers the companion agent skill, then opens browser login.
 
-This project is licensed under **GPL-3.0**.
+On Windows, run in PowerShell:
 
-meaning: if you fork and distribute a modified version, you must also provide source code for that modified version under GPL-compatible terms. Distributed derivatives cannot be closed source.
+```powershell
+irm https://raw.githubusercontent.com/Noelithub77/bunkialo2/main/cli/install.ps1 | iex
+```
 
-## Quick Start
+```sh
+bunkialo lms recent
+bunkialo attendance summary
+bunkialo wifix
+bunkialo wifix logout
+```
+
+WiFix logs campus Wi-Fi in with your saved LMS account; logout keeps Wi-Fi connected. It uses the active Wi-Fi DNS servers and only handles `IIITKottayam` and `IIITKottayam_5G`.
+
+[CLI commands and supported systems](cli/README.md) · [AGPL-3.0 license](LICENSE.md) · [Contributing](.github/CONTRIBUTING.md) · [Security](.github/SECURITY.md)
+
+Bunkialo also includes an Expo app for Moodle attendance, assignment timelines, timetables, mess menus, and utility tools. Android is the native target; iPhone and iPad use the web/PWA experience. The Next.js onboarding site lives in `bunkialo-landing/`.
+
+## App development
 
 ### Prerequisites
 
@@ -38,10 +55,6 @@ LMS test variables are optional and only needed if you run the test scripts:
 bunx expo start
 ```
 
-### Rust CLI
-
-The optional [`bunkialo` CLI](cli/README.md) provides terminal LMS and official attendance reports. Build it with `cargo build --release --locked --manifest-path cli/Cargo.toml`, install `cli/target/release/bunkialo`, and run `bunkialo login` to connect both accounts through a local browser page. The page is bundled with Vite and credentials are saved to the OS keyring. The [companion agent skill](cli/skills/bunkialo-academic-portals/SKILL.md) and [agent-assisted install steps](cli/README.md#agent-assisted-install) are included with the CLI.
-
 ### Cloudflare web deployment
 
 Use the Cloudflare `cf` CLI for web development, build checks, and deployment.
@@ -63,7 +76,8 @@ Deployments require Cloudflare authentication through `cf auth login` or
 
 Download the latest Android development APK from the [GitHub Releases page](https://github.com/Noelithub77/bunkialo2/releases), install it on an Android device, and open the EAS Update preview link from a manually started preview run.
 
-All build and publish workflows require a manual trigger. Start GitHub workflows
+Android build and OTA publish workflows require a manual trigger. The CLI
+release workflow runs automatically for relevant CLI changes pushed to main. Start GitHub workflows
 from **Actions → Run workflow**. Start EAS previews with
 `bunx eas-cli workflow:run .eas/workflows/manual-preview.yml`; the run publishes to
 `manual-preview-dev` and `manual-preview-expo-go`.
@@ -179,11 +193,3 @@ details, see
 - `bun run test:assignment-submit` (uploads only with explicit `--submit`)
 - `bun run test:e2e:assignment`
 - `bun run test:e2e:feedback`
-
-## Contributing
-
-Please read [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) before opening pull requests.
-
-## Security
-
-Please report vulnerabilities through GitHub private vulnerability reporting. See [`.github/SECURITY.md`](.github/SECURITY.md).

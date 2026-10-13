@@ -289,6 +289,7 @@ impl Moodle {
                 dates.insert(label.trim_end_matches(':').to_string(), json!(cleaned));
             }
         }
+        let image_extension = Regex::new(r"(?i)\.(png|jpe?g|gif|webp|svg)([?#]|$)").unwrap();
         let mut images = Vec::new();
         let mut resources = Vec::new();
         let mut seen = HashSet::new();
@@ -303,9 +304,7 @@ impl Moodle {
                     continue;
                 }
                 if !src.contains("/pluginfile.php/")
-                    && !Regex::new(r"(?i)\.(png|jpe?g|gif|webp|svg)([?#]|$)")
-                        .unwrap()
-                        .is_match(src)
+                    && !image_extension.is_match(src)
                 {
                     continue;
                 }
@@ -380,19 +379,17 @@ impl Moodle {
                     .filter_map(ElementRef::wrap)
                     .take_while(|n| n.value().name() != "table")
                     .any(|n| has_class(n, "fileuploadsubmission"));
-                if href.contains("/assignsubmission_file/") || inside {
-                    if !href.is_empty() {
-                        if let Ok(url) = safe_url(&self.base, href) {
-                            let label = text_of(a);
-                            submitted.push(json!([
-                                if label.is_empty() {
-                                    "Submitted file".into()
-                                } else {
-                                    label
-                                },
-                                url
-                            ]));
-                        }
+                if (href.contains("/assignsubmission_file/") || inside) && !href.is_empty() {
+                    if let Ok(url) = safe_url(&self.base, href) {
+                        let label = text_of(a);
+                        submitted.push(json!([
+                            if label.is_empty() {
+                                "Submitted file".into()
+                            } else {
+                                label
+                            },
+                            url
+                        ]));
                     }
                 }
             }
@@ -954,9 +951,9 @@ impl Moodle {
             .map_err(|_| "Could not read selected upload file.".to_string())?
             .file_name(name.clone())
             .mime_str(
-                &mime_guess::from_path(&path)
+                mime_guess::from_path(&path)
                     .first_or_octet_stream()
-                    .to_string(),
+                    .as_ref(),
             )
             .map_err(|_| "Invalid upload MIME type.".to_string())?;
         form = form.part("repo_upload_file", part);

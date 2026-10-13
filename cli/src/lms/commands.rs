@@ -18,7 +18,7 @@ pub(crate) fn run(command: LmsCommand) -> CliResult<()> {
     match command {
         LmsCommand::Courses => print_courses(&client.courses(Some(&dashboard))),
         LmsCommand::Deadlines { days, limit } => {
-            if days < 1 || limit < 1 || limit > 50 {
+            if days < 1 || !(1..=50).contains(&limit) {
                 return Err("--days must be positive and --limit must be between 1 and 50.".into());
             }
             let events = client.events(days, limit)?;
@@ -608,7 +608,7 @@ fn submit_assignment(client: &Moodle, args: SubmitArgs) -> CliResult<()> {
     }
     let current = value_arr(&details, "submitted").len();
     if let Some(max) = session.get("max_files").and_then(Value::as_i64) {
-        if max >= 0 && current + args.files.len() as usize > max as usize {
+        if max >= 0 && current + args.files.len() > max as usize {
             return Err(format!(
                 "Selected files plus the current submission exceed Moodle's {max}-file limit."
             ));

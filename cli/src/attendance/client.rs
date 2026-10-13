@@ -128,9 +128,9 @@ impl Attendance {
             .map_err(|_| "Could not read medical certificate file.".to_string())?
             .file_name(name)
             .mime_str(
-                &mime_guess::from_path(&file)
+                mime_guess::from_path(&file)
                     .first_or_octet_stream()
-                    .to_string(),
+                    .as_ref(),
             )
             .map_err(|_| "Invalid certificate MIME type.".to_string())?;
         form = form.part("certificate", part);

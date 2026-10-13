@@ -2,6 +2,7 @@
 name = "bunkialo-cli"
 version = "1.0.0"
 edition = "2021"
+license = "AGPL-3.0-only"
 
 [[bin]]
 name = "bunkialo"
@@ -11,7 +12,7 @@ path = "src/main.rs"
 chrono = { version = "0.4", features = ["clock"] }
 clap = { version = "4", features = ["derive"] }
 html-escape = "0.2"
-keyring = { version = "3", features = ["linux-native-sync-persistent", "crypto-rust"] }
+keyring = { version = "3", features = ["apple-native", "windows-native", "linux-native-sync-persistent", "crypto-rust"] }
 mime_guess = "2"
 regex = "1"
 reqwest = { version = "0.12", features = ["blocking", "cookies", "multipart", "json"] }
@@ -23,3 +24,7 @@ url = "2"
 tiny_http = "0.12"
 rand = "0.8"
 webbrowser = "1"
+hickory-proto = { version = "0.26.3", default-features = false, features = ["std"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-core-wlan = { version = "0.3.2", default-features = false, features = ["CWWiFiClient", "CWInterface"] }

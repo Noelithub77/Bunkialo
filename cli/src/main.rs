@@ -4,6 +4,7 @@ mod cli;
 mod common;
 mod lms;
 mod login;
+mod wifix;
 
 use clap::Parser;
 use cli::{Cli, Command};
@@ -15,6 +16,7 @@ fn main() {
         Command::Auth { command } => auth::run(command),
         Command::Lms { command } => lms::run(command),
         Command::Attendance { command } => attendance::run(command),
+        Command::Wifix { command } => wifix::run(command),
     };
     if let Err(error) = result {
         eprintln!("bunkialo: {error}");
