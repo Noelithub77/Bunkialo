@@ -2,7 +2,7 @@
 set -eu
 
 release_url=https://github.com/Noelithub77/bunkialo2/releases/download/cli-latest
-skill_url=https://github.com/Noelithub77/bunkialo2/tree/main/cli/skills/bunkialo-academic-portals
+skill_url=https://github.com/Noelithub77/bunkialo2/tree/main/skills/bunkialo-academic-portals
 install_dir=${BUNKIALO_INSTALL_DIR:-"$HOME/.local/bin"}
 skip_login=false
 skip_skill=false

@@ -16,7 +16,7 @@ Windows PowerShell:
 irm https://raw.githubusercontent.com/Noelithub77/bunkialo2/main/cli/install.ps1 | iex
 ```
 
-The installer downloads the matching binary from the rolling [`cli-latest` release](https://github.com/Noelithub77/bunkialo2/releases/tag/cli-latest), verifies its SHA-256 checksum, and installs it in a user directory. It offers the [academic portals skill](skills/bunkialo-academic-portals/SKILL.md), then runs `bunkialo login`. The skill uses the [Skills CLI](https://github.com/vercel-labs/skills) to choose your agent and requires Node.js with `npx`; declining or failing skill installation still proceeds to login.
+The installer downloads the matching binary from the rolling [`cli-latest` release](https://github.com/Noelithub77/bunkialo2/releases/tag/cli-latest), verifies its SHA-256 checksum, and installs it in a user directory. It offers the [academic portals skill](../skills/bunkialo-academic-portals/SKILL.md), then runs `bunkialo login`. The skill uses the [Skills CLI](https://github.com/vercel-labs/skills) to choose your agent and requires Node.js with `npx`; declining or failing skill installation still proceeds to login.
 
 Supported binaries are x64 and arm64 on each platform:
 
@@ -115,12 +115,12 @@ python3 cli/tests/test_install.py
 
 Windows installer tests run in the Windows build jobs against a locally built binary. Shell tests use isolated download/binary fixtures and a pseudo terminal to check skill consent and automatic login; they do not install skills or connect accounts.
 
-## Agent-assisted install
+## Agent skill via npx
 
-The [Bunkialo academic portals skill](skills/bunkialo-academic-portals/SKILL.md) guides an agent through installing and operating this CLI. Use the installer above, or build from a checkout when a release does not cover the system. Install the skill globally with:
+The [Bunkialo academic portals skill](../skills/bunkialo-academic-portals/SKILL.md) guides an agent through installing and operating this CLI. Use the installer above, or build from a checkout when a release does not cover the system. Install the skill globally with:
 
 ```sh
-npx skills add https://github.com/Noelithub77/bunkialo2/tree/main/cli/skills/bunkialo-academic-portals --global
+npx skills add Noelithub77/bunkialo2 --skill bunkialo-academic-portals --global
 ```
 
 Check `bunkialo --help` and `bunkialo auth status`. If account setup was requested, use `bunkialo login` and verify one live LMS read and one official attendance read. `auth status` alone only confirms that credentials exist. Credentials belong in the OS keyring, never in the repository or skill.

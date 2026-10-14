@@ -15,7 +15,7 @@ switch ($architecture) {
 }
 $asset = "bunkialo-$target.exe"
 $releaseUrl = 'https://github.com/Noelithub77/bunkialo2/releases/download/cli-latest'
-$skillUrl = 'https://github.com/Noelithub77/bunkialo2/tree/main/cli/skills/bunkialo-academic-portals'
+$skillUrl = 'https://github.com/Noelithub77/bunkialo2/tree/main/skills/bunkialo-academic-portals'
 $taskTemp = Join-Path ([IO.Path]::GetTempPath()) ([Guid]::NewGuid().ToString())
 $staged = $null
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12

@@ -146,7 +146,7 @@ case "$url" in *.sha256) printf '%s  fixture\n' "$TEST_HASH" > "$destination";; 
     def test_skill_consent_then_login_when_piped(self):
         calls = self.interactive_install("y")
         self.assertEqual(calls[0], "--help")
-        self.assertIn("skills add https://github.com/Noelithub77/bunkialo2/tree/main/cli/skills/bunkialo-academic-portals --global", calls[1])
+        self.assertIn("skills add https://github.com/Noelithub77/bunkialo2/tree/main/skills/bunkialo-academic-portals --global", calls[1])
         self.assertEqual(calls[2], "login")
 
     def test_declining_skill_still_starts_login(self):

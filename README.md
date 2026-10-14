@@ -17,6 +17,12 @@ On Windows, run in PowerShell:
 irm https://raw.githubusercontent.com/Noelithub77/bunkialo2/main/cli/install.ps1 | iex
 ```
 
+Install the companion agent skill:
+
+```sh
+npx skills add Noelithub77/bunkialo2 --skill bunkialo-academic-portals --global
+```
+
 ```sh
 bunkialo lms recent
 bunkialo attendance summary

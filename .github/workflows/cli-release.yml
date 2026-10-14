@@ -11,7 +11,7 @@ on:
       - 'cli/install.sh'
       - 'cli/install.ps1'
       - 'cli/tests/**'
-      - 'cli/skills/**'
+      - 'skills/**'
       - '.github/workflows/cli-release.yml'
   workflow_dispatch:
 
