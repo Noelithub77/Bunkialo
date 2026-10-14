@@ -1,36 +1,67 @@
+use super::network::Network;
+#[cfg(test)]
 use super::PORTAL_HOST;
 use crate::common::CliResult;
 use hickory_proto::op::{Message, MessageType, OpCode, Query, ResponseCode};
 use hickory_proto::rr::{Name, RData, RecordType};
 use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-pub(super) fn resolve(local: Ipv4Addr, servers: &[Ipv4Addr]) -> CliResult<Ipv4Addr> {
-    for server in servers {
-        match query(local, SocketAddr::from((*server, 53))) {
-            Ok(address) => {
-                println!("Portal DNS: {server} → {address}");
-                return Ok(address);
-            }
-            Err(_) => eprintln!(
-                "Campus DNS server {server} did not resolve the portal; trying the next server."
-            ),
+pub(super) fn resolve(network: &Network, host: &str, deadline: Instant) -> CliResult<Ipv4Addr> {
+    let mut failures = Vec::new();
+    for server in network.dns.iter().take(3) {
+        if let Err(error) = network.ensure_route(*server) {
+            failures.push(error);
+            continue;
+        }
+        let timeout = deadline
+            .saturating_duration_since(Instant::now())
+            .min(Duration::from_secs(2));
+        if timeout.is_zero() {
+            break;
+        }
+        match query(
+            network.address,
+            SocketAddr::from((*server, 53)),
+            Some(&network.interface),
+            host,
+            timeout,
+        ) {
+            Ok(address) => return Ok(address),
+            Err(error) => failures.push(format!("{server}: {error}")),
         }
     }
-    Err(
-        "Campus DNS could not resolve auth.iiitkottayam.ac.in. Reconnect campus Wi-Fi and retry."
-            .into(),
-    )
+    Err(format!(
+        "Wi-Fi DNS could not resolve {host}: {}",
+        failures.join("; ")
+    ))
 }
 
-fn query(local: Ipv4Addr, server: SocketAddr) -> CliResult<Ipv4Addr> {
-    let socket =
-        UdpSocket::bind((local, 0)).map_err(|_| "Could not bind campus Wi-Fi DNS socket.")?;
+fn query(
+    local: Ipv4Addr,
+    server: SocketAddr,
+    interface: Option<&str>,
+    host: &str,
+    timeout: Duration,
+) -> CliResult<Ipv4Addr> {
+    let socket = socket2::Socket::new(
+        socket2::Domain::IPV4,
+        socket2::Type::DGRAM,
+        Some(socket2::Protocol::UDP),
+    )
+    .map_err(|error| format!("Could not create Wi-Fi DNS socket: {error}"))?;
+    if let Some(interface) = interface {
+        bind_interface(&socket, interface)?;
+    }
     socket
-        .set_read_timeout(Some(Duration::from_secs(2)))
+        .bind(&SocketAddr::from((local, 0)).into())
+        .map_err(|error| format!("Could not bind Wi-Fi DNS address: {error}"))?;
+    let socket: UdpSocket = socket.into();
+    socket
+        .set_read_timeout(Some(timeout))
         .map_err(|_| "Could not set DNS timeout.")?;
     socket
-        .set_write_timeout(Some(Duration::from_secs(2)))
+        .set_write_timeout(Some(timeout))
         .map_err(|_| "Could not set DNS timeout.")?;
     socket
         .connect(server)
@@ -38,7 +69,7 @@ fn query(local: Ipv4Addr, server: SocketAddr) -> CliResult<Ipv4Addr> {
     let mut request = Message::new(rand::random(), MessageType::Query, OpCode::Query);
     request.metadata.recursion_desired = true;
     request.add_query(Query::query(
-        Name::from_ascii(format!("{PORTAL_HOST}.")).map_err(|_| "Invalid portal DNS name.")?,
+        Name::from_ascii(format!("{host}.")).map_err(|_| "Invalid portal DNS name.")?,
         RecordType::A,
     ));
     let bytes = request
@@ -54,6 +85,29 @@ fn query(local: Ipv4Addr, server: SocketAddr) -> CliResult<Ipv4Addr> {
     let response = Message::from_vec(&buffer[..size])
         .map_err(|_| "Campus DNS returned a malformed response.")?;
     address_from_response(&request, &response)
+}
+
+fn bind_interface(socket: &socket2::Socket, interface: &str) -> CliResult<()> {
+    #[cfg(target_os = "linux")]
+    socket
+        .bind_device(Some(interface.as_bytes()))
+        .map_err(|error| format!("Could not bind DNS to Wi-Fi interface {interface}: {error}"))?;
+    #[cfg(target_os = "macos")]
+    {
+        let name =
+            std::ffi::CString::new(interface).map_err(|_| "Invalid Wi-Fi interface name.")?;
+        // The OS reads this NUL-terminated name only for the duration of the call.
+        let index = unsafe { libc::if_nametoindex(name.as_ptr()) };
+        let index = std::num::NonZeroU32::new(index).ok_or("Wi-Fi interface no longer exists.")?;
+        socket
+            .bind_device_by_index_v4(Some(index))
+            .map_err(|error| {
+                format!("Could not bind DNS to Wi-Fi interface {interface}: {error}")
+            })?;
+    }
+    #[cfg(target_os = "windows")]
+    let _ = (socket, interface); // The source address and route guard select the adapter.
+    Ok(())
 }
 
 fn address_from_response(request: &Message, response: &Message) -> CliResult<Ipv4Addr> {
@@ -122,7 +176,14 @@ mod tests {
             server.send_to(&response.to_vec().unwrap(), peer).unwrap();
         });
         assert_eq!(
-            query(Ipv4Addr::LOCALHOST, address).unwrap(),
+            query(
+                Ipv4Addr::LOCALHOST,
+                address,
+                None,
+                PORTAL_HOST,
+                Duration::from_secs(2)
+            )
+            .unwrap(),
             Ipv4Addr::new(10, 2, 0, 1)
         );
         worker.join().unwrap();

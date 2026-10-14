@@ -11,6 +11,18 @@ pub(super) struct Network {
 }
 
 impl Network {
+    pub fn ensure_route(&self, destination: Ipv4Addr) -> CliResult<()> {
+        #[cfg(target_os = "windows")]
+        {
+            let script = format!("$ErrorActionPreference='Stop'; $wifi=Get-NetIPAddress -IPAddress '{}' -AddressFamily IPv4; $route=Find-NetRoute -RemoteIPAddress '{}' | Where-Object {{ $_.CimClass.CimClassName -eq 'MSFT_NetRoute' }}; if (-not $route -or $route.InterfaceIndex -ne $wifi.InterfaceIndex) {{ throw 'Destination routes through another interface. Configure VPN split tunneling for campus Wi-Fi.' }}", self.address, destination);
+            output("powershell.exe", &["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", &script])
+                .map_err(|_| "The Windows route does not select campus Wi-Fi. Configure VPN split tunneling and retry; routes were not changed.".to_string())?;
+        }
+        #[cfg(not(target_os = "windows"))]
+        let _ = destination;
+        Ok(())
+    }
+
     pub fn validate(self) -> CliResult<Self> {
         if !matches!(self.ssid.as_str(), "IIITKottayam" | "IIITKottayam_5G") {
             return Err(format!(

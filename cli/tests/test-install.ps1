@@ -27,6 +27,7 @@ try {
         & $installer -InstallDir $destination -SkipLogin -SkipSkill
         $expectedTarget = if ($architecture -eq 'AMD64') { 'x86_64' } else { 'aarch64' }
         if (-not $requests[$requests.Count - 1].Contains("bunkialo-$expectedTarget-pc-windows-msvc.exe.sha256")) { throw 'Incorrect platform asset selected.' }
+        if ((Get-Content (Join-Path $destination 'wifix.cmd') -Raw).Trim() -ne '@"%~dp0bunkialo.exe" wifix %*') { throw 'WiFix shortcut was not installed.' }
         if ((Get-FileHash (Join-Path $destination 'bunkialo.exe')).Hash -ne $fixtureHash) { throw 'Installed file differs from fixture.' }
     }
     $badHash = $true

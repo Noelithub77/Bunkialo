@@ -66,6 +66,18 @@ case "$url" in *.sha256) printf '%s  fixture\n' "$TEST_HASH" > "$destination";; 
         self.assertEqual((self.home / ".zshrc").read_text().count("# Bunkialo CLI"), 1)
         self.assertEqual((self.root / "calls").read_text().splitlines(), ["--help"] * 4)
 
+    def test_shortcut_is_installed_and_existing_command_is_preserved(self):
+        self.assertEqual(self.run_installer().returncode, 0)
+        shortcut = self.home / ".local/bin/wifix"
+        self.assertIn('bunkialo" wifix "$@"', shortcut.read_text())
+        result = subprocess.run([str(shortcut), "status"], env=self.env, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.root / "calls").read_text().splitlines()[-1], "wifix status")
+        shortcut.unlink()
+        shortcut.write_text("my existing command")
+        self.assertEqual(self.run_installer().returncode, 0)
+        self.assertEqual(shortcut.read_text(), "my existing command")
+
     def test_bad_checksum_preserves_existing_binary(self):
         self.assertEqual(self.run_installer().returncode, 0)
         binary = self.home / ".local/bin/bunkialo"

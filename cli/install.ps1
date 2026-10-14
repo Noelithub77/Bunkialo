@@ -38,6 +38,11 @@ try {
     $staged = Join-Path $InstallDir ([Guid]::NewGuid().ToString() + '.exe')
     Copy-Item $download $staged
     Move-Item $staged $binary -Force
+    $shortcut = Join-Path $InstallDir 'wifix.cmd'
+    $launcher = '@"%~dp0bunkialo.exe" wifix %*'
+    if (-not (Test-Path $shortcut) -or (Get-Content $shortcut -Raw).Trim() -eq $launcher) {
+        [IO.File]::WriteAllText($shortcut, $launcher + "`r`n", [Text.Encoding]::ASCII)
+    } else { Write-Warning 'Kept your existing wifix command. Use bunkialo wifix instead.' }
     $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
     if (($userPath -split ';') -notcontains $InstallDir) {
         [Environment]::SetEnvironmentVariable('Path', "$InstallDir;$userPath", 'User')

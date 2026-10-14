@@ -24,7 +24,7 @@ Supported binaries are x64 and arm64 on each platform:
 - macOS: macOS 14 or newer for Apple Silicon; macOS 15 or newer for Intel. Credentials use macOS Keychain. Release binaries are not notarized.
 - Windows: Windows 10/11 x64 or Windows 11 arm64. Release builds link the C runtime statically. Credentials use Windows Credential Manager.
 
-macOS/Linux use `~/.local/bin` and add it to the current shell's startup file if needed; open a new terminal afterward. Windows uses `%LOCALAPPDATA%\Bunkialo\bin` and adds it to your user `PATH`. Installers use the full binary path for login immediately. Linux needs `curl` or `wget` and `sha256sum` or `shasum`; macOS and Windows already include their download and checksum tools. No installer can supply `npx` without Node.js, so missing Node.js skips the optional skill and prints the retry command.
+macOS/Linux use `~/.local/bin` and add it to the current shell's startup file if needed; open a new terminal afterward. Windows uses `%LOCALAPPDATA%\Bunkialo\bin` and adds it to your user `PATH`. Both installers add a `wifix` shortcut for login, status, and logout; an existing unrelated command with that name is preserved. Installers use the full binary path for login immediately. Linux needs `curl` or `wget` and `sha256sum` or `shasum`; macOS and Windows already include their download and checksum tools. No installer can supply `npx` without Node.js, so missing Node.js skips the optional skill and prints the retry command.
 
 For an unattended install or a custom directory:
 
@@ -47,6 +47,8 @@ cargo install --locked --path cli
 bunkialo --help
 bunkialo login
 ```
+
+On Hyprland, `bunkialo login` also activates the most recently focused window matching the default browser's desktop entry after opening the page. Other desktops and platforms use their standard browser-opening behavior.
 
 The Vite-built login page is included in the Rust binary. If you edit the page, rebuild its assets first with Bun:
 
@@ -87,13 +89,16 @@ Moodle submissions require confirmation for draft upload, save, and final gradin
 bunkialo wifix          # Log in; already-online connections are left alone
 bunkialo wifix status   # Check connectivity without logging in or out
 bunkialo wifix logout   # Log out of the campus portal; keep Wi-Fi connected
+wifix                 # Same as bunkialo wifix
+wifix status
+wifix logout
 ```
 
-Connect to `IIITKottayam` or `IIITKottayam_5G` first. WiFix discovers the active Wi-Fi interface, its IPv4 address, and its DNS servers. It prefers DHCP DNS on Linux and macOS; Windows uses the active adapter's configured DNS. It queries those servers directly, pins the campus portal's hostname to the returned address, binds requests to the Wi-Fi IPv4 address, and bypasses proxy environment settings. It does not change system DNS or disconnect Wi-Fi.
+Connect to `IIITKottayam` or `IIITKottayam_5G` first. WiFix discovers the active Wi-Fi interface, its IPv4 address, and its DNS servers. It prefers DHCP DNS on Linux and macOS; Windows uses the active adapter's configured DNS. It queries those servers directly, pins the campus portal's hostname to the returned address, binds requests to the Wi-Fi IPv4 address, and bypasses proxy environment settings. Linux and macOS also bind DNS and HTTP sockets to the Wi-Fi interface, preventing a VPN route from taking over. Windows verifies that the destination route selects the Wi-Fi adapter and stops with a split-tunneling message if it does not. It does not change system DNS or disconnect Wi-Fi.
 
 Login reuses the saved LMS username/password from `bunkialo login`, or the existing LMS environment variables. If none are available, it prompts without saving them. Logout needs no credentials. Like the Omarchy plugin, certificate validation is bypassed only in the client for `https://auth.iiitkottayam.ac.in:1442`; redirects are disabled and credentials are posted only to that fixed origin. Other CLI clients keep their existing TLS verification.
 
-Login succeeds only after the connectivity endpoint returns an empty HTTP 204. Logout succeeds only after the endpoint returns the campus captive login page or redirects to the campus portal. Timeouts and unrelated errors are reported as unverified, not successful logout. WiFix performs one requested action; it does not install a background reconnect service or continuously keep the session alive.
+Connectivity checks try Google, Microsoft, and Mozilla endpoints within a 15-second network budget, with short per-request timeouts and at most three DNS servers. Google/Mozilla must return an empty HTTP 204; Microsoft must return its exact expected text. Checks report underlying connection failures and refresh a changed Wi-Fi attachment once before sending a portal action. Login succeeds only after one of those endpoints confirms internet access. Logout succeeds only after the endpoint returns the campus captive login page or redirects to the campus portal. Timeouts and unrelated errors are reported as unverified, not successful logout. WiFix performs one requested action; it does not install a background reconnect service or continuously keep the session alive.
 
 Platform discovery uses these existing system tools:
 

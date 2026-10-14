@@ -26,8 +26,9 @@ npx skills add Noelithub77/bunkialo2 --skill bunkialo-academic-portals --global
 ```sh
 bunkialo lms recent
 bunkialo attendance summary
-bunkialo wifix
-bunkialo wifix logout
+wifix
+wifix status
+wifix logout
 ```
 
 

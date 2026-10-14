@@ -33,6 +33,6 @@ Complete the student's requested LMS or attendance task using the live portal. U
 
 ## Campus Wi-Fi
 
-- For a requested campus login, run `bunkialo wifix`; for logout, run `bunkialo wifix logout`. Use `bunkialo wifix status` for a read-only check. The CLI supports only the campus SSIDs `IIITKottayam` and `IIITKottayam_5G`, reuses LMS credentials, and leaves Wi-Fi connected when logging out.
-- WiFix queries the active Wi-Fi DNS servers and pins the official authentication portal's address. Its certificate exception matches the Omarchy plugin and applies only to that portal. Network/location permission errors require fixing platform access, not changing global DNS or disabling TLS in other clients.
+- For a requested campus login, run `bunkialo wifix`; for logout, run `bunkialo wifix logout`. Use `bunkialo wifix status` for a read-only check. The installers also provide `wifix`, `wifix status`, and `wifix logout`. The CLI supports only the campus SSIDs `IIITKottayam` and `IIITKottayam_5G`, reuses LMS credentials, and leaves Wi-Fi connected when logging out.
+- WiFix queries the active Wi-Fi DNS servers and pins the official authentication portal's address. Its certificate exception matches the Omarchy plugin and applies only to that portal. Network/location permission errors require fixing platform access. A Windows VPN route error needs user-controlled split tunneling; keep global DNS and other clients' TLS settings intact.
 - Report login or logout as successful only when the command confirms its connectivity check. A completed portal request with an unverified check remains unverified. The command performs one action and does not install a reconnect daemon.

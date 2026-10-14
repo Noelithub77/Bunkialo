@@ -42,19 +42,19 @@ pairing record. WiFix uses the first entry locally; connecting to WiFi does not
 contact Bunkialo. Refreshing timetable or notifications still uses the
 production API.
 
-WiFix only handles the campus SSIDs `IIITKottayam` and `IIITKottayam_5G`.
-It reads the already-connected WiFi device (without triggering a WiFi scan),
-A cached campus SSID result is used immediately as a hint, then validated with
-a live no-captive-portal HTTP `204` check when the panel opens. Refresh also
-forces a new check.
-A `204` means internet is available and shows Logout; an intercepted response
-shows Connect. The probe and portal requests are bound to the active campus
-WiFi interface, so WARP cannot make a captive connection look online. The
-portal hostname is resolved through that interface's DHCP DNS at runtime; the
-returned address is used only for that request and is never hardcoded. Login
-fetches `/login?...`, extracts its `magic` and `4Tredir` fields, and posts
-those values with the credentials. Logout only calls the portal logout URL; it
-never disconnects a NetworkManager device, so it cannot bring down Tailscale.
+WiFix only handles the campus SSIDs `IIITKottayam` and `IIITKottayam_5G`. Each check or action refreshes the connected device, actual SSID (without a scan), IPv4 address, and DNS metadata. It prefers DHCP DNS, resolves the portal and probe hosts through those servers, and binds HTTP requests to the Wi-Fi interface. DNS queries use the Wi-Fi source address. Proxy environment variables and user curl configuration are bypassed for these requests.
+
+Connectivity checks try Google, Microsoft, and Mozilla with short timeouts. Only the expected empty HTTP 204 or Microsoft's exact connectivity text confirms internet access. Campus portal redirects or login forms confirm a captive connection. Failed requests remain unknown; they do not become successful logout or proof of a captive portal.
+
+Login fetches the official portal form, extracts its `magic` and `4Tredir` fields, validates the form destination, and sends credentials through curl's stdin. Logout calls only the portal logout URL. Both actions verify connectivity afterward and retry verification once, without repeating the credential POST. Checks and actions are serialized and have a watchdog that stops outstanding processes. Portal certificate handling retains the existing campus-only exception. System DNS, VPN settings, and Wi-Fi connections are not modified.
+
+Run the isolated service regression tests without using personal credentials or the live desktop:
+
+```sh
+python3 tests/omarchy/test_wifix.py
+```
+
+These tests run the real Quickshell service offscreen with fixture commands for fallback connectivity, unavailable checks, login, and logout.
 
 Run the real local round-trip test while connected to campus WiFi:
 

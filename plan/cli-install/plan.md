@@ -16,3 +16,14 @@
 - A live status check discovered campus Wi-Fi, but the connectivity endpoint failed with both the CLI and equivalent curl requests. Campus login/logout remains unverified; neither action was run on the current connection.
 
 Status: implementation and local verification complete. Commit locally; the first hosted build and release require pushing to main.
+
+## Follow-up reliability and plugin work
+
+- **[chosen]** Bounded Google/Microsoft/Mozilla fallback endpoints for connectivity verification.
+- Merge the discoverable top-level companion skill from PR #36, publish main, and remove the completed branch.
+- Add installer-provided `wifix` commands, Wi-Fi interface binding for Unix DNS/HTTP, a Windows route guard, and a single refresh when the attachment changes during a check.
+- Activate the default browser on Hyprland after opening login. An isolated OmaBox run loaded the login page and returned browser focus from a foreground terminal.
+- Apply equivalent endpoint/state handling to the Omarchy plugin. Four actual-service offscreen regressions caught the prior failures and pass after the fix.
+- Live campus reads still cannot establish connectivity; real login/logout is unverified. Installed user plugin files will be synchronized; keep-loaded live shell activation is a separate step.
+
+Status: final verification and publication pending.

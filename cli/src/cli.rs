@@ -160,3 +160,10 @@ pub(crate) enum AttendanceCommand {
         dry_run: bool,
     },
 }
+
+#[derive(Parser)]
+#[command(name = "wifix", about = "Log in to campus Wi-Fi", version)]
+pub(crate) struct WifixCli {
+    #[command(subcommand)]
+    pub(crate) command: Option<WifixCommand>,
+}

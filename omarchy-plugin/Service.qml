@@ -184,7 +184,7 @@ Item {
     if (!root.pendingRefresh || root.wifixChecking) return
     root.pendingRefresh = false
     if (Wifix.isCampusSsid(root.currentSsid) && !root.wifixConnected) {
-      root.setError("Campus portal detected · connect WiFi before refreshing")
+      root.setError(root.wifixMessage || "Campus Wi-Fi unavailable · retry before refreshing")
       return
     }
     if (!root.paired || fetchProc.running || cacheDirProc.running) return

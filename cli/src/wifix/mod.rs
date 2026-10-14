@@ -1,44 +1,49 @@
+mod connectivity;
 mod dns;
 mod network;
 
 use crate::cli::WifixCommand;
-use crate::common::{credentials, sel, CliResult, UA};
+use crate::common::{credentials, sel, CliResult};
+use connectivity::{probe, verify, Connectivity};
 use network::Network;
 use reqwest::blocking::Client;
-use reqwest::redirect::Policy;
 use scraper::Html;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::time::Duration;
+use std::net::{Ipv4Addr, SocketAddr};
+use std::time::{Duration, Instant};
 use url::Url;
 
 const PORTAL_HOST: &str = "auth.iiitkottayam.ac.in";
 const PORTAL_BASE: &str = "https://auth.iiitkottayam.ac.in:1442";
 const LOGIN_PATH: &str = "/login?0330598d1f22608a";
 const LOGOUT_PATH: &str = "/logout?0307020009020400";
-const PROBE_URL: &str = "http://connectivitycheck.gstatic.com/generate_204";
-
-#[derive(Debug, PartialEq)]
-enum Connectivity {
-    Online,
-    Captive,
-    Unavailable,
-}
-
 pub(crate) fn run(command: Option<WifixCommand>) -> CliResult<()> {
-    let network = network::discover()?;
-    println!(
-        "Campus Wi-Fi: {} ({}, {})",
-        network.ssid, network.interface, network.address
-    );
-    let probe_client = Client::builder()
-        .no_proxy()
-        .local_address(IpAddr::V4(network.address))
-        .redirect(Policy::none())
-        .timeout(Duration::from_secs(10))
-        .user_agent(UA)
-        .build()
-        .map_err(|_| "Could not initialize Wi-Fi connectivity check.")?;
-    let before = probe(&probe_client);
+    let mut network = network::discover()?;
+    let mut refreshes = 0;
+    let (network, before) = loop {
+        println!(
+            "Campus Wi-Fi: {} ({}, {})",
+            network.ssid, network.interface, network.address
+        );
+        let state = probe(&network);
+        let fresh = network::discover()?;
+        if fresh.interface == network.interface
+            && fresh.ssid == network.ssid
+            && fresh.address == network.address
+        {
+            break (fresh, state);
+        }
+        if refreshes >= 1 {
+            return Err(
+                "Wi-Fi changed repeatedly during the check. Wait for it to settle, then retry."
+                    .into(),
+            );
+        }
+        eprintln!(
+            "Wi-Fi changed during the check; refreshing the connection before any portal action."
+        );
+        network = fresh;
+        refreshes += 1;
+    };
     match command {
         Some(WifixCommand::Status) => {
             println!(
@@ -60,86 +65,62 @@ pub(crate) fn run(command: Option<WifixCommand>) -> CliResult<()> {
                 println!("Campus Wi-Fi is already logged out.");
                 return Ok(());
             }
-            let address = dns::resolve(network.address, &network.dns)?;
+            let address = dns::resolve(
+                &network,
+                PORTAL_HOST,
+                Instant::now() + Duration::from_secs(6),
+            )?;
             let portal = portal_client(&network, address)?;
-            logout(&portal, &probe_client)
+            logout(&portal, &network)
         }
         _ => {
             if before == Connectivity::Online {
                 println!("Campus Wi-Fi is already online.");
                 return Ok(());
             }
-            let address = dns::resolve(network.address, &network.dns)?;
+            let address = dns::resolve(
+                &network,
+                PORTAL_HOST,
+                Instant::now() + Duration::from_secs(6),
+            )?;
             let portal = portal_client(&network, address)?;
             let (username, password) = credentials("lms")?;
-            login(&portal, &probe_client, &username, &password)
+            login(&portal, &network, &username, &password)
         }
     }
 }
 
 fn portal_client(network: &Network, address: Ipv4Addr) -> CliResult<Client> {
-    Client::builder()
-        .no_proxy()
-        .local_address(IpAddr::V4(network.address))
+    network.ensure_route(address)?;
+    connectivity::builder(network)
         .resolve(PORTAL_HOST, SocketAddr::from((address, 1442)))
         // Match the campus portal's certificate behavior, scoped to this client.
         // Redirects stay disabled and every request uses the fixed official origin.
         .danger_accept_invalid_certs(true)
         .danger_accept_invalid_hostnames(true)
-        .redirect(Policy::none())
         .cookie_store(true)
         .timeout(Duration::from_secs(20))
-        .user_agent(UA)
         .build()
         .map_err(|_| "Could not initialize campus portal connection.".into())
 }
 
-fn probe(client: &Client) -> Connectivity {
-    let Ok(response) = client.get(PROBE_URL).send() else {
-        return Connectivity::Unavailable;
-    };
-    let status = response.status().as_u16();
-    let location = response
-        .headers()
-        .get(reqwest::header::LOCATION)
-        .and_then(|v| v.to_str().ok())
-        .map(str::to_owned);
-    let body = response.text().unwrap_or_default();
-    connectivity(status, location.as_deref(), &body)
-}
-
-fn connectivity(status: u16, location: Option<&str>, body: &str) -> Connectivity {
-    if status == 204 && body.is_empty() {
-        return Connectivity::Online;
-    }
-    let redirected = location
-        .and_then(|value| Url::parse(value).ok())
-        .is_some_and(|url| url.host_str() == Some(PORTAL_HOST));
-    let portal_form = Html::parse_document(body)
-        .select(&sel("input[name=magic]"))
-        .next()
-        .is_some();
-    if (300..400).contains(&status) && redirected || status == 200 && portal_form {
-        Connectivity::Captive
-    } else {
-        Connectivity::Unavailable
-    }
-}
-
-fn login(portal: &Client, probe_client: &Client, username: &str, password: &str) -> CliResult<()> {
+fn login(portal: &Client, network: &Network, username: &str, password: &str) -> CliResult<()> {
     let response = portal
         .get(format!("{PORTAL_BASE}{LOGIN_PATH}"))
         .send()
-        .map_err(|_| "Campus portal login page could not be reached.")?;
+        .map_err(|error| {
+            format!(
+                "Campus portal login page could not be reached: {}",
+                connectivity::request_error(error)
+            )
+        })?;
     if !response.status().is_success() {
         return Err(format!(
             "Campus login page returned HTTP {}.",
             response.status()
         ));
     }
-    let body = response
-        .text()
-        .map_err(|_| "Campus login page could not be read.")?;
+    let body = connectivity::read_body(response)?;
     let (magic, redirect) = login_fields(&body)?;
     let mut fields = vec![
         ("magic", magic.as_str()),
@@ -157,7 +138,7 @@ fn login(portal: &Client, probe_client: &Client, username: &str, password: &str)
     if response.status().is_client_error() || response.status().is_server_error() {
         return Err(format!("Campus login returned HTTP {}.", response.status()));
     }
-    verify(probe_client, Connectivity::Online)?;
+    verify(network, Connectivity::Online)?;
     println!("Campus Wi-Fi login verified: internet access is available.");
     Ok(())
 }
@@ -194,7 +175,7 @@ fn login_fields(body: &str) -> CliResult<(String, Option<String>)> {
     Ok((magic, value("4Tredir")))
 }
 
-fn logout(portal: &Client, probe_client: &Client) -> CliResult<()> {
+fn logout(portal: &Client, network: &Network) -> CliResult<()> {
     let response = portal
         .get(format!("{PORTAL_BASE}{LOGOUT_PATH}"))
         .send()
@@ -205,27 +186,11 @@ fn logout(portal: &Client, probe_client: &Client) -> CliResult<()> {
             response.status()
         ));
     }
-    verify(probe_client, Connectivity::Captive)?;
+    verify(network, Connectivity::Captive)?;
     println!(
         "Campus Wi-Fi logout verified: portal login is required again. Wi-Fi remains connected."
     );
     Ok(())
-}
-
-fn verify(client: &Client, expected: Connectivity) -> CliResult<()> {
-    for attempt in 0..3 {
-        if attempt > 0 {
-            std::thread::sleep(Duration::from_secs(1));
-        }
-        if probe(client) == expected {
-            return Ok(());
-        }
-    }
-    Err(if expected == Connectivity::Online {
-        "The portal request completed, but internet access was not verified. Check your LMS credentials and campus connectivity; login was not retried."
-    } else {
-        "The logout request completed, but a return to the campus login portal was not verified. Check bunkialo wifix status."
-    }.into())
 }
 
 #[cfg(test)]
@@ -245,26 +210,5 @@ mod tests {
             login_fields(&body.replace("action=\"/\"", "action=\"https://evil.example\"")).is_err()
         );
         assert!(login_fields("<form><input name=magic value=''></form>").is_err());
-    }
-    #[test]
-    fn distinguishes_logout_from_network_failure() {
-        assert_eq!(connectivity(204, None, ""), Connectivity::Online);
-        assert_eq!(
-            connectivity(302, Some("https://auth.iiitkottayam.ac.in:1442/login"), ""),
-            Connectivity::Captive
-        );
-        assert_eq!(
-            connectivity(302, Some("https://other.example/"), ""),
-            Connectivity::Unavailable
-        );
-        assert_eq!(connectivity(500, None, ""), Connectivity::Unavailable);
-        assert_eq!(
-            connectivity(200, None, "<input name='magic' value='123'>"),
-            Connectivity::Captive
-        );
-        assert_eq!(
-            connectivity(200, None, "ordinary page"),
-            Connectivity::Unavailable
-        );
     }
 }

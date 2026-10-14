@@ -47,7 +47,7 @@ pub(crate) fn run() -> CliResult<()> {
         .collect::<String>();
     let url = format!("{origin}/#{token}");
     println!("Opening Bunkialo sign in at {url}");
-    if webbrowser::open(&url).is_err() {
+    if !crate::browser::open(&url) {
         println!("Open this one-time local URL in your browser: {url}");
     }
     let mut state = LoginState {

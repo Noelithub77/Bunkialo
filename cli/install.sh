@@ -69,6 +69,22 @@ trap 'rm -rf "$task_tmp"; rm -f "$staged"' EXIT HUP INT TERM
 cp "$task_tmp/bunkialo" "$staged"
 chmod 755 "$staged"
 mv -f "$staged" "$install_dir/bunkialo"
+cat > "$task_tmp/wifix" <<'WIFIX_SHORTCUT'
+#!/bin/sh
+# Bunkialo WiFix shortcut
+exec "$(dirname "$0")/bunkialo" wifix "$@"
+WIFIX_SHORTCUT
+if { [ ! -e "$install_dir/wifix" ] && [ ! -L "$install_dir/wifix" ]; } \
+    || [ "$(readlink "$install_dir/wifix" 2>/dev/null || true)" = bunkialo ] \
+    || cmp -s "$task_tmp/wifix" "$install_dir/wifix"; then
+  staged=$(mktemp "$install_dir/.wifix.XXXXXX")
+  cp "$task_tmp/wifix" "$staged"
+  chmod 755 "$staged"
+  mv -f "$staged" "$install_dir/wifix"
+  printf 'Installed the wifix shortcut\n'
+else
+  printf 'Kept your existing wifix command. Use bunkialo wifix instead.\n' >&2
+fi
 printf 'Installed %s/bunkialo\n' "$install_dir"
 case ":$PATH:" in
   *":$install_dir:"*) ;;
