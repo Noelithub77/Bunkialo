@@ -1,29 +1,28 @@
-# CLI installation and releases
+# Cli installation and WiFix
 
-- **[chosen]** Publish a rolling `cli-latest` release after successful builds on main.
-- **[chosen]** Use one shell installer for macOS/Linux and a PowerShell installer for Windows; offer the companion skill, then start browser login.
-- **[chosen]** Put installation first in the README and use `LICENSE.md` for AGPL-3.0-only.
-- Build native binaries for x64 and arm64 on all three operating systems, with the existing keyring dependency's native backends enabled.
-- Verify checksums before installation, install without administrator privileges, and support unattended installation without skill or login prompts.
-- Validate installer success/failure paths with isolated fixtures, run Rust checks and build, and validate workflow syntax. Hosted builds and account login remain separate checks.
+## Confirmed decisions
 
-- **[chosen]** WiFix login/logout matches the Omarchy plugin's certificate exception for the fixed campus portal. Use a dedicated client, no redirects, interface-address binding, direct campus DNS queries, and positive connectivity verification.
-- Added `hickory-proto` for DNS parsing and macOS-only `objc2-core-wlan` for native SSID discovery, under the authorization to add related packages.
+- **[chosen]** Publish a rolling `cli-latest` release after successful builds on main, separate from Android releases.
+- **[chosen]** Use a shared macOS/Linux installer and a Windows PowerShell installer; offer the companion skill, then open browser login.
+- **[chosen]** Put installation first in the README and use AGPL-3.0-only in `LICENSE.md` and package/plugin metadata.
+- **[chosen]** Match the Omarchy plugin's certificate exception only for the fixed campus authentication portal.
+- **[chosen]** Use bounded Google, Microsoft, and Mozilla fallback endpoints for connectivity verification.
 
-- Replaced the previous GPL license in `.github/LICENSE` and updated both plugin manifests to keep license metadata consistent.
-- Verified six Rust tests, eight isolated shell installer tests, Linux release build and Clippy, macOS arm64 and Windows x64 target checks and Clippy, login page TypeScript/build, shell syntax, and workflow syntax.
-- Windows release builds use a static C runtime. Windows installer tests are configured in the native Windows build jobs; they have not run locally.
-- A live status check discovered campus Wi-Fi, but the connectivity endpoint failed with both the CLI and equivalent curl requests. Campus login/logout remains unverified; neither action was run on the current connection.
+## Delivered
 
-Status: implementation and local verification complete. Commit locally; the first hosted build and release require pushing to main.
+- Build and release x64/arm64 binaries for Linux, macOS, and Windows. Installers verify checksums, preserve unrelated shortcut commands, and provide `wifix`, `wifix status`, and `wifix logout`.
+- Use native keyring backends, `hickory-proto` DNS parsing, macOS CoreWLAN discovery, and `socket2`/Unix `libc` support for interface-bound DNS. Unix HTTP is interface-bound; Windows has a destination-route guard.
+- Refresh changed Wi-Fi attachments before portal actions. Keep failed connectivity checks unknown and serialize plugin requests with bounded verification and a watchdog.
+- Activate the default browser on Hyprland after opening login. An invisible OmaBox run loaded the login page and returned browser focus from a foreground terminal.
+- Merge PR #36's top-level companion skill and publish the changes to main. GitHub marked the PR merged and removed its branch.
+- Update and commit the installed user-owned plugin in dotfiles. Reload the live shell after explicit approval; confirm its IPC target and the new probe logs.
 
-## Follow-up reliability and plugin work
+## Verification
 
-- **[chosen]** Bounded Google/Microsoft/Mozilla fallback endpoints for connectivity verification.
-- Merge the discoverable top-level companion skill from PR #36, publish main, and remove the completed branch.
-- Add installer-provided `wifix` commands, Wi-Fi interface binding for Unix DNS/HTTP, a Windows route guard, and a single refresh when the attachment changes during a check.
-- Activate the default browser on Hyprland after opening login. An isolated OmaBox run loaded the login page and returned browser focus from a foreground terminal.
-- Apply equivalent endpoint/state handling to the Omarchy plugin. Four actual-service offscreen regressions caught the prior failures and pass after the fix.
-- Live campus reads still cannot establish connectivity; real login/logout is unverified. Installed user plugin files will be synchronized; keep-loaded live shell activation is a separate step.
+- Seven Rust tests, nine installer fixtures, four actual-service offscreen plugin regressions, strict Clippy for Linux/macOS/Windows, and workflow validation passed.
+- All six native targets and the release job passed in [the hosted build](https://github.com/Noelithub77/bunkialo2/actions/runs/38543705169). The release contains the code from `ec569f9` and matching checksums.
+- The published Linux one-command installer passed in a temporary home directory, including its binary and standalone shortcut checks.
+- Live campus probes still time out. Real campus login/logout remains unverified; fixture round trips and unknown-state handling pass.
+- The broad dotfiles status check reports seven unrelated link/setup failures; Bunkialo manifest validation passes and unrelated edits were preserved.
 
-Status: final verification and publication pending.
+Status: implementation, publication, and installed plugin activation complete.
