@@ -1,4 +1,4 @@
-// mess menu data - August 2026
+import menuData from "../../data/mess-menu.json";
 
 export type MealType = "breakfast" | "lunch" | "snacks" | "dinner";
 
@@ -22,375 +22,47 @@ export const MEAL_COLORS: Record<MealType, string> = {
   dinner: "#6d20b0", // purple
 };
 
+const isMealType = (value: string): value is MealType =>
+  value === "breakfast" ||
+  value === "lunch" ||
+  value === "snacks" ||
+  value === "dinner";
+
+export const MESS_MENU: DayMenu[] = menuData.map((day) => ({
+  day: day.day,
+  meals: day.meals.map((meal) => {
+    if (!isMealType(meal.type)) {
+      throw new Error(`Unknown meal type in mess menu: ${meal.type}`);
+    }
+
+    return { ...meal, type: meal.type };
+  }),
+}));
+
+const getMealTiming = (
+  type: MealType,
+): { start: string; end: string; name: string } => {
+  const meal = MESS_MENU.flatMap((day) => day.meals).find(
+    (menuMeal) => menuMeal.type === type,
+  );
+  if (!meal) throw new Error(`No ${type} meal in mess menu`);
+
+  return { start: meal.startTime, end: meal.endTime, name: meal.name };
+};
+
 export const MEAL_TIMES: Record<
   MealType,
   { start: string; end: string; name: string }
 > = {
-  breakfast: { start: "07:00", end: "09:45", name: "Breakfast" },
-  lunch: { start: "12:00", end: "14:30", name: "Lunch" },
-  snacks: { start: "16:00", end: "18:00", name: "Snacks" },
-  dinner: { start: "19:00", end: "21:00", name: "Dinner" },
+  breakfast: getMealTiming("breakfast"),
+  lunch: getMealTiming("lunch"),
+  snacks: getMealTiming("snacks"),
+  dinner: getMealTiming("dinner"),
 };
 
-const createMeal = (type: MealType, items: string[]): Meal => ({
-  type,
-  name: MEAL_TIMES[type].name,
-  items,
-  startTime: MEAL_TIMES[type].start,
-  endTime: MEAL_TIMES[type].end,
-});
+export const getMenuForDay = (dayOfWeek: number): DayMenu | undefined =>
+  MESS_MENU.find((menu) => menu.day === dayOfWeek);
 
-export const MESS_MENU: DayMenu[] = [
-  // sunday (0)
-  {
-    day: 0,
-    meals: [
-      createMeal("breakfast", [
-        "Puri Masala",
-        "Pongal",
-        "Groundnut chutney",
-        "Banana",
-        "Boiled Egg",
-        "Sprouts",
-        "Bread (Normal/Brown)",
-        "Jam",
-        "Tea",
-        "Milk",
-      ]),
-      createMeal("lunch", [
-        "Kerala rice",
-        "Rice",
-        "Roti",
-        "Aloo Tomato gravy",
-        "Bottle gourd stir fry",
-        "Palak Dal tadka",
-        "Rasam",
-        "Curd",
-        "Salad",
-        "Drink: Sweet Lassi",
-      ]),
-      createMeal("snacks", [
-        "Roasted/Boiled Peanuts",
-        "Banana",
-        "Bread",
-        "Jam",
-        "Butter",
-        "Tea",
-        "Milk",
-      ]),
-      createMeal("dinner", [
-        "Hyderabadi/Malabar Chicken Biryani",
-        "Paneer Biryani",
-        "Veg Gravy",
-        "Chicken Gravy",
-        "Onion Chilli Raita",
-        "Papad",
-        "Salad",
-        "Drink: Tang",
-      ]),
-    ],
-  },
-  // monday (1)
-  {
-    day: 1,
-    meals: [
-      createMeal("breakfast", [
-        "Onion",
-        "Uttapam",
-        "Medu vada",
-        "Sambar",
-        "Coconut Chutney",
-        "Bread (Normal/Brown)",
-        "Jam",
-        "Butter",
-        "Tea",
-        "Milk",
-        "Corn Flakes",
-      ]),
-      createMeal("lunch", [
-        "Kerala rice",
-        "Rice",
-        "Roti",
-        "Veg Kolhapuri",
-        "Beans Poriyal",
-        "Olan",
-        "Sambar",
-        "Chips",
-        "Salad",
-        "Puliyinchi",
-        "Curd",
-      ]),
-      createMeal("snacks", [
-        "Masala Puri chaat",
-        "Bread",
-        "Jam",
-        "Butter",
-        "Coffee",
-        "Milk",
-      ]),
-      createMeal("dinner", [
-        "Rice",
-        "Roti",
-        "Egg roast",
-        "Beetroot thoran",
-        "Vegetable Kurma",
-        "Papad",
-        "Curd",
-        "Salad",
-      ]),
-    ],
-  },
-  // tuesday (2)
-  {
-    day: 2,
-    meals: [
-      createMeal("breakfast", [
-        "Vada Pav",
-        "Puttu",
-        "Channa Curry",
-        "Fried Chillies",
-        "Onions",
-        "Green Chutney",
-        "Red Powdered Chutney",
-        "Bread (Normal/Brown)",
-        "Jam",
-        "Butter",
-        "Coffee",
-        "Milk",
-        "Banana",
-      ]),
-      createMeal("lunch", [
-        "Tawa Pulao",
-        "Roti",
-        "Chettinad Chicken",
-        "Chilli Paneer",
-        "Vegetable",
-        "Raita",
-        "Salad",
-        "Drink: Lemon juice/Litchi",
-      ]),
-      createMeal("snacks", [
-        "Cream bun",
-        "Bread",
-        "Jam",
-        "Butter",
-        "Tea",
-        "Milk",
-      ]),
-      createMeal("dinner", [
-        "Rice",
-        "Roti",
-        "Chole curry",
-        "Onion Dal Tadka",
-        "Carrot Beans Thoran",
-        "Rasam",
-        "Chips",
-        "Salad",
-        "Curd",
-      ]),
-    ],
-  },
-  // wednesday (3)
-  {
-    day: 3,
-    meals: [
-      createMeal("breakfast", [
-        "Idli",
-        "Masala Idli",
-        "Punugulu",
-        "Sambar",
-        "Groundnut Chutney",
-        "Tomato chutney",
-        "Puliyinchi",
-        "Bread (Normal/Brown)",
-        "Jam",
-        "Butter",
-        "Tea",
-        "Milk",
-      ]),
-      createMeal("lunch", [
-        "Rice",
-        "Roti",
-        "Mudda Pappu",
-        "Pachi Pulusu",
-        "Cabbage fry",
-        "Curd",
-        "Kootu curry",
-        "Salad",
-        "Drink: Sweet Lassi",
-      ]),
-      createMeal("snacks", [
-        "Sweetcorn (boiled)",
-        "Bread",
-        "Jam",
-        "Butter",
-        "Tea",
-        "Milk",
-      ]),
-      createMeal("dinner", [
-        "Vegetable Fried rice",
-        "Roti",
-        "Paneer Butter masala",
-        "Chilli chicken",
-        "Onion chilli Raita",
-        "Drink: Passion Fruit drink",
-      ]),
-    ],
-  },
-  // thursday (4)
-  {
-    day: 4,
-    meals: [
-      createMeal("breakfast", [
-        "Pav Bhaji",
-        "Lemons",
-        "Onions",
-        "Uggani (Puffed rice)",
-        "Roasted chana Podi",
-        "Bread (Normal/Brown)",
-        "Jam",
-        "Butter",
-        "Banana",
-        "Coffee",
-        "Milk",
-      ]),
-      createMeal("lunch", [
-        "Rice",
-        "Roti",
-        "Egg Bhurji",
-        "Sambar",
-        "Green Peas curry",
-        "Papad",
-        "Curd",
-        "Salad",
-        "Drink: Sweet Lassi",
-      ]),
-      createMeal("snacks", [
-        "Dil Pasand",
-        "Bread",
-        "Jam",
-        "Butter",
-        "Coffee",
-        "Milk",
-      ]),
-      createMeal("dinner", [
-        "Roti",
-        "Rice",
-        "Sambar",
-        "Potato fry",
-        "Kanji",
-        "Chammanthi",
-        "Curd",
-        "Brinjal Curry",
-        "Salad",
-        "Sweet: Rava Kesari",
-      ]),
-    ],
-  },
-  // friday (5)
-  {
-    day: 5,
-    meals: [
-      createMeal("breakfast", [
-        "Vermicelli upma",
-        "Poha",
-        "Lemons",
-        "Groundnut Chutney",
-        "Bread (Normal/Brown)",
-        "Jam",
-        "Butter",
-        "Banana",
-        "Tea",
-        "Milk",
-      ]),
-      createMeal("lunch", [
-        "Ghee Rice",
-        "Chicken Roast",
-        "Kadai Paneer",
-        "Vegetable raita",
-        "Salad",
-        "Drink: Lemon juice / Litchi",
-      ]),
-      createMeal("snacks", [
-        "Bhel puri",
-        "Bread",
-        "Jam",
-        "Butter",
-        "Tea",
-        "Milk",
-      ]),
-      createMeal("dinner", [
-        "Rice",
-        "Roti",
-        "Rajma curry",
-        "Spicy Dal Tadka",
-        "Rasam",
-        "Ivy Gourd Fry",
-        "Pulisherry",
-        "Salad",
-        "Sweet: Ada Payasam",
-      ]),
-    ],
-  },
-  // saturday (6)
-  {
-    day: 6,
-    meals: [
-      createMeal("breakfast", [
-        "Idli",
-        "Podi Idly",
-        "Kichidhi Sprouts",
-        "Groundnut Chutney",
-        "Tomato chutney",
-        "Sambar",
-        "Bread (Normal/Brown)",
-        "Jam",
-        "Butter",
-        "Coffee",
-        "Milk",
-        "Corn Flakes",
-      ]),
-      createMeal("lunch", [
-        "Rice",
-        "Roti",
-        "Mudda pappu",
-        "Pachi pulusu",
-        "Cabbage carrot thoran",
-        "Chips",
-        "Curd",
-        "Salad",
-        "Drink: Buttermilk",
-      ]),
-      createMeal("snacks", [
-        "Onion Vada",
-        "Bread",
-        "Jam",
-        "Butter",
-        "Coffee",
-        "Milk",
-      ]),
-      createMeal("dinner", [
-        "Jeera Rice",
-        "Rice",
-        "Roti",
-        "Small Soya curry",
-        "Sambar",
-        "Puliseery",
-        "Chips",
-        "Curd",
-        "Salad",
-        "Sweet: Vermicelli Payasam",
-      ]),
-    ],
-  },
-];
-
-// get menu for a specific day
-export const getMenuForDay = (dayOfWeek: number): DayMenu | undefined => {
-  return MESS_MENU.find((menu) => menu.day === dayOfWeek);
-};
-
-// get current or next meal based on time
 export const getCurrentMeal = (
   now: Date,
 ): { current: Meal | null; next: Meal | null } => {
@@ -410,7 +82,6 @@ export const getCurrentMeal = (
     }
   }
 
-  // if no next meal today, get first meal of tomorrow
   if (!current && !next) {
     const tomorrowMenu = getMenuForDay((now.getDay() + 1) % 7);
     next = tomorrowMenu?.meals[0] || null;
@@ -419,7 +90,6 @@ export const getCurrentMeal = (
   return { current, next };
 };
 
-// get all meals for carousel with nearby context
 export const getNearbyMeals = (
   now: Date,
 ): { meals: Meal[]; initialIndex: number } => {

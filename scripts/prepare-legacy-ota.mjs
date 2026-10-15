@@ -83,6 +83,8 @@ const files = [
   "tests/unit/notifications/presentation-reminders.test.ts",
 
   "src/app/(tabs)/faculty.tsx",
+  "src/data/mess.ts",
+  "data/mess-menu.json",
   "src/app/course/[courseid]/assignment/[assignmentid].tsx",
   "src/services/assignment.ts",
   "src/stores/assignment-store.ts",
