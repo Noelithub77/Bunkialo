@@ -1,4 +1,4 @@
-import menuData from "../../omarchy-plugin/data/mess-menu.json";
+import menuData from "../../data/mess-menu.json";
 
 export type MealType = "breakfast" | "lunch" | "snacks" | "dinner";
 

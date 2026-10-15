@@ -84,7 +84,7 @@ const files = [
 
   "src/app/(tabs)/faculty.tsx",
   "src/data/mess.ts",
-  "omarchy-plugin/data/mess-menu.json",
+  "data/mess-menu.json",
   "src/app/course/[courseid]/assignment/[assignmentid].tsx",
   "src/services/assignment.ts",
   "src/stores/assignment-store.ts",
