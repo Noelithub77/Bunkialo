@@ -1,11 +1,12 @@
 import { DurableObject } from "cloudflare:workers";
+import type { WorkerBindings } from "../bindings";
 
 type PairingRow = {
   session_id: string;
 };
 
-export class DesktopDirectory extends DurableObject<CloudflareBindings> {
-  constructor(ctx: DurableObjectState, env: CloudflareBindings) {
+export class DesktopDirectory extends DurableObject<WorkerBindings> {
+  constructor(ctx: DurableObjectState, env: WorkerBindings) {
     super(ctx, env);
     ctx.blockConcurrencyWhile(async () => {
       this.ctx.storage.sql.exec(`

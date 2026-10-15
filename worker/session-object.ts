@@ -6,6 +6,7 @@ import { DurableObject } from "cloudflare:workers";
 import type { PushSubscription } from "@pushforge/builder";
 import type { StoredCookie } from "./lms/cookie-jar";
 import { fetchLmsWithCookies } from "./lms/fetch-with-cookies";
+import type { WorkerBindings } from "./bindings";
 import {
   extractLoginToken,
   getLmsOrigin,
@@ -112,8 +113,8 @@ const readJsonIfPossible = async (response: Response): Promise<unknown> => {
   return contentType.includes("application/json") ? response.clone().json() : null;
 };
 
-export class UserSession extends DurableObject<CloudflareBindings> {
-  constructor(ctx: DurableObjectState, env: CloudflareBindings) {
+export class UserSession extends DurableObject<WorkerBindings> {
+  constructor(ctx: DurableObjectState, env: WorkerBindings) {
     super(ctx, env);
     ctx.blockConcurrencyWhile(async () => {
       this.ctx.storage.sql.exec(`

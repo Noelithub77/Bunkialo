@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import type { DesktopCredentials, DesktopPairingCode } from "../shared/desktop";
+import type { WorkerBindings } from "./bindings";
 import type { DesktopDirectory } from "./desktop/desktop-directory";
 import { UserSession, type FullSyncPayload } from "./session-object";
 import { publicVapidKeyFromPrivateJwk } from "./push/send-push";
@@ -20,7 +21,7 @@ import {
 } from "./security/validation";
 
 type AppEnv = {
-  Bindings: CloudflareBindings;
+  Bindings: WorkerBindings;
   Variables: {
     desktopAuthenticated: boolean;
     desktopCredentials: DesktopCredentials | null;
@@ -61,7 +62,7 @@ const pairingKey = async (code: DesktopPairingCode): Promise<string> => {
 };
 
 const desktopDirectory = (
-  env: CloudflareBindings,
+  env: WorkerBindings,
   key: string,
 ): DurableObjectStub<DesktopDirectory> => env.DESKTOP_DIRECTORY.getByName(key.slice(0, 2));
 
@@ -351,7 +352,7 @@ app.onError((error, context) => {
 
 export const handleRequest = async (
   request: Request,
-  env: CloudflareBindings,
+  env: WorkerBindings,
   executionContext: ExecutionContext,
 ): Promise<Response> => {
   const url = new URL(request.url);

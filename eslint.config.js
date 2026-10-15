@@ -7,7 +7,7 @@ module.exports = defineConfig([
   {
     ignores: [
       "dist/*",
-      "worker-configuration.d.ts",
+      ".cloudflare/types/**",
       // Quickshell JavaScript modules use QML's top-level var export format.
       "omarchy-plugin/**/*.js",
     ],

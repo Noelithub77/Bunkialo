@@ -140,10 +140,10 @@ build.once("exit", (code) => {
     if (!shuttingDown && expoCode !== 0) shutdown(expoCode ?? 1);
   });
 
-  console.log(`Starting Wrangler relay on http://localhost:${relayPort}`);
+  console.log(`Starting Cloudflare Worker relay on http://localhost:${relayPort}`);
   const worker = start(bunCommand, [
     "x",
-    "wrangler@latest",
+    "cf",
     "dev",
     "--port",
     String(relayPort),

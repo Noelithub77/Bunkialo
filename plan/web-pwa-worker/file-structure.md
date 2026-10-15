@@ -70,12 +70,15 @@ bunkialo2/
 │       └── validation.ts
 ├── app.config.ts
 ├── metro.config.js
+├── cloudflare.config.ts
 ├── package.json
 ├── service-worker.ts
 ├── workbox-config.cjs
-├── worker-configuration.d.ts
-├── wrangler.jsonc
+├── wrangler.config.ts
 └── vitest.worker.config.ts
 ```
+
+Worker types are generated into `.cloudflare/types/` by `cf workers types` and
+are not tracked.
 
 Only web-specific files replace native modules. Shared parsers, stores, screens, and domain types remain in their existing folders.

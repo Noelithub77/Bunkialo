@@ -67,8 +67,10 @@ bunx expo start
 
 Use the Cloudflare `cf` CLI for web development, build checks, and deployment.
 `bun install` installs the pinned CLI and its compatible build runtime.
-The Worker configuration is in `cloudflare.config.ts`; `wrangler.config.ts`
-configures the bundler used internally by `cf`.
+The Worker configuration is in `cloudflare.config.ts`. `wrangler.config.ts`
+only configures the Wrangler build tool's static asset directory; it does not
+define Worker settings. Generate Worker types with `bun run worker:types`, or
+run `bun run worker:typecheck` to generate them and type-check the Worker.
 
 ```bash
 bun run web:build

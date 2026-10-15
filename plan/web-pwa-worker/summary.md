@@ -53,4 +53,6 @@ The chosen refresh path is one browser request plus one Durable Object RPC per r
 - `hono`: small, typed Worker routing.
 - `@pushforge/builder`: Web Crypto-based Web Push payloads that run directly in Cloudflare Workers.
 - `workbox-build`: maintained PWA precache tooling with a custom service worker.
-- `wrangler`: Cloudflare local development, generated types, and deployment.
+- `cf`: Cloudflare Worker development, type generation, validation, and deployment.
+- `wrangler`: the build tool used by `cf` for Expo's prebuilt static assets; its
+  `wrangler.config.ts` contains tooling settings only.
