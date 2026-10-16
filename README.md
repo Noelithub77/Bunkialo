@@ -35,7 +35,7 @@ wifix logout
 
 ## App development
 
-Bunkialo also includes an Expo app for Moodle attendance, assignment timelines, timetables, mess menus, and utility tools. Android is the native target; iPhone and iPad use the web/PWA experience. The Next.js onboarding site lives in `bunkialo-landing/`.
+Bunkialo also includes an Expo app for Moodle attendance, assignment timelines, timetables, mess menus, and utility tools. Android is the native target; iPhone and iPad use the web/PWA experience. The static landing page (Vite, TypeScript, GSAP) lives in `bunkialo-landing/`.
 
 ### Prerequisites
 

@@ -1,14 +1,9 @@
-# Local dependency and build artifacts are not part of the landing deployment.
-node_modules
-**/node_modules
-.next
-**/.next
-.expo
-**/.expo
-android
-ios
-artifacts
+# This Vercel project serves only the static landing page.
+*
+!bunkialo-landing
+!bunkialo-landing/**
 
-# Local tooling state.
-.vercel
-.env*
+bunkialo-landing/node_modules
+bunkialo-landing/dist
+bunkialo-landing/.vercel
+bunkialo-landing/.env*

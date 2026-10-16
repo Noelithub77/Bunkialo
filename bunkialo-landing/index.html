@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <title>Bunkialo · shall we bunk?</title>
+    <meta name="description" content="Bunkialo brings every IIIT Kottayam portal into one app: attendance and bunks left, Moodle deadlines, timetable, mess menu, faculty search and campus Wi-Fi login. Free and open source." />
+    <link rel="canonical" href="https://bunkialo.noel.is-a.dev/" />
+    <meta name="google-site-verification" content="F8EjEKdTKrOUlEi3lWHqBQCcEP-moqmm9LiTl69ZC68" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Bunkialo" />
+    <meta property="og:url" content="https://bunkialo.noel.is-a.dev/" />
+    <meta property="og:title" content="Bunkialo · shall we bunk?" />
+    <meta property="og:description" content="Know exactly how many classes you can skip. Every IIIT Kottayam portal, in one app." />
+    <meta property="og:image" content="https://bunkialo.noel.is-a.dev/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href="/fonts/nunito.woff2" as="font" type="font/woff2" crossorigin />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Bunkialo","url":"https://bunkialo.noel.is-a.dev/","applicationCategory":"EducationalApplication","operatingSystem":"Android, Web","description":"Attendance, bunks, deadlines, timetable, mess menu and campus Wi-Fi for IIIT Kottayam students.","offers":{"@type":"Offer","price":"0","priceCurrency":"INR"},"author":{"@type":"Person","name":"Noel Georgi"}}</script>
+    <script>document.documentElement.classList.add("js")</script>
+    <style>
+      @font-face{font-family:"Nunito";src:url(/fonts/nunito.woff2) format("woff2");font-weight:400 800;font-display:swap}
+      @font-face{font-family:"Excalifont";src:url(/fonts/excalifont.woff2) format("woff2");font-weight:400;font-display:swap}
+      :root{--bg:#000;--fg:#f2f2f2;--muted:#8f8f8f;--line:#1f1f1f;--card:#0a0a0a;--accent:#ffab00;--ink:#1a1100;--radius:22px;--ease:cubic-bezier(.22,1,.36,1);--font:"Nunito",ui-rounded,system-ui,sans-serif;font-family:var(--font);color:var(--fg);background:var(--bg);color-scheme:dark;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased}
+      *{box-sizing:border-box}body{margin:0;overflow-x:clip}a{color:inherit;text-decoration:none}[hidden]{display:none!important}
+      .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+      .bar{position:fixed;inset:0 0 auto;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:max(14px,env(safe-area-inset-top)) clamp(16px,4vw,40px) 14px}
+      .brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
+      .brand img{width:28px;height:28px}
+      .hero{position:relative;min-height:100svh;display:grid;place-items:center;padding:110px 20px 120px;text-align:center;isolation:isolate;overflow:hidden}
+      .hero::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(48% 38% at 50% 30%,#ffab0014,transparent 70%)}
+      .hero-inner{width:min(100%,820px);display:grid;justify-items:center}
+      .logo{display:block;overflow:visible}
+      .hero .logo{width:clamp(96px,13vw,132px);height:auto}
+      .logo .disc,.logo .cap{transform-box:fill-box;transform-origin:50% 50%}
+      .logo .b{stroke:#000;stroke-width:5;stroke-dasharray:1;fill:#000}
+      .js .hero .logo .disc{animation:disc .8s var(--ease) both}
+      .js .hero .logo .b{animation:draw 1.1s .25s cubic-bezier(.65,0,.35,1) both,ink .5s 1.05s ease both}
+      .js .hero .logo .cap{animation:cap 1s 1.1s var(--ease) both}
+      @keyframes disc{from{transform:scale(.6);opacity:0}}
+      @keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+      @keyframes ink{from{fill-opacity:0}}
+      @keyframes cap{0%{transform:translate(-30%,-180%) rotate(-28deg);opacity:0}45%{transform:translate(0,12%) rotate(8deg);opacity:1}70%{transform:translate(0,-6%) rotate(-3deg)}100%{transform:none}}
+      h1{margin:30px 0 0;font-weight:800;font-size:clamp(64px,12vw,140px);line-height:1;letter-spacing:-.05em}
+      .morph{display:inline-grid;align-items:center;justify-items:center;perspective:700px}
+      .morph>span{grid-area:1/1;white-space:nowrap}
+      .morph .phrase{font-size:.46em;letter-spacing:-.03em;opacity:0}
+      .morph .phrase b{color:var(--accent);font-weight:800}
+      .tagline{margin:22px 0 0;font-size:clamp(20px,2.6vw,28px);font-weight:700;letter-spacing:-.02em}
+      .tagline em{font-style:normal;color:var(--accent)}
+      .lede{max-width:560px;margin:16px auto 0;color:#a8a8a8;font-size:clamp(16px,1.8vw,18px);line-height:1.6}
+      .get{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 18px;margin-top:34px}
+      .cta{display:inline-flex;align-items:center;gap:10px;padding:14px 22px;border-radius:14px;background:var(--accent);color:var(--ink);font-weight:800;font-size:16px;box-shadow:0 10px 30px -12px #ffab00aa}
+      .cta svg{width:18px;height:18px;fill:currentColor}
+      .other{color:var(--muted);font-size:15px;border-bottom:1px solid #333;padding-bottom:2px}
+      .note{margin:16px 0 0;color:#6f6f6f;font-size:14px}
+      .hero-inner>:not(.logo){animation:rise 1s var(--ease) both}
+      .hero-inner>:nth-child(2){animation-delay:.15s}.hero-inner>:nth-child(3){animation-delay:.25s}.hero-inner>:nth-child(4){animation-delay:.32s}.hero-inner>:nth-child(5){animation-delay:.4s}.hero-inner>:nth-child(6){animation-delay:.48s}
+      @keyframes rise{from{opacity:0;transform:translateY(16px);filter:blur(6px)}}
+      @media (max-width:640px){.hero{padding:96px 18px 110px}.get{flex-direction:column}.cta{width:100%;justify-content:center}}
+      @media (prefers-reduced-motion:reduce){.js .hero .logo *,.hero-inner>*{animation:none!important}}
+    </style>
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <header class="bar">
+      <a class="brand" href="#top" aria-label="Bunkialo home"><img src="/logo.svg" alt="" width="28" height="28" />Bunkialo</a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#name">Name</a><a href="#bunks">Bunks</a><a href="#portals">Portals</a><a href="#wifix">WiFix</a><a href="#agents">Agents</a>
+      </nav>
+      <i class="bar-progress" aria-hidden="true"></i>
+      <a class="star-pill" href="https://github.com/Noelithub77/bunkialo2" aria-label="Star Bunkialo on GitHub">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.71 1.22 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z" /></svg>
+        <span>Star</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="hero" id="top">
+        <div class="hero-inner">
+          <!--logo:hero-logo-->
+          <h1><span class="sr-only">Bunkialo</span><span class="morph" aria-hidden="true" data-morph><span class="name">Bunkialo</span><span class="phrase"><b>bunk</b> cheythalo?</span></span></h1>
+          <p class="tagline">Know exactly how many classes <em>you can skip.</em></p>
+          <p class="lede">Attendance, bunks, deadlines, timetable, mess and campus Wi‑Fi, pulled from every IIIT Kottayam portal into one calm app.</p>
+          <div class="get" data-get>
+            <a class="cta" data-cta href="https://bunkialo.allpyq.in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14.2-8.5a1 1 0 0 0 0-1.72L6.5 2.64A1 1 0 0 0 5 3.5Z" /></svg><span data-cta-label>Open the web app</span></a>
+            <a class="other" data-other href="https://play.google.com/store/apps/details?id=com.codialo.Bunkialo2">or get the Android app</a>
+          </div>
+          <p class="note" data-note>Works in any browser. Install it as an app from the address bar.</p>
+        </div>
+        <a class="scroll-cue" href="#name" aria-label="Scroll to the story"><i></i><span>Scroll</span></a>
+      </section>
+
+      <section class="section" id="name">
+        <div class="wrap split">
+          <div class="section-head" data-reveal>
+            <p class="kicker"><span>01</span> The name</p>
+            <h2>Bunk + cheythalo.</h2>
+            <p>In Malayalam, <em>cheythalo</em> means “shall we?”. Put <em>bunk</em> in front and you get the question every student asks before a class: <em>bunk cheythalo?</em> Shall we bunk?</p>
+            <p>Say it fast enough and it becomes Bunkialo: an app that answers that question honestly, with your real attendance.</p>
+          </div>
+          <figure class="scene name-scene" data-scene="name" aria-label="bunk plus cheythalo becomes bunk cheythalo, shall we bunk, which said fast becomes Bunkialo">
+            <svg aria-hidden="true"></svg>
+            <ol class="story-steps" data-story="name" aria-hidden="true"><li>Two words</li><li>A question</li><li>Said fast</li><li>A name</li></ol>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section" id="bunks">
+        <div class="wrap">
+          <div class="section-head center" data-reveal>
+            <p class="kicker"><span>02</span> The bunk math</p>
+            <h2>Every bunk, counted.</h2>
+            <p>Each course allows two bunks per credit, plus one. Bunkialo reads every absence from the attendance portal, leaves out the ones you mark as duty leave, and shows what's left. Tap the number to switch to the other view: how far you are above the 80% line right now.</p>
+          </div>
+          <figure class="scene" data-scene="bunks" aria-label="A three credit course allows seven bunks. Two are used, one is duty leave, five are left. 31 of 35 classes attended is three above the 80 percent line.">
+            <svg aria-hidden="true"></svg>
+          </figure>
+          <div class="stepper" data-reveal>
+            <button type="button" data-credits="-1" aria-label="Fewer credits">−</button>
+            <p><b data-credit-count>3</b> credits · <b data-credit-budget>7</b> bunks a semester</p>
+            <button type="button" data-credits="1" aria-label="More credits">+</button>
+          </div>
+
+          <div class="feature" data-reveal>
+            <div class="feature-copy">
+              <h3>Every session, in one place</h3>
+              <p>Each course card shows your percentage, bunks left and every session in a calendar. If the portal marked you absent by mistake, or you were away on duty leave, mark it and the numbers update.</p>
+              <svg class="note-sketch" data-scene="note" data-note="tap to flip: full sem ⇄ from 80%" data-point="right" aria-hidden="true"></svg>
+            </div>
+            <figure class="device" data-video="attendance"><picture><source srcset="/media/attendance.avif" type="image/avif" /><img src="/media/attendance.webp" alt="" width="544" height="1176" loading="lazy" decoding="async" /></picture><video muted playsinline loop preload="none" aria-label="Recording of the attendance tab: course cards, a session calendar and the bunks list"></video></figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="portals">
+        <div class="wrap">
+          <div class="section-head center" data-reveal>
+            <p class="kicker"><span>03</span> One app</p>
+            <h2>Every campus portal, together.</h2>
+            <p>Deadlines live on Moodle, attendance on its own portal, the calendar in a PDF and the mess menu on a notice board. Bunkialo signs in once, keeps a copy for when you're offline, and turns it all into the few things you need today.</p>
+          </div>
+          <figure class="scene" data-scene="portals" aria-label="Moodle, the attendance portal, the academic calendar, the mess menu and the faculty list flow into Bunkialo, which shows what's next, bunks left, the timetable and reminders. Outpass, Feaston and AllPYQ are one tap away.">
+            <svg aria-hidden="true"></svg>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section" id="day">
+        <div class="wrap">
+          <div class="section-head center" data-reveal>
+            <p class="kicker"><span>04</span> Your day</p>
+            <h2>Everything else, sorted.</h2>
+          </div>
+
+          <div class="feature" data-reveal>
+            <div class="feature-copy">
+              <h3>What's next, at a glance</h3>
+              <p>The class you're in, the one after it, the next meal and every upcoming deadline, on one screen. Reminders arrive before things are due.</p>
+              <svg class="note-sketch" data-scene="note" data-note="Moodle deadlines + the academic calendar" data-point="right" aria-hidden="true"></svg>
+            </div>
+            <figure class="device" data-video="dashboard"><picture><source srcset="/media/dashboard.avif" type="image/avif" /><img src="/media/dashboard.webp" alt="" width="544" height="1176" loading="lazy" decoding="async" /></picture><video muted playsinline loop preload="none" aria-label="Recording of the dashboard: current and next class, next meal and upcoming deadlines"></video></figure>
+          </div>
+
+          <div class="feature is-flipped" data-reveal>
+            <div class="feature-copy">
+              <h3>A timetable that writes itself</h3>
+              <p>Your week is built from attendance records, so it matches the classes that actually happen. Two-hour slots become labs on their own, and any slot can be fixed by hand.</p>
+              <svg class="note-sketch" data-scene="note" data-note="built from your attendance" data-point="left" aria-hidden="true"></svg>
+            </div>
+            <figure class="device" data-video="timetable"><picture><source srcset="/media/timetable.avif" type="image/avif" /><img src="/media/timetable.webp" alt="" width="544" height="1176" loading="lazy" decoding="async" /></picture><video muted playsinline loop preload="none" aria-label="Recording of the timetable, switching between days"></video></figure>
+          </div>
+
+          <div class="feature" data-reveal>
+            <div class="feature-copy">
+              <h3>What's for lunch?</h3>
+              <p>The mess menu with the next meal first, and the whole day laid out as a timeline.</p>
+              <svg class="note-sketch" data-scene="note" data-note="next meal first" data-point="right" aria-hidden="true"></svg>
+            </div>
+            <figure class="device" data-video="mess"><picture><source srcset="/media/mess.avif" type="image/avif" /><img src="/media/mess.webp" alt="" width="544" height="1176" loading="lazy" decoding="async" /></picture><video muted playsinline loop preload="none" aria-label="Recording of the mess menu: upcoming meals and the day's schedule"></video></figure>
+          </div>
+
+          <div class="feature is-flipped" data-reveal>
+            <div class="feature-copy">
+              <h3>Find any professor</h3>
+              <p>Search the faculty directory by name, course or research area. It forgives typos, so “machine lerning” still finds the right people.</p>
+              <svg class="note-sketch" data-scene="note" data-note="typos welcome" data-point="left" aria-hidden="true"></svg>
+            </div>
+            <figure class="device" data-video="faculty"><picture><source srcset="/media/faculty.avif" type="image/avif" /><img src="/media/faculty.webp" alt="" width="544" height="1176" loading="lazy" decoding="async" /></picture><video muted playsinline loop preload="none" aria-label="Recording of a faculty search with a typo"></video></figure>
+          </div>
+
+          <div class="feature is-pair" data-reveal>
+            <div class="feature-copy">
+              <h3>Plan the semester</h3>
+              <p>Work out your SGPA and CGPA from credits and grades. Keep the academic calendar close, with exams, holidays and events you can add to your own calendar.</p>
+            </div>
+            <figure class="device" data-video="gpa"><picture><source srcset="/media/gpa.avif" type="image/avif" /><img src="/media/gpa.webp" alt="" width="544" height="1176" loading="lazy" decoding="async" /></picture><video muted playsinline loop preload="none" aria-label="Recording of the GPA calculator"></video></figure>
+            <figure class="device" data-video="acadcal"><picture><source srcset="/media/acadcal.avif" type="image/avif" /><img src="/media/acadcal.webp" alt="" width="544" height="1176" loading="lazy" decoding="async" /></picture><video muted playsinline loop preload="none" aria-label="Recording of the academic calendar"></video></figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="wifix" data-pin-section>
+        <div class="wrap">
+          <div class="section-head center" data-reveal>
+            <p class="kicker"><span>05</span> WiFix</p>
+            <h2>Campus Wi‑Fi that signs itself in.</h2>
+            <p>On campus Wi‑Fi nothing loads until you log in on a portal page, and it keeps asking again. WiFix notices that page, signs in with your LMS username and password, and only says you're online once the internet actually answers.</p>
+            <p class="aside">In the Android app (off until you turn it on), the CLI as <code>wifix</code>, and the Omarchy plugin.</p>
+          </div>
+          <div class="pin">
+          <figure class="scene" data-scene="wifix" aria-label="Your phone tries the internet and is blocked by the campus login page. WiFix spots the page, fills in your LMS login, then checks that the internet answers.">
+            <svg aria-hidden="true"></svg>
+          </figure>
+          <ol class="story-steps" data-story="wifix" aria-hidden="true"><li>Blocked</li><li>Spot the page</li><li>Sign in</li><li>Online</li></ol>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="beyond">
+        <div class="wrap">
+          <div class="section-head center" data-reveal>
+            <p class="kicker"><span>06</span> Beyond your phone</p>
+            <h2>On your wrist, desktop and terminal.</h2>
+          </div>
+          <div class="trio">
+            <article data-reveal>
+              <div class="shot watch"><picture><source srcset="/media/wear-timetable.avif" type="image/avif" /><img src="/media/wear-timetable.webp" alt="Bunkialo on Wear OS showing the next two classes" width="320" height="320" loading="lazy" decoding="async" /></picture><picture><source srcset="/media/wear-mess.avif" type="image/avif" /><img src="/media/wear-mess.webp" alt="Bunkialo on Wear OS showing the dinner menu" width="320" height="320" loading="lazy" decoding="async" /></picture></div>
+              <h3>Wear OS</h3>
+              <p>Your next classes and today's menu on your wrist. The phone sends only the timetable, never your login.</p>
+            </article>
+            <article data-reveal>
+              <div class="shot panel"><picture><source srcset="/media/omarchy.avif" type="image/avif" /><img src="/media/omarchy.webp" alt="The Bunkialo panel in Omarchy with the next class and the dinner menu" width="696" height="384" loading="lazy" decoding="async" /></picture></div>
+              <h3>Omarchy plugin</h3>
+              <p>The next class, the current meal and a WiFix button, one click from your bar.</p>
+              <div class="cmd"><code>omarchy plugin add https://github.com/Noelithub77/bunkialo2.git --enable --yes</code><button type="button" data-copy aria-label="Copy command">Copy</button></div>
+            </article>
+            <article data-reveal>
+              <div class="shot term" aria-label="Terminal output of bunkialo attendance summary" role="img">
+                <pre><span class="p">$</span> bunkialo attendance summary
+<span class="d">Overall: present 207, absent 30</span>
+IEG311  Digital Signal Processing  <b>88.9%</b>
+CSS311  Parallel and Distributed   <b>89.4%</b>
+CSE311  Artificial Intelligence    <b>87.2%</b>
+IHS312  Financial Management       <i>76.9%</i>
+IHS311  Human Resource Mgmt        <i>72.7%</i>
+<span class="p">$</span> wifix
+<span class="ok">Campus Wi-Fi login verified: internet access is available.</span></pre>
+              </div>
+              <h3>CLI</h3>
+              <p>Every portal from your terminal: attendance, deadlines, downloads, submissions and Wi‑Fi login. Your password stays in the system keyring.</p>
+              <div class="cmd" data-install><code data-install-cmd>curl -fsSL https://raw.githubusercontent.com/Noelithub77/bunkialo2/main/cli/install.sh | sh</code><button type="button" data-copy aria-label="Copy command">Copy</button></div>
+              <button type="button" class="swap" data-install-swap>On Windows?</button>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="agents">
+        <div class="wrap">
+          <div class="section-head center" data-reveal>
+            <p class="kicker"><span>07</span> For your agent</p>
+            <h2>Let your agent handle campus.</h2>
+            <p>Add the Bunkialo skill and CLI, and your coding agent can work every IIIT Kottayam portal for you: read attendance, find deadlines, download files, submit assignments and log in to Wi‑Fi.</p>
+          </div>
+          <div class="prompt" data-prompt data-reveal>
+            <div class="prompt-head"><span class="prompt-dot"></span>your agent<span class="prompt-chip">bunkialo skill</span></div>
+            <p class="prompt-ask"><span data-prompt-text>Check my attendance and find me the best way to compensate with duty leaves based on nearby events</span><i class="caret" aria-hidden="true"></i></p>
+            <ul class="prompt-tools" data-prompt-tools><li>bunkialo attendance summary</li><li>bunkialo attendance sessions IHS311</li></ul>
+            <p class="prompt-answer" data-prompt-answer>HRM is your only course under 80%, at 8 of 11. Attend the next three classes and claim duty leave for the hackathon on 24 October, which clashes with the fourth. That brings you to 12 of 15: exactly 80%.</p>
+            <div class="prompt-picks" role="group" aria-label="Example requests">
+              <button type="button" data-pick="0" aria-pressed="true">Fix my attendance</button>
+              <button type="button" data-pick="1" aria-pressed="false">What's pending?</button>
+              <button type="button" data-pick="2" aria-pressed="false">Any quiz soon?</button>
+            </div>
+          </div>
+          <p class="footnote">Example answers, from demo data.</p>
+          <figure class="scene" data-scene="agent" aria-label="You ask your agent. The skill tells it how the portals work and the Bunkialo CLI does the work on Moodle, the attendance portal and campus Wi-Fi. You get a real answer.">
+            <svg aria-hidden="true"></svg>
+          </figure>
+          <div class="cmd center-cmd" data-reveal><code>npx skills add Noelithub77/bunkialo2 --skill bunkialo-academic-portals --global</code><button type="button" data-copy aria-label="Copy command">Copy</button></div>
+        </div>
+      </section>
+
+      <section class="section" id="star">
+        <div class="wrap">
+          <div class="star-card" data-reveal>
+            <svg class="star-sketch" data-scene="star" aria-hidden="true"></svg>
+            <div>
+              <h2>If Bunkialo helped you, even once.</h2>
+              <p>Consider dropping a star on GitHub. It takes a second, it makes our day, and it helps the next student find it.</p>
+              <a class="star-button" href="https://github.com/Noelithub77/bunkialo2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.8 2.8 5.7 6.3.9-4.55 4.43 1.07 6.27L12 17.15 6.38 20.1l1.07-6.27L2.9 9.4l6.3-.9L12 2.8Z" /></svg>Star on GitHub</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="final">
+        <div class="final-inner">
+          <!--logo:final-logo-->
+          <h2>Shall we bunk?</h2>
+          <p class="after">Free and open source, made for IIIT Kottayam.</p>
+          <div class="get" data-get>
+            <a class="cta" data-cta href="https://bunkialo.allpyq.in"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14.2-8.5a1 1 0 0 0 0-1.72L6.5 2.64A1 1 0 0 0 5 3.5Z" /></svg><span data-cta-label>Open the web app</span></a>
+            <a class="other" data-other href="https://play.google.com/store/apps/details?id=com.codialo.Bunkialo2">or get the Android app</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <p>Made by <a href="https://www.linkedin.com/in/noel-georgi/">Noel Georgi</a> · Ideas by <a href="https://www.linkedin.com/in/srimoneyshankar-ajith-a5a6831ba/">Srimoney</a> &amp; <a href="https://www.linkedin.com/in/niranjan-vasudevan/">Niranjan V</a></p>
+      <p><a href="https://github.com/Noelithub77/bunkialo2">GitHub</a> · <a href="upi://pay?pa=noelmcv7@oksbi&amp;pn=Noel%20Georgi&amp;tn=Support%20Bunkialo&amp;cu=INR" data-coffee>Buy me a coffee</a></p>
+    </footer>
+
+    <dialog class="coffee" data-coffee-dialog aria-labelledby="coffee-title">
+      <form method="dialog"><button class="close" aria-label="Close">×</button></form>
+      <h2 id="coffee-title">Buy me a coffee</h2>
+      <p>Scan with any UPI app.</p>
+      <img src="/upi-qr.svg" alt="UPI QR code for noelmcv7@oksbi" width="220" height="220" loading="lazy" />
+      <p class="upi-id">noelmcv7@oksbi</p>
+    </dialog>
+  </body>
+</html>

@@ -7,6 +7,7 @@ module.exports = defineConfig([
   {
     ignores: [
       "dist/*",
+      "bunkialo-landing/dist/**",
       ".cloudflare/types/**",
       // Quickshell JavaScript modules use QML's top-level var export format.
       "omarchy-plugin/**/*.js",

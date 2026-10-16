@@ -153,14 +153,14 @@
         "command": "sh",
         "args": [
           "-c",
-          "(xdg-open http://localhost:3000 >/dev/null 2>&1 || true) & exec bun run dev"
+          "(xdg-open http://127.0.0.1:4173 >/dev/null 2>&1 || true) & exec bun run dev"
         ]
       },
       "osx": {
         "command": "sh",
         "args": [
           "-c",
-          "(open http://localhost:3000 >/dev/null 2>&1 || true) & exec bun run dev"
+          "(open http://127.0.0.1:4173 >/dev/null 2>&1 || true) & exec bun run dev"
         ]
       },
       "windows": {
@@ -168,7 +168,7 @@
         "args": [
           "-NoProfile",
           "-Command",
-          "Start-Process http://localhost:3000; bun run dev"
+          "Start-Process http://127.0.0.1:4173; bun run dev"
         ],
         "options": {
           "cwd": "${workspaceFolder}\\bunkialo-landing"
