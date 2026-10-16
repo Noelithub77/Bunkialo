@@ -16,6 +16,7 @@ bun run build    # type check, then build to dist/
 - `src/enhance.ts` loads when the browser is idle. It adds Lenis smooth scrolling, GSAP text motion, the agent prompt and the hand-drawn scenes.
 - `src/scenes/*.ts` draw Excalidraw-style sketches with rough.js. Each scene returns a paused GSAP timeline, labelled `step0…` to match its step pills. Every scene has a wide layout and a narrow one (960 px and below).
 - With reduced motion turned on, scenes show their final frame, videos wait for a tap, and nothing animates.
+- Scenes start at the viewport edge and complete immediately during fast scrolling. Mobile drawing sequences take at most 1.2 seconds; desktop WiFix scrubbing catches up without a delay when scrolling fast.
 
 ## Media
 

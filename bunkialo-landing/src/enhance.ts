@@ -20,7 +20,7 @@ gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, ScrambleTextPlugin)
 
 const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const builders: Record<string, Build> = { name, bunks, portals, wifix, agent, note, star };
-// Story scenes follow the scroll; the rest play once they come into view.
+// Desktop story scenes follow the scroll; mobile scenes play briefly on entry.
 const scrubbed = new Set(["wifix"]);
 const scenes = new Map<string, Scene>();
 
@@ -70,13 +70,13 @@ if (!calm) {
   // Only hide what is still below the fold, so nothing visible blinks out.
   const below = gsap.utils.toArray<HTMLElement>("[data-reveal]").filter((element) => element.getBoundingClientRect().top > innerHeight);
   gsap.set(below, { opacity: 0, y: 28 });
-  ScrollTrigger.batch(below, { start: "top 88%", once: true, onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: 1, ease: "expo.out", stagger: 0.08 }) });
+  ScrollTrigger.batch(below, { start: "top bottom", interval: 0.03, once: true, onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: 0.25, ease: "expo.out", stagger: 0.02 }) });
   for (const heading of document.querySelectorAll(".section-head h2, .final h2, .star-card h2")) {
     SplitText.create(heading, {
       type: "lines",
       mask: "lines",
       autoSplit: true,
-      onSplit: (self) => gsap.from(self.lines, { yPercent: 105, duration: 1, stagger: 0.09, ease: "power4.out", scrollTrigger: { trigger: heading, start: "top 88%", once: true } }),
+      onSplit: (self) => gsap.from(self.lines, { yPercent: 105, duration: 0.35, stagger: 0.03, ease: "power4.out", scrollTrigger: { trigger: heading, start: "top bottom", fastScrollEnd: true, once: true } }),
     });
   }
   // Kicker numbers scramble in, like a counter settling.
@@ -118,16 +118,37 @@ function mount(element: Element, narrow: boolean, pin: boolean) {
     markSteps(key, scene.story);
     return;
   }
-  if (!scrubbed.has(key)) {
+  if (narrow || !scrubbed.has(key)) {
     scene.story.eventCallback("onComplete", () => void ((finished = true), sync()));
-    ScrollTrigger.create({ trigger: element, start: "top 78%", once: true, onEnter: () => void scene.story.play() });
+    const complete = () => scene.story.progress(1).pause();
+    // Catch up immediately on a flick or jump; ordinary scrolling keeps a brief draw-on.
+    scene.story.timeScale(Math.max(1, scene.story.duration() / 1.2));
+    ScrollTrigger.create({
+      trigger: element,
+      start: "top bottom",
+      end: "bottom top",
+      once: true,
+      onEnter: (self) => {
+        if (finished) return;
+        if (Math.abs(self.getVelocity()) > 1000) complete();
+        else scene.story.play();
+      },
+      onUpdate: (self) => {
+        if (!finished && self.progress > 0 && Math.abs(self.getVelocity()) > 1000) complete();
+      },
+      onLeave: complete,
+    });
+    // A deep link or a scroll during loading must not hide a scene already in view.
+    if (element.getBoundingClientRect().top < innerHeight) complete();
     return;
   }
   // The story follows the scroll with a little lag, so scrubbing stays smooth.
   const follow = {
     animation: scene.story,
-    scrub: 0.5,
-    onUpdate: () => {
+    scrub: 0.15,
+    fastScrollEnd: true,
+    onUpdate: (self: ScrollTrigger) => {
+      if (Math.abs(self.getVelocity()) > 1000) self.getTween()?.progress(1);
       finished = scene.story.progress() > 0.98;
       markSteps(key, scene.story);
       sync();
@@ -144,7 +165,7 @@ function mount(element: Element, narrow: boolean, pin: boolean) {
 // Excalifont must be ready before scenes measure their handwriting.
 void document.fonts.load("20px Excalifont").then(() => {
   const media = gsap.matchMedia();
-  media.add({ narrow: "(max-width: 960px)", tall: "(min-height: 760px)" }, (context) => {
+  media.add({ all: "all", narrow: "(max-width: 960px)", tall: "(min-height: 760px)" }, (context) => {
     const narrow = context.conditions?.narrow ?? false;
     const tall = context.conditions?.tall ?? false;
     scenes.clear();
