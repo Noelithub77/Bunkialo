@@ -55,7 +55,7 @@ em { font-style: normal; color: var(--accent); }
 .scene svg, svg.note-sketch, svg.star-sketch { display: block; width: 100%; height: auto; overflow: visible; }
 .hand { font-family: var(--hand); white-space: pre; }
 svg:not(.is-live) .ambient { visibility: hidden; }
-.name-scene { margin: 0; }
+.name-scene { max-width: 520px; margin: 0 auto; }
 .story-steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 26px 0 0; padding: 0; list-style: none; counter-reset: step; }
 .story-steps li { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 8px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: #707070; font-size: 13px; transition: color .4s, border-color .4s; }
 .story-steps li::before { counter-increment: step; content: counter(step); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: #1d1d1d; font: 11px var(--mono); transition: background .4s, color .4s; }

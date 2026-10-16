@@ -21,7 +21,7 @@ gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, ScrambleTextPlugin)
 const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const builders: Record<string, Build> = { name, bunks, portals, wifix, agent, note, star };
 // Story scenes follow the scroll; the rest play once they come into view.
-const scrubbed = new Set(["name", "wifix"]);
+const scrubbed = new Set(["wifix"]);
 const scenes = new Map<string, Scene>();
 
 if (!calm) {
