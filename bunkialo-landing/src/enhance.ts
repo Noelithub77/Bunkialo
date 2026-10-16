@@ -120,9 +120,12 @@ function mount(element: Element, narrow: boolean, pin: boolean) {
   }
   if (narrow || !scrubbed.has(key)) {
     scene.story.eventCallback("onComplete", () => void ((finished = true), sync()));
-    const complete = () => scene.story.progress(1).pause();
-    // Catch up immediately on a flick or jump; ordinary scrolling keeps a brief draw-on.
-    scene.story.timeScale(Math.max(1, scene.story.duration() / 1.2));
+    // A fast flick accelerates the drawing without skipping its intermediate frames.
+    const catchUp = (self: ScrollTrigger) => {
+      if (!finished && Math.abs(self.getVelocity()) > 2500) {
+        scene.story.timeScale(Math.max(1, scene.story.duration() / 0.6)).play();
+      }
+    };
     ScrollTrigger.create({
       trigger: element,
       start: "top bottom",
@@ -130,25 +133,23 @@ function mount(element: Element, narrow: boolean, pin: boolean) {
       once: true,
       onEnter: (self) => {
         if (finished) return;
-        if (Math.abs(self.getVelocity()) > 1000) complete();
-        else scene.story.play();
+        scene.story.play();
+        catchUp(self);
       },
       onUpdate: (self) => {
-        if (!finished && self.progress > 0 && Math.abs(self.getVelocity()) > 1000) complete();
+        if (self.progress > 0) catchUp(self);
       },
-      onLeave: complete,
     });
-    // A deep link or a scroll during loading must not hide a scene already in view.
-    if (element.getBoundingClientRect().top < innerHeight) complete();
+    // Start an already-visible scene after loading, preserving its animation.
+    if (element.getBoundingClientRect().top < innerHeight) scene.story.play();
     return;
   }
   // The story follows the scroll with a little lag, so scrubbing stays smooth.
   const follow = {
     animation: scene.story,
-    scrub: 0.15,
-    fastScrollEnd: true,
+    scrub: 0.35,
     onUpdate: (self: ScrollTrigger) => {
-      if (Math.abs(self.getVelocity()) > 1000) self.getTween()?.progress(1);
+      self.getTween()?.timeScale(Math.abs(self.getVelocity()) > 2500 ? 3 : 1);
       finished = scene.story.progress() > 0.98;
       markSteps(key, scene.story);
       sync();
