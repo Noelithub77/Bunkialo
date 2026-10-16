@@ -39,6 +39,7 @@ em { font-style: normal; color: var(--accent); }
 /* Layout */
 .wrap { width: min(100% - 40px, 1120px); margin-inline: auto; }
 .section { padding: clamp(110px, 14vw, 180px) 0 0; }
+#name { padding-top: clamp(32px, 5vw, 64px); }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 6vw, 80px); align-items: center; }
 .section-head h2, .final h2, .star-card h2 { margin: 16px 0 0; font-weight: 800; font-size: clamp(36px, 5.6vw, 66px); line-height: 1.04; letter-spacing: -.045em; }
 .section-head > p:not(.kicker) { max-width: 620px; margin: 22px 0 0; color: #ababab; font-size: clamp(16px, 1.6vw, 18px); line-height: 1.65; }

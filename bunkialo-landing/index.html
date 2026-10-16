@@ -62,7 +62,7 @@
       .hero-inner>:not(.logo){animation:rise 1s var(--ease) both}
       .hero-inner>:nth-child(2){animation-delay:.15s}.hero-inner>:nth-child(3){animation-delay:.25s}.hero-inner>:nth-child(4){animation-delay:.32s}.hero-inner>:nth-child(5){animation-delay:.4s}.hero-inner>:nth-child(6){animation-delay:.48s}
       @keyframes rise{from{opacity:0;transform:translateY(16px);filter:blur(6px)}}
-      @media (max-width:640px){.hero{padding:96px 18px 110px}.get{flex-direction:column}.cta{width:100%;justify-content:center}}
+      @media (max-width:640px){.hero{min-height:auto;padding:96px 18px 32px}.get{flex-direction:column}.cta{width:100%;justify-content:center}.hero .scroll-cue{display:none}}
       @media (prefers-reduced-motion:reduce){.js .hero .logo *,.hero-inner>*{animation:none!important}}
     </style>
     <script type="module" src="/src/main.ts"></script>
