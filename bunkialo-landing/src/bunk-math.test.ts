@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { budget, buffer } from "./bunk-math.ts";
 
-test("budget allows two bunks per credit plus one", () => {
+test("empirical budget estimate uses two bunks per credit plus one", () => {
   expect(budget(1)).toBe(3);
   expect(budget(3)).toBe(7);
   expect(budget(4)).toBe(9);

@@ -35,7 +35,7 @@ export const build: Build = (svg, narrow) => {
     };
     for (const part of Object.values(parts)) holder.append(part);
     s.into(parts.title, () => {
-      s.text(left[0], left[1] + 46, "the budget", { size: 26, color: ink.line });
+      s.text(left[0], left[1] + 46, "a rough estimate", { size: 26, color: ink.line });
       s.text(left[0], left[1] + 88, `${credits} credits × 2 + 1 = ${total} bunks`, { size: 21, color: ink.soft });
     });
     s.into(parts.slots, () => {
@@ -59,7 +59,7 @@ export const build: Build = (svg, narrow) => {
     });
     s.into(parts.result, () => {
       const y = slots[0][1] + 150;
-      s.text(left[0], y, `${total - (absences - dutyLeaves)} left this semester`, { size: 28, color: ink.line });
+      s.text(left[0], y, `about ${total - (absences - dutyLeaves)} bunks left`, { size: 28, color: ink.line });
     });
     return parts;
   };
