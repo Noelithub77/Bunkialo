@@ -11,7 +11,7 @@ See [Google's Wear splash screen implementation](https://developer.android.com/t
 and [Wear app quality requirements](https://developer.android.com/docs/quality-guidelines/wear-app-quality).
 
 Build from `wear-os/` with `./gradlew :app:bundleRelease`. Release signing requires
-the four `NEAROS_EAS_*` variables documented in `../AGENTS.md`. Never commit signing
+the four `NEAROS_EAS_*` variables documented in `../wear-os/AGENTS.md`. Never commit signing
 credentials. Increment the Wear version code for every new upload.
 
 Use the installed `gplay` CLI to create an edit for `com.codialo.Bunkialo2`, inspect
