@@ -29,7 +29,7 @@ Stills for Wear OS and Omarchy are `avif` with a `webp` fallback. Font details a
 
 ## README art
 
-`scripts/readme-art.ts` exports the hero, download buttons and the five scenes to `docs/images/readme/` for the repository README. Each SVG embeds a Nunito or Excalifont subset and loops its draw-on animation, which stops under reduced motion. Subsetting runs `pyftsubset` through `uvx`, and Playwright comes from the root `node_modules`.
+`scripts/readme-art.ts` exports the hero, download buttons and the five scenes to `assets/readme/` for the repository README. Each SVG embeds a Nunito or Excalifont subset and loops its draw-on animation, which stops under reduced motion. Subsetting runs `pyftsubset` through `uvx`, and Playwright comes from the root `node_modules`.
 
 ```bash
 bun run build && bunx vite preview --port 4180 &

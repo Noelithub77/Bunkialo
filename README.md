@@ -1,7 +1,7 @@
 # Bunkialo
 
 <p align="center">
-  <a href="https://bunkialo.noel.is-a.dev/"><img src="docs/images/readme/hero.svg" alt="Bunkialo: the yellow B mark draws itself, then the name flips into bunk cheythalo?, Malayalam for shall we bunk. Know exactly how many classes you can skip." width="1000"></a>
+  <a href="https://bunkialo.noel.is-a.dev/"><img src="assets/readme/hero.svg" alt="Bunkialo: the yellow B mark draws itself, then the name flips into bunk cheythalo?, Malayalam for shall we bunk. Know exactly how many classes you can skip." width="1000"></a>
 </p>
 
 <p align="center">
@@ -16,14 +16,14 @@ Every IIIT Kottayam portal in one calm app. Bunkialo reads your attendance, work
 
 The name is a question every student asks before class: *bunk* (skip a class) + *cheythalo* (Malayalam for “shall we?”). Say *bunk cheythalo?* fast enough and it becomes Bunkialo.
 
-<p align="center"><img src="docs/images/readme/name.svg" alt="bunk plus cheythalo, Malayalam for shall we bunk, said fast becomes Bunkialo" width="460"></p>
+<p align="center"><img src="assets/readme/name.svg" alt="bunk plus cheythalo, Malayalam for shall we bunk, said fast becomes Bunkialo" width="460"></p>
 
 ## Get Bunkialo
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.codialo.Bunkialo2"><img alt="Get it on Google Play" src="docs/images/readme/get-it-on-google-play.svg" width="260" height="48"></a>
-  <a href="https://bunkialo.allpyq.in"><img alt="Open the web app" src="docs/images/readme/open-the-web-app.svg" width="260" height="48"></a>
-  <a href="https://bunkialo.noel.is-a.dev/"><img alt="Visit the website" src="docs/images/readme/visit-the-website.svg" width="260" height="48"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.codialo.Bunkialo2"><img alt="Get it on Google Play" src="assets/readme/get-it-on-google-play.svg" width="260" height="48"></a>
+  <a href="https://bunkialo.allpyq.in"><img alt="Open the web app" src="assets/readme/open-the-web-app.svg" width="260" height="48"></a>
+  <a href="https://bunkialo.noel.is-a.dev/"><img alt="Visit the website" src="assets/readme/visit-the-website.svg" width="260" height="48"></a>
 </p>
 
 Android: install from Google Play; the Wear OS app comes with it. iPhone, iPad and desktop: open the web app. On iPhone, tap **Share → Add to Home Screen** to install it. **There is no native iOS app.**
@@ -44,7 +44,7 @@ Recordings use dark mode and demo data. Select a screen to play its recording.
 
 ## Every bunk, counted
 
-<p align="center"><img src="docs/images/readme/bunks.svg" alt="A rough estimate of seven bunks for a three credit course, with two used and one duty leave not counted, beside 31 of 35 classes attended, three above the 80 percent line" width="900"></p>
+<p align="center"><img src="assets/readme/bunks.svg" alt="A rough estimate of seven bunks for a three credit course, with two used and one duty leave not counted, beside 31 of 35 classes attended, three above the 80 percent line" width="900"></p>
 
 Bunkialo reads every absence from the attendance portal, leaves out the ones you mark as duty leave, and shows what's left. Tap the number to switch views: how far you are above the 80% line right now.
 
@@ -52,7 +52,7 @@ Bunkialo reads every absence from the attendance portal, leaves out the ones you
 
 ## Every campus portal, together
 
-<p align="center"><img src="docs/images/readme/portals.svg" alt="Moodle, the attendance portal, the academic calendar, the mess menu and the faculty list flow into Bunkialo, which shows what's next, bunks left, the timetable and reminders" width="900"></p>
+<p align="center"><img src="assets/readme/portals.svg" alt="Moodle, the attendance portal, the academic calendar, the mess menu and the faculty list flow into Bunkialo, which shows what's next, bunks left, the timetable and reminders" width="900"></p>
 
 Deadlines live on Moodle, attendance on its own portal, the calendar in a PDF and the mess menu on a notice board. Bunkialo signs in once, keeps a copy for when you're offline, and turns it all into the few things you need today.
 
@@ -65,7 +65,7 @@ Deadlines live on Moodle, attendance on its own portal, the calendar in a PDF an
 
 ## WiFix: campus Wi-Fi that signs itself in
 
-<p align="center"><img src="docs/images/readme/wifix.svg" alt="The phone's request is blocked, WiFix spots the campus login page, signs in with your LMS login, then confirms the internet is reachable" width="900"></p>
+<p align="center"><img src="assets/readme/wifix.svg" alt="The phone's request is blocked, WiFix spots the campus login page, signs in with your LMS login, then confirms the internet is reachable" width="900"></p>
 
 On campus Wi-Fi nothing loads until you log in on a portal page, and it keeps asking again.
 
@@ -80,7 +80,7 @@ WiFix is in the Android app (off until you turn it on; Android checks about ever
 
 | Wear OS | Omarchy plugin |
 | --- | --- |
-| <img src="docs/images/wear-os-timetable.png" alt="Bunkialo Wear OS timetable" width="300"> | <img src="docs/images/omarchy-plugin-panel.png" alt="Bunkialo Omarchy plugin panel" width="420"> |
+| <img src="assets/wear-os-timetable.png" alt="Bunkialo Wear OS timetable" width="300"> | <img src="assets/omarchy-plugin-panel.png" alt="Bunkialo Omarchy plugin panel" width="420"> |
 | Your next classes and today's menu on your wrist. The phone sends only the timetable, never your login. | The next class, the current meal and a WiFix button, one click from your bar. |
 
 **CLI.** Every portal from your terminal: attendance, deadlines, downloads, submissions and Wi-Fi login. Your password stays in the system keyring.
@@ -151,7 +151,7 @@ The script is idempotent: it installs or enables the plugin, adds the shortcuts 
 
 ## Let your agent handle campus
 
-<p align="center"><img src="docs/images/readme/agent.svg" alt="You ask your agent; the Bunkialo skill teaches it how the portals work and the CLI does the work against Moodle, the attendance portal and campus Wi-Fi, returning a real answer" width="900"></p>
+<p align="center"><img src="assets/readme/agent.svg" alt="You ask your agent; the Bunkialo skill teaches it how the portals work and the CLI does the work against Moodle, the attendance portal and campus Wi-Fi, returning a real answer" width="900"></p>
 
 Add the Bunkialo skill and CLI, and your coding agent can work every IIIT Kottayam portal for you: read attendance, find deadlines, download files, submit assignments and log in to Wi-Fi.
 

@@ -30,8 +30,14 @@ The installed CLI's `images plan` currently requests the unsupported
 commands until that issue is fixed. A media pull may download resized image
 previews, so retain the uploaded originals here for future reuse.
 
-Commit with `gplay edits commit --changes-not-sent-for-review` when Google
-requires a Console handoff. Saved listing assets still need to be sent for
-review in Play Console, and are not proof of public availability.
+Keep the same edit until its commit succeeds. Creating another edit with the same
+account discards the pending edit, so create a readback edit only after a successful
+commit.
+
+Use the commit mode required by Google's current response. If it says changes
+cannot be sent automatically, commit with `--changes-not-sent-for-review` and
+finish in Play Console. If it says changes are sent automatically and that the
+parameter must not be set, omit that flag. A successful commit still does not
+establish approval or public availability.
 
 [Google Play preview asset requirements](https://support.google.com/googleplay/android-developer/answer/9866151)

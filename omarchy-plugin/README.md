@@ -4,7 +4,7 @@ The Omarchy plugin provides a compact desktop panel for Bunkialo's timetable,
 mess menu, notifications, and WiFix controls. It keeps the most useful campus
 information visible without opening the full app.
 
-![Bunkialo Omarchy plugin panel](../docs/images/omarchy-plugin-panel.png)
+![Bunkialo Omarchy plugin panel](../assets/omarchy-plugin-panel.png)
 
 The panel shows the current and upcoming timetable entries, today's meals,
 connection status, refresh controls, notifications, and settings. Its

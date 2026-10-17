@@ -1,4 +1,4 @@
-// Regenerates the animated README art in docs/images/readme from the landing page's own scenes.
+// Regenerates the animated README art in assets/readme from the landing page's own scenes.
 // Usage: bun scripts/readme-art.ts [page URL], with the landing page served (default: vite preview).
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -7,7 +7,7 @@ import { chromium, type Page } from "playwright";
 
 const url = process.argv[2] ?? "http://127.0.0.1:4180/";
 const root = join(import.meta.dir, "..");
-const out = join(root, "..", "docs", "images", "readme");
+const out = join(root, "..", "assets", "readme");
 const fonts = { nunito: join(root, "public/fonts/nunito.woff2"), hand: join(root, "public/fonts/excalifont.woff2") };
 const scenes = ["name", "bunks", "portals", "wifix", "agent"];
 const yellow = "#ffab00";
