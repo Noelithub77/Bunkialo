@@ -2,6 +2,9 @@
 *
 !bunkialo-landing
 !bunkialo-landing/**
+!assets
+!assets/landing
+!assets/landing/**
 
 bunkialo-landing/node_modules
 bunkialo-landing/dist

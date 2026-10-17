@@ -2,8 +2,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import sharp from "sharp";
 
-const inputSvg = join(process.cwd(), "src/assets/icons/logo.svg");
-const outputDir = join(process.cwd(), "src/assets/images");
+const inputSvg = join(process.cwd(), "assets/icons/logo.svg");
+const outputDir = join(process.cwd(), "assets/images");
 
 async function generateIcons() {
   try {

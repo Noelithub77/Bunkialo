@@ -33,16 +33,16 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
     slug: "Bunkialo2",
     owner: "ialexpo",
     orientation: "portrait",
-    icon: "./src/assets/images/icon.png",
+    icon: "./assets/images/icon.png",
     scheme: "bunkialo",
     userInterfaceStyle: "automatic",
     ios: {
       bundleIdentifier: "com.codialo.Bunkialo2",
       supportsTablet: true,
       icon: {
-        light: "./src/assets/images/ios-icon-light.png",
-        dark: "./src/assets/images/ios-icon-dark.png",
-        tinted: "./src/assets/images/ios-icon-tinted.png",
+        light: "./assets/images/ios-icon-light.png",
+        dark: "./assets/images/ios-icon-dark.png",
+        tinted: "./assets/images/ios-icon-tinted.png",
       },
       infoPlist: {
         UIBackgroundModes: ["fetch"],
@@ -54,8 +54,8 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
       permissions: ["RECEIVE_BOOT_COMPLETED", "ACCESS_NETWORK_STATE"],
       adaptiveIcon: {
         backgroundColor: "#FFAB00",
-        foregroundImage: "./src/assets/images/android-icon-foreground.png",
-        monochromeImage: "./src/assets/images/android-icon-monochrome.png",
+        foregroundImage: "./assets/images/android-icon-foreground.png",
+        monochromeImage: "./assets/images/android-icon-monochrome.png",
       },
       predictiveBackGestureEnabled: false,
       package: "com.codialo.Bunkialo2",
@@ -63,7 +63,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
     web: {
       output: "single",
       bundler: "metro",
-      favicon: "./src/assets/images/favicon.png",
+      favicon: "./assets/images/favicon.png",
     },
     plugins: [
       "expo-router",
@@ -142,7 +142,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
       [
         "expo-splash-screen",
         {
-          image: "./src/assets/images/splash-icon.png",
+          image: "./assets/images/splash-icon.png",
           imageWidth: 200,
           resizeMode: "contain",
           backgroundColor: "#000000",

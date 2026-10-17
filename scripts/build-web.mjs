@@ -15,8 +15,8 @@ run("bunx", ["expo", "export", "--platform", "web", "--output-dir", "dist"]);
 
 await mkdir("dist/icons", { recursive: true });
 await Promise.all([
-  copyFile("src/assets/images/favicon.png", "dist/icons/icon-192.png"),
-  copyFile("src/assets/images/icon.png", "dist/icons/icon-512.png"),
+  copyFile("assets/images/favicon.png", "dist/icons/icon-192.png"),
+  copyFile("assets/images/icon.png", "dist/icons/icon-512.png"),
 ]);
 
 const indexPath = "dist/index.html";

@@ -401,7 +401,7 @@ export default function WifixScreen() {
           <View className="mb-8 items-center">
             <Pressable onPress={() => setShowLogModal(true)} hitSlop={20}>
               <Image
-                source={require("../assets/icons/wifix.png")}
+                source={require("../../assets/icons/wifix.png")}
                 style={{ width: 144, height: 144, opacity: 0.95 }}
                 contentFit="contain"
               />

@@ -14,8 +14,8 @@ export const POPUP_NOTICES: PopupNotice[] = [
     ctaLabel: "Explore AllPYQ",
     ctaAction: "open-url",
     ctaUrl: "https://allpyq.in",
-    imageSourceDark: require("../assets/icons/allpyq_dark.png"),
-    imageSourceLight: require("../assets/icons/allpyq_light.png"),
+    imageSourceDark: require("../../assets/icons/allpyq_dark.png"),
+    imageSourceLight: require("../../assets/icons/allpyq_light.png"),
     customContent: AllpyqLaunchPopupContent,
   },
   // {

@@ -8,7 +8,7 @@ import { chromium, type Page } from "playwright";
 const url = process.argv[2] ?? "http://127.0.0.1:4180/";
 const root = join(import.meta.dir, "..");
 const out = join(root, "..", "assets", "readme");
-const fonts = { nunito: join(root, "public/fonts/nunito.woff2"), hand: join(root, "public/fonts/excalifont.woff2") };
+const fonts = { nunito: join(root, "../assets/landing/fonts/nunito.woff2"), hand: join(root, "../assets/landing/fonts/excalifont.woff2") };
 const scenes = ["name", "bunks", "portals", "wifix", "agent"];
 const yellow = "#ffab00";
 
@@ -104,7 +104,7 @@ async function heroSvg(page: Page): Promise<string> {
       .map((char, i) => (char === " " ? "" : `<text class="${kind}" x="${(left + starts[i]).toFixed(1)}" y="282" fill="${color(i)}" style="--i:${(i * 0.025).toFixed(3)}s">${escape(char)}</text>`))
       .join("");
   };
-  const logo = readFileSync(join(root, "public/logo.svg"), "utf8").replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
+  const logo = readFileSync(join(root, "../assets/landing/logo.svg"), "utf8").replace(/^<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
   const ease = "cubic-bezier(.22,1,.36,1)";
   const style = [
     face("N", nunito),

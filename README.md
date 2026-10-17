@@ -34,11 +34,11 @@ Android: install from Google Play; the Wear OS app comes with it. iPhone, iPad a
 
 | Dashboard | Attendance | Timetable | Mess |
 | --- | --- | --- | --- |
-| [<img src="bunkialo-landing/public/media/dashboard.webp" alt="Dashboard with what's next and upcoming deadlines" width="190">](bunkialo-landing/public/media/dashboard.mp4) | [<img src="bunkialo-landing/public/media/attendance.webp" alt="Attendance with bunks left per course" width="190">](bunkialo-landing/public/media/attendance.mp4) | [<img src="bunkialo-landing/public/media/timetable.webp" alt="Timetable generated from attendance" width="190">](bunkialo-landing/public/media/timetable.mp4) | [<img src="bunkialo-landing/public/media/mess.webp" alt="Mess menu with the next meal first" width="190">](bunkialo-landing/public/media/mess.mp4) |
+| [<img src="assets/landing/media/dashboard.webp" alt="Dashboard with what's next and upcoming deadlines" width="190">](assets/landing/media/dashboard.mp4) | [<img src="assets/landing/media/attendance.webp" alt="Attendance with bunks left per course" width="190">](assets/landing/media/attendance.mp4) | [<img src="assets/landing/media/timetable.webp" alt="Timetable generated from attendance" width="190">](assets/landing/media/timetable.mp4) | [<img src="assets/landing/media/mess.webp" alt="Mess menu with the next meal first" width="190">](assets/landing/media/mess.mp4) |
 
 | Faculty | GPA | Academic calendar |
 | --- | --- | --- |
-| [<img src="bunkialo-landing/public/media/faculty.webp" alt="Faculty and hostel warden directory" width="190">](bunkialo-landing/public/media/faculty.mp4) | [<img src="bunkialo-landing/public/media/gpa.webp" alt="GPA calculator" width="190">](bunkialo-landing/public/media/gpa.mp4) | [<img src="bunkialo-landing/public/media/acadcal.webp" alt="Academic calendar" width="190">](bunkialo-landing/public/media/acadcal.mp4) |
+| [<img src="assets/landing/media/faculty.webp" alt="Faculty and hostel warden directory" width="190">](assets/landing/media/faculty.mp4) | [<img src="assets/landing/media/gpa.webp" alt="GPA calculator" width="190">](assets/landing/media/gpa.mp4) | [<img src="assets/landing/media/acadcal.webp" alt="Academic calendar" width="190">](assets/landing/media/acadcal.mp4) |
 
 Recordings use dark mode and demo data. Select a screen to play its recording.
 

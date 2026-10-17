@@ -1,10 +1,10 @@
 # Google Play screenshots
 
-The English listing screenshots live in `play-store/en-US/images/`, using the
+The English listing screenshots live in `assets/play-store/en-US/images/`, using the
 `gplay images` directory layout. Numbered filenames define upload order.
 
 The seven phone screenshots come from the October 16, 2026 landing-page captures
-in `bunkialo-landing/public/media/`, converted from WebP to opaque PNG at their
+in `assets/landing/media/`, converted from WebP to opaque PNG at their
 original 540×1170 resolution. They show dashboard, attendance, timetable, mess,
 academic calendar, grade calculator, and faculty, in that order. These captures
 use the landing page's demo data; they are not new native phone captures.
