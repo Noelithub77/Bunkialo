@@ -1,0 +1,57 @@
+Bunkialo is an attendance and assignment tracking app built for IIIT Kottayam students. It integrates with the institute’s official LMS and helps you with up-to-date attendance records, assignment deadlines, and smart reminders.
+
+With Bunkialo, you no longer need to manually check Moodle every day. The app automatically syncs your data and presents it in a clean, easy-to-use interface designed for students.
+
+Key Features
+
+1) Attendance Tracking:-
+Automatically syncs attendance data from IIIT Kottayam Moodle
+View detailed attendance records for all enrolled courses
+Track present, absent, late, and excused sessions
+Calculate attendance percentages with course-wise breakdowns
+Calendar-style view to visualize attendance history
+
+2) Assignment Management
+Timeline view of all upcoming assignments and deadlines
+Automatic detection of overdue assignments
+Direct links to Moodle assignment pages
+Smart reminders for approaching deadlines
+
+3) Smart Notifications
+Background data refresh to keep information up to date
+Customizable reminder notifications before deadlines
+Attendance threshold alerts
+Offline access using cached data
+
+4)Modern Interface
+Clean and minimal design for easy navigation
+Dark mode and light mode support
+Fast and responsive performance
+Secure credential storage using device-level encryption
+
+How It Works
+
+1. Secure Login
+   Log in using your IIIT Kottayam Moodle credentials
+
+2. Auto Sync
+   Attendance and assignment data are fetched automatically
+
+3. Track and Monitor
+   View attendance statistics and assignment timelines in one place
+
+4. Stay Notified
+   Receive timely reminders for deadlines and attendance limits
+
+Privacy and Security
+
+Your lms credentials are stored securely on your device
+No data is shared with third parties
+
+Wear OS companion
+
+View your class timetable and mess menu on your watch, including offline access to the saved schedule. Sync your selected timetable from the Bunkialo Android app.
+
+Add the Bunkialo tile to see your current or next class and its time. Tap the tile to open the watch app.
+
+Add the Bunkialo watch face complication to see a class abbreviation at a glance. Tap the complication to open the corresponding timetable entry.

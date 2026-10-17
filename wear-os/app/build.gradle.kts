@@ -77,8 +77,8 @@ android {
         minSdk = 36
         targetSdk = 37
         // Keep Wear releases in their own high range so they never collide with phone builds.
-        versionCode = 1_000_001
-        versionName = "1.0"
+        versionCode = 1_000_003
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
