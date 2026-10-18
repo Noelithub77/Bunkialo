@@ -133,12 +133,27 @@ fn collect_medical_leave() -> CliResult<(HashMap<String, String>, String)> {
 pub(crate) fn run(command: AttendanceCommand) -> CliResult<()> {
     let (email, password) = credentials("attendance")?;
     let base = attendance_base_url()?;
-    let mut client = Attendance::new(base, email, password)?;
+    let mut client = Attendance::new(base.clone(), email, password)?;
     client.login()?;
     let result = (|| -> CliResult<()> {
         match command {
             AttendanceCommand::Profile => print_json(&client.get("/api/auth/me")?),
             AttendanceCommand::Terms => print_json(&client.get("/api/terms")?),
+            AttendanceCommand::Dl { course_id, json } => {
+                let summary = client.get("/api/students/me/attendance")?;
+                let report = super::dl::calculate(summary, course_id.as_deref())?;
+                if json {
+                    print_json(&serde_json::json!({
+                        "source": format!("{}/api/students/me/attendance", base.trim_end_matches('/')),
+                        "fetchedAt": Utc::now().to_rfc3339(),
+                        "thresholdPercent": 80,
+                        "assumption": super::dl::ASSUMPTION,
+                        "courses": report,
+                    }));
+                } else {
+                    super::dl::print_report(&report);
+                }
+            }
             AttendanceCommand::Summary => {
                 let data = client.get("/api/students/me/attendance")?;
                 let mut overall = HashMap::new();

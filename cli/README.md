@@ -75,9 +75,14 @@ bunkialo lms download-course COURSE_ID [--output-dir DIR] [--force]
 bunkialo lms submit ACTIVITY_ID --file PATH [--file PATH ...]
 bunkialo lms unsubmit ACTIVITY_ID [--dry-run]
 bunkialo attendance profile|terms|summary|sessions|report|appeal|apply-leave|apply-medical-leave
+bunkialo attendance dl [COURSE_ID] [--json]
 ```
 
 `lms recent` prints assignments and quizzes whose due or close time is within 30 days before or after now, including submission or attempt state. Attendance reports use `attendance.iiitkottayam.ac.in`, not Moodle's attendance module. Run `bunkialo lms COMMAND --help` or `bunkialo attendance COMMAND --help` for details.
+
+`attendance dl` reads live course attendance and calculates how many existing absent classes need additional duty leave credit to reach at least 80%. The total class count stays fixed: `max(0, ceil(total × 4 / 5) − present − dlCredited)`. For example, 33/47 needs 5 additional credits to become 38/47 (80.85%). Existing credited duty leave counts toward attendance; uncredited overflow does not. Exactly 80% meets the threshold, and the report also identifies when one more credit is needed to go strictly above 80%.
+
+Run `bunkialo attendance dl CSS311` to filter by course code or attendance course ID. `--json` returns the source, fetch time, fixed threshold, assumptions, and per-course counts and projections. Empty or invalid course data and unknown course filters fail with a nonzero exit status; a course with no classes is reported as `no_classes`. The calculator does not submit applications, change attendance, or establish eligibility, approval, or available duty leave allowances.
 
 Moodle submissions require confirmation for draft upload, save, and final grading submission. `lms unsubmit` uses Moodle's revert-to-draft action when offered. Existing downloads are preserved unless `--force` is supplied.
 

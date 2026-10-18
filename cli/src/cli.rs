@@ -140,6 +140,14 @@ pub(crate) enum AttendanceCommand {
     Profile,
     Terms,
     Summary,
+    #[command(about = "Calculate existing classes needing duty leave credit to reach 80%")]
+    Dl {
+        /// Optional course code or attendance course ID; defaults to all courses
+        course_id: Option<String>,
+        /// Print a structured report instead of the attendance table
+        #[arg(long)]
+        json: bool,
+    },
     Sessions {
         course_id: Option<String>,
     },
