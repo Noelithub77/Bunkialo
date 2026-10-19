@@ -29,6 +29,7 @@
     "test:e2e:assignment": "bun tests/e2e/lms/test-assignment-opened-playwright.ts",
     "test:e2e:feedback": "bun tests/e2e/lms/test-feedback-autofill-playwright.ts",
     "test:e2e:web-navigation": "bun tests/e2e/web/measure-navigation-playwright.ts",
+    "test:e2e:web-notice": "bun tests/e2e/web/test-notice-playwright.ts",
     "test:e2e:web-login": "bun tests/e2e/web/test-login-playwright.ts",
     "test:e2e:hosted-auth": "bun tests/e2e/hosted/setup-auth-state.ts",
     "test:e2e:hosted-timetable": "bun tests/e2e/hosted/test-timetable-playwright.ts",

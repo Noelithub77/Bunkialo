@@ -1,5 +1,5 @@
 import React from "react";
-import { Linking, Pressable, Text, View } from "react-native";
+import { Linking, Platform, Pressable, Text, View } from "react-native";
 
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -59,36 +59,40 @@ export function AllpyqLaunchPopupContent({ onClose }: PopupCustomContentProps) {
         ))}
       </View>
 
-      <Pressable
-        onPress={() => {
-          void Linking.openURL("https://allpyq.in");
-          onClose();
-        }}
-        className="mb-3 items-center justify-center rounded-2xl py-3.5 active:opacity-70"
-        style={{ backgroundColor: Colors.accent }}
-      >
-        <Text
-          className="text-[14px] font-semibold"
-          style={{ color: Colors.white, letterSpacing: 0.3 }}
+      <View className="web:gap-3 web:sm:flex-row-reverse">
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => {
+            void Linking.openURL("https://allpyq.in");
+            onClose();
+          }}
+          className="mb-3 items-center justify-center rounded-2xl py-3.5 active:opacity-70 web:mb-0 web:sm:flex-1"
+          style={{ backgroundColor: Colors.accent }}
         >
-          Explore AllPYQ
-        </Text>
-      </Pressable>
+          <Text
+            className="text-[14px] font-semibold"
+            style={{ color: Platform.OS === "web" ? Colors.gray[950] : Colors.white, letterSpacing: 0.3 }}
+          >
+            Explore AllPYQ
+          </Text>
+        </Pressable>
 
-      <Pressable
-        onPress={onClose}
-        className="items-center justify-center rounded-2xl py-3.5 active:opacity-70"
-        style={{
-          backgroundColor: isDark ? Colors.gray[800] : Colors.gray[100],
-        }}
-      >
-        <Text
-          className="text-[14px] font-semibold"
-          style={{ color: theme.text, letterSpacing: 0.3 }}
+        <Pressable
+          accessibilityRole="button"
+          onPress={onClose}
+          className="items-center justify-center rounded-2xl py-3.5 active:opacity-70 web:sm:flex-1"
+          style={{
+            backgroundColor: isDark ? Colors.gray[800] : Colors.gray[100],
+          }}
         >
-          Got it
-        </Text>
-      </Pressable>
+          <Text
+            className="text-[14px] font-semibold"
+            style={{ color: theme.text, letterSpacing: 0.3 }}
+          >
+            Got it
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

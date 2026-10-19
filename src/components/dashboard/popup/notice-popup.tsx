@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Linking, Modal, Pressable, Text, View } from "react-native";
+import { Animated, Linking, Modal, Platform, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -176,117 +176,120 @@ export function NoticePopup() {
     currentPopup.ctaAction === "open-url" && Boolean(currentPopup.ctaUrl);
 
   return (
-    <Modal visible transparent animationType="none" statusBarTranslucent>
+    <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={animateOut}>
       <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }}
         keyboardShouldPersistTaps="handled"
         bottomOffset={insets.bottom + 16}
       >
-        <View className="flex-1 justify-end">
-          <Animated.View
-            className="absolute inset-0"
-            style={{
-              backgroundColor: "rgba(0,0,0,0.45)",
-              opacity: backdropOpacity,
-            }}
-          >
-            <Pressable className="flex-1" onPress={animateOut} />
-          </Animated.View>
+        <View className="flex-1 justify-end web:flex-auto web:shrink-0 web:items-center web:justify-center web:px-4 web:py-6">
+          <View className="absolute inset-0">
+            <Animated.View
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(0,0,0,0.45)",
+                opacity: backdropOpacity,
+              }}
+            >
+              <Pressable className="flex-1" focusable={false} onPress={animateOut} />
+            </Animated.View>
+          </View>
 
-          <Animated.View
-            className="mx-4 mb-4 rounded-3xl p-6"
-            style={{
-              transform: [{ translateY: slideAnim }],
-              backgroundColor: theme.background,
-              marginHorizontal: 16,
-              paddingHorizontal: 24,
-              paddingBottom: Math.max(24, insets.bottom + 16),
-              borderWidth: 1,
-              borderColor: isDark
-                ? "rgba(255,255,255,0.08)"
-                : "rgba(0,0,0,0.06)",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 0.12,
-              shadowRadius: 16,
-              elevation: 12,
-            }}
-          >
-            <View className="mb-4 flex-row items-center gap-3">
-              <View
-                className="h-11 w-11 items-center justify-center rounded-xl"
-                style={{
-                  backgroundColor: currentPopup.iconColor
-                    ? `${currentPopup.iconColor}18`
-                    : `${Colors.accent}18`,
-                }}
-              >
-                <Ionicons
-                  name={currentPopup.icon || "notifications"}
-                  size={22}
-                  color={currentPopup.iconColor || Colors.accent}
-                />
+          <Animated.View pointerEvents="box-none" style={{ width: "100%", transform: [{ translateY: slideAnim }] }}>
+            <View
+              className="mx-4 mb-4 rounded-3xl p-6 web:mx-0 web:mb-0 web:w-full web:max-w-[520px] web:self-center"
+              style={{
+                backgroundColor: theme.background,
+                marginHorizontal: Platform.OS === "web" ? 0 : 16,
+                paddingHorizontal: 24,
+                paddingBottom: Math.max(24, insets.bottom + 16),
+                borderWidth: 1,
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.08)"
+                  : "rgba(0,0,0,0.06)",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: -4 },
+                shadowOpacity: 0.12,
+                shadowRadius: 16,
+                elevation: 12,
+              }}
+            >
+              <View className="mb-4 flex-row items-center gap-3">
+                <View
+                  className="h-11 w-11 items-center justify-center rounded-xl"
+                  style={{
+                    backgroundColor: currentPopup.iconColor
+                      ? `${currentPopup.iconColor}18`
+                      : `${Colors.accent}18`,
+                  }}
+                >
+                  <Ionicons
+                    name={currentPopup.icon || "notifications"}
+                    size={22}
+                    color={currentPopup.iconColor || Colors.accent}
+                  />
+                </View>
+                <Text
+                  className="flex-1 text-[17px] font-bold tracking-tight"
+                  style={{ color: theme.text }}
+                  numberOfLines={2}
+                >
+                  {currentPopup.title}
+                </Text>
               </View>
-              <Text
-                className="flex-1 text-[17px] font-bold tracking-tight"
-                style={{ color: theme.text }}
-                numberOfLines={2}
-              >
-                {currentPopup.title}
-              </Text>
-            </View>
 
-            {popupImageSource ? (
-              <View className="mb-4 items-center">
-                <Image
-                  source={popupImageSource as React.ComponentProps<typeof Image>["source"]}
-                  style={{ width: "100%", height: 120 }}
-                  contentFit="contain"
-                />
-              </View>
-            ) : null}
+              {popupImageSource ? (
+                <View className="mb-4 items-center web:mx-auto web:w-full web:max-w-[240px]">
+                  <Image
+                    source={popupImageSource as React.ComponentProps<typeof Image>["source"]}
+                    style={{ width: "100%", height: 120 }}
+                    contentFit="contain"
+                  />
+                </View>
+              ) : null}
 
-            {CustomContent ? (
-              <CustomContent popup={currentPopup} onClose={animateOut} />
-            ) : (
-              <>
-                <DefaultPopupContent popup={currentPopup} />
-                {isOpenUrlPopup ? (
+              {CustomContent ? (
+                <CustomContent popup={currentPopup} onClose={animateOut} />
+              ) : (
+                <>
+                  <DefaultPopupContent popup={currentPopup} />
+                  {isOpenUrlPopup ? (
+                    <Pressable
+                      onPress={() => {
+                        if (!currentPopup.ctaUrl) return;
+                        void Linking.openURL(currentPopup.ctaUrl);
+                        animateOut();
+                      }}
+                      className="mb-3 items-center justify-center rounded-2xl py-3.5 active:opacity-70"
+                      style={{ backgroundColor: Colors.accent }}
+                    >
+                      <Text
+                        className="text-[14px] font-semibold"
+                        style={{ color: Colors.white, letterSpacing: 0.3 }}
+                      >
+                        {currentPopup.ctaLabel || "Open"}
+                      </Text>
+                    </Pressable>
+                  ) : null}
                   <Pressable
-                    onPress={() => {
-                      if (!currentPopup.ctaUrl) return;
-                      void Linking.openURL(currentPopup.ctaUrl);
-                      animateOut();
+                    onPress={animateOut}
+                    className="items-center justify-center rounded-2xl py-3.5 active:opacity-70"
+                    style={{
+                      backgroundColor: isDark
+                        ? Colors.gray[800]
+                        : Colors.gray[100],
                     }}
-                    className="mb-3 items-center justify-center rounded-2xl py-3.5 active:opacity-70"
-                    style={{ backgroundColor: Colors.accent }}
                   >
                     <Text
                       className="text-[14px] font-semibold"
-                      style={{ color: Colors.white, letterSpacing: 0.3 }}
+                      style={{ color: theme.text, letterSpacing: 0.3 }}
                     >
-                      {currentPopup.ctaLabel || "Open"}
+                      Got it
                     </Text>
                   </Pressable>
-                ) : null}
-                <Pressable
-                  onPress={animateOut}
-                  className="items-center justify-center rounded-2xl py-3.5 active:opacity-70"
-                  style={{
-                    backgroundColor: isDark
-                      ? Colors.gray[800]
-                      : Colors.gray[100],
-                  }}
-                >
-                  <Text
-                    className="text-[14px] font-semibold"
-                    style={{ color: theme.text, letterSpacing: 0.3 }}
-                  >
-                    Got it
-                  </Text>
-                </Pressable>
-              </>
-            )}
+                </>
+              )}
+            </View>
           </Animated.View>
         </View>
       </KeyboardAwareScrollView>
