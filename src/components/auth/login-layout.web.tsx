@@ -27,8 +27,8 @@ export function LoginLayout({
         <View className="mx-auto w-full max-w-[1120px] flex-1 justify-center gap-10 lg:flex-none lg:flex-row lg:items-center lg:gap-20 xl:gap-28">
           <View className="mx-auto w-full max-w-[440px] gap-5 lg:mx-0 lg:max-w-none lg:flex-1 lg:gap-12">
             <View className="flex-row items-center gap-3">
-              <View className="h-10 w-10 items-center justify-center rounded-xl border border-amber-300/20 bg-amber-300/10">
-                <MaterialCommunityIcons name="school-outline" size={23} color="#FBBF24" />
+              <View className="h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900">
+                <MaterialCommunityIcons name="school-outline" size={23} color="#D4D4D8" />
               </View>
               <Text className="text-2xl font-bold tracking-[-0.8px] text-zinc-50">
                 Bunkialo
@@ -41,7 +41,7 @@ export function LoginLayout({
                 className="text-[56px] font-semibold leading-[62px] tracking-[-2.5px] text-zinc-50 xl:text-[64px] xl:leading-[70px]"
               >
                 Your campus.{"\n"}
-                <Text className="text-amber-300">A little simpler.</Text>
+                <Text className="text-zinc-400">A little simpler.</Text>
               </Text>
               <Text className="max-w-[360px] text-lg leading-7 text-zinc-400">
                 Attendance, assignments and your timetable. All in one place.
@@ -63,7 +63,7 @@ export function LoginLayout({
             <View className="gap-7 rounded-[24px] border border-zinc-800 bg-zinc-950/90 p-6 sm:p-8">
               <View role="list" aria-label="Account setup progress" className="flex-row items-center gap-3">
                 <View role="listitem" className="flex-row items-center gap-2">
-                  <View className="h-6 w-6 items-center justify-center rounded-full bg-amber-300">
+                  <View className="h-6 w-6 items-center justify-center rounded-full bg-zinc-200">
                     {step === "attendance" ? (
                       <MaterialCommunityIcons name="check" size={15} color="#18181B" />
                     ) : (
@@ -71,12 +71,12 @@ export function LoginLayout({
                     )}
                   </View>
                   <Text className="text-xs font-medium text-zinc-200">
-                    {step === "lms" ? "Moodle" : "Connected"}
+                    {step === "lms" ? "LMS" : "Connected"}
                   </Text>
                 </View>
                 <View className="h-px flex-1 bg-zinc-700" />
                 <View role="listitem" className="flex-row items-center gap-2">
-                  <View className={`h-6 w-6 items-center justify-center rounded-full border ${step === "attendance" ? "border-amber-300 bg-amber-300" : "border-zinc-700"}`}>
+                  <View className={`h-6 w-6 items-center justify-center rounded-full border ${step === "attendance" ? "border-zinc-200 bg-zinc-200" : "border-zinc-700"}`}>
                     <Text className={`text-xs font-bold ${step === "attendance" ? "text-zinc-900" : "text-zinc-500"}`}>2</Text>
                   </View>
                   <Text className={`text-xs font-medium ${step === "attendance" ? "text-zinc-200" : "text-zinc-500"}`}>

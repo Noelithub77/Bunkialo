@@ -46,8 +46,8 @@ body::-webkit-scrollbar,
 }
 
 .login-web-shell input:focus-visible {
-  border-color: #fcd34d !important;
-  box-shadow: 0 0 0 3px rgb(252 211 77 / 12%);
+  border-color: #a1a1aa !important;
+  box-shadow: 0 0 0 3px rgb(161 161 170 / 16%);
 }
 
 .login-web-shell input {
@@ -56,7 +56,7 @@ body::-webkit-scrollbar,
 
 .login-web-shell [role="button"]:focus-visible,
 .login-web-shell [role="link"]:focus-visible {
-  outline: 2px solid #fcd34d;
+  outline: 2px solid #a1a1aa;
   outline-offset: 4px;
 }
 

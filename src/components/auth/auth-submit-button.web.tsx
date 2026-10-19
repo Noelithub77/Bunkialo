@@ -16,7 +16,7 @@ export function AuthSubmitButton({
   return (
     <button
       aria-busy={loading}
-      className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-300 disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-800 disabled:text-zinc-400 ${variant === "ghost" ? "bg-transparent text-zinc-300 hover:bg-zinc-900" : "border border-amber-300 bg-amber-300 text-zinc-950 hover:border-amber-200 hover:bg-amber-200"}`}
+      className={`flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-zinc-400 disabled:cursor-not-allowed disabled:border-zinc-700 disabled:bg-zinc-800 disabled:text-zinc-400 ${variant === "ghost" ? "bg-transparent text-zinc-300 hover:bg-zinc-900" : "border border-zinc-100 bg-zinc-100 text-zinc-950 hover:border-zinc-300 hover:bg-zinc-300"}`}
       disabled={disabled || loading}
       onClick={onPress}
       type="button"

@@ -44,7 +44,7 @@ export function LoginCredentialsStep({
       <View className="gap-2">
         {process.env.EXPO_OS !== "web" ? (
           <Text className="text-xs font-semibold text-zinc-400">
-            {accountLabel === "LMS" ? "Moodle" : accountLabel}
+            {accountLabel}
           </Text>
         ) : null}
         <Text
@@ -56,15 +56,13 @@ export function LoginCredentialsStep({
         >
           {process.env.EXPO_OS === "web"
             ? accountLabel === "LMS"
-              ? "Welcome to Bunkialo"
+              ? "Sign in to LMS"
               : "Connect attendance"
             : "Connect your account"}
         </Text>
-        {process.env.EXPO_OS === "web" ? (
+        {process.env.EXPO_OS === "web" && accountLabel !== "LMS" ? (
           <Text className="text-sm leading-[22px] text-zinc-400">
-            {accountLabel === "LMS"
-              ? "Sign in with your Moodle account."
-              : "Use your institute attendance portal account."}
+            Use your institute attendance portal account.
           </Text>
         ) : null}
       </View>

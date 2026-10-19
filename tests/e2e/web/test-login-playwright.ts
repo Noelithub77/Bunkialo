@@ -39,7 +39,7 @@ await page.route("**/api/**", async (route) => {
 
 try {
   await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
-  const heading = page.getByRole("heading", { name: "Welcome to Bunkialo" });
+  const heading = page.getByRole("heading", { name: "Sign in to LMS" });
   await heading.waitFor({ timeout: 60000 });
   const form = page.getByRole("form", { name: "Sign in" });
   const intro = page.getByRole("heading", { level: 1 });
