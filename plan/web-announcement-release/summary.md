@@ -11,6 +11,8 @@
 
 Implemented locally; awaiting the user's layout and copy review. Nothing from this change has been pushed or deployed.
 
+The user's follow-up replaces the release star with an `Update` button opening the v1.5 release page. The duplicate footer release link is removed. The updated button and layout passed the same twelve browser cases, production export, TypeScript and focused lint (one existing effect warning).
+
 ## Verification
 
 - Production web export and TypeScript check passed.

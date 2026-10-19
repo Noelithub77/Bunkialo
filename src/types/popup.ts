@@ -38,6 +38,7 @@ export interface PopupNotice {
   iconColor?: string;
   isImportant?: boolean;
   ctaLabel?: string;
+  ctaPlacement?: "header";
   ctaAction?: PopupCtaAction;
   ctaUrl?: string;
   customContent?: ComponentType<PopupCustomContentProps>;

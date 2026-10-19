@@ -178,6 +178,7 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
     : currentPopup.imageSourceLight || currentPopup.imageSource;
   const isOpenUrlPopup =
     currentPopup.ctaAction === "open-url" && Boolean(currentPopup.ctaUrl);
+  const hasHeaderAction = isOpenUrlPopup && currentPopup.ctaPlacement === "header";
 
   return (
     <Modal visible transparent animationType="none" statusBarTranslucent onRequestClose={animateOut}>
@@ -207,20 +208,35 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
               bottomOffset={insets.bottom + 16}
             >
               <View className="mb-4 flex-row items-center gap-3">
-                <View
-                  className="h-11 w-11 items-center justify-center rounded-xl"
-                  style={{
-                    backgroundColor: currentPopup.iconColor
-                      ? `${currentPopup.iconColor}18`
-                      : `${Colors.accent}18`,
-                  }}
-                >
-                  <Ionicons
-                    name={currentPopup.icon || "notifications"}
-                    size={22}
-                    color={currentPopup.iconColor || Colors.accent}
-                  />
-                </View>
+                {hasHeaderAction ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      if (currentPopup.ctaUrl) void Linking.openURL(currentPopup.ctaUrl);
+                    }}
+                    className="items-center justify-center rounded-xl px-4 py-3 active:opacity-70"
+                    style={{ backgroundColor: theme.text }}
+                  >
+                    <Text className="text-[13px] font-semibold" style={{ color: theme.background }}>
+                      {currentPopup.ctaLabel}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <View
+                    className="h-11 w-11 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: currentPopup.iconColor
+                        ? `${currentPopup.iconColor}18`
+                        : `${Colors.accent}18`,
+                    }}
+                  >
+                    <Ionicons
+                      name={currentPopup.icon || "notifications"}
+                      size={22}
+                      color={currentPopup.iconColor || Colors.accent}
+                    />
+                  </View>
+                )}
                 <Text
                   className="flex-1 text-[17px] font-bold tracking-tight"
                   style={{ color: theme.text }}
@@ -245,7 +261,7 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
               ) : (
                 <>
                   <DefaultPopupContent popup={currentPopup} />
-                  {isOpenUrlPopup ? (
+                  {isOpenUrlPopup && !hasHeaderAction ? (
                     <Pressable
                       onPress={() => {
                         if (!currentPopup.ctaUrl) return;

@@ -9,10 +9,10 @@ export const POPUP_NOTICES: PopupNotice[] = [
     title: "Bunkialo v1.5",
     description: "Faster assignments and file previews in v1.5, plus new ways to use Bunkialo.",
     timestamp: "2026-10-19T12:00:00+05:30",
-    icon: "star",
     iconColor: Colors.status.info,
     isImportant: true,
-    ctaLabel: "Release notes",
+    ctaLabel: "Update",
+    ctaPlacement: "header",
     ctaAction: "open-url",
     ctaUrl: "https://github.com/Noelithub77/Bunkialo/releases/tag/v1.5.0(64)",
     highlights: [

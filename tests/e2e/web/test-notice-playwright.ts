@@ -61,7 +61,7 @@ try {
         const panel = await assertPlacement(page, "announcement-panel", width, height);
         if (notice === "release") {
           const links = panel.getByRole("link");
-          assert.equal(await links.count(), 5, "Four source references and release notes are available");
+          assert.equal(await links.count(), 4, "Four source references are available");
           const openedUrls: string[] = [];
           await page.exposeFunction("recordNoticeUrl", (url: string) => { openedUrls.push(url); });
           await page.evaluate(() => {
@@ -73,7 +73,7 @@ try {
           });
           for (let i = 0; i < 4; i++) await links.nth(i).click();
           assert.deepEqual(openedUrls, releaseLinks, "Highlights open their verified sources");
-          await links.nth(4).click();
+          await panel.getByRole("button", { name: "Update", exact: true }).click();
           assert.equal(openedUrls[4], "https://github.com/Noelithub77/Bunkialo/releases/tag/v1.5.0(64)");
           if (width === 1920) {
             await page.setViewportSize({ width: 1280, height: 800 });
