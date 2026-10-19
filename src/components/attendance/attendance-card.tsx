@@ -2,7 +2,7 @@ import { SwipeableBunkItem } from "@/components/attendance/swipeable-bunk-item";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { CalendarTheme, Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useBunkStore } from "@/stores/bunk-store";
+import { filterPastBunks, useBunkStore } from "@/stores/bunk-store";
 import type {
   AttendanceRecord,
   AttendanceStatus,
@@ -206,8 +206,24 @@ export function AttendanceCard({
   const totalSessions = pastRecords.length;
   const attended = pastRecords.filter((r) => r.status === "Present").length;
   const unknownCount = pastRecords.filter((r) => r.status === "Unknown").length;
+  const portalDutyLeaveCount = useMemo(
+    () => pastRecords.filter((r) => r.status === "Duty Leave").length,
+    [pastRecords],
+  );
+  const userDutyLeaveCount = useMemo(
+    () =>
+      bunkCourse
+        ? filterPastBunks(bunkCourse.bunks).filter((bunk) => bunk.isDutyLeave)
+            .length
+        : 0,
+    [bunkCourse],
+  );
+  const dutyLeaveCount = portalDutyLeaveCount + userDutyLeaveCount;
+  const effectiveTotalSessions = Math.max(0, totalSessions - dutyLeaveCount);
   const percentage =
-    totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0;
+    effectiveTotalSessions > 0
+      ? Math.round((attended / effectiveTotalSessions) * 100)
+      : 0;
 
   const percentageColor = getPercentageColor(percentage);
   const markedDates = useMemo(
@@ -301,7 +317,7 @@ export function AttendanceCard({
                   className="text-sm"
                   style={{ color: theme.textSecondary }}
                 >
-                  {attended} / {totalSessions} sessions
+                  {attended} / {effectiveTotalSessions} sessions
                 </Text>
                 {unknownCount > 0 && (
                   <View className="flex-row items-center gap-1">

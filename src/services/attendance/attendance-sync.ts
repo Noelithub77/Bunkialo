@@ -126,12 +126,18 @@ export const syncAttendanceFromPayload = (
       lmsCourseId: identity?.lmsCourseId ?? null,
       mappingSource: identity?.mappingSource ?? "unresolved",
       attendanceModuleId: null,
-      totalSessions: course.total,
-      attended: course.present + course.dlCredited,
+      totalSessions: Math.max(0, course.total - course.dlCredited),
+      attended: course.present,
       present: course.present,
       dlCredited: course.dlCredited,
       dlOverflow: course.dlOverflow,
-      percentage: course.percentage,
+      percentage:
+        Math.max(0, course.total - course.dlCredited) > 0
+          ? Math.round(
+              (course.present / Math.max(0, course.total - course.dlCredited)) *
+                100,
+            )
+          : course.percentage,
       records: previous?.records ?? [],
       lastUpdated: Date.now(),
     };

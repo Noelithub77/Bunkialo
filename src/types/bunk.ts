@@ -48,6 +48,7 @@ export interface CourseBunkData {
 }
 
 export interface CourseAttendanceSnapshot {
+  /** Effective completed sessions after duty leaves are excused (totalSessions - dutyLeaves). */
   totalSessions: number;
   attendedSessions: number;
 }

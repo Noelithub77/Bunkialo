@@ -277,7 +277,11 @@ export function UnifiedCourseCard({
         : 0,
     [bunkData],
   );
-  const dutyLeaveCount = useMemo(
+  const portalDutyLeaveCount = useMemo(
+    () => pastRecords.filter((r) => r.status === "Duty Leave").length,
+    [pastRecords],
+  );
+  const userDutyLeaveCount = useMemo(
     () =>
       bunkData
         ? filterPastBunks(bunkData.bunks).filter((bunk) => bunk.isDutyLeave)
@@ -285,14 +289,18 @@ export function UnifiedCourseCard({
         : 0,
     [bunkData],
   );
-  // Unknown ("?") defaults to present; DL and present corrections are treated as attended.
+  const dutyLeaveCount = portalDutyLeaveCount + userDutyLeaveCount;
+  // Unknown ("?") defaults to present; present corrections are treated as attended.
+  // Duty leaves are excused from total class obligations (e.g. 31/40 with 3 DLs becomes 31/37).
   const attended =
     confirmedPresentCount +
     unknownCount +
-    correctedPresentCount +
-    dutyLeaveCount;
+    correctedPresentCount;
+  const effectiveTotalSessions = Math.max(0, totalSessions - dutyLeaveCount);
   const percentage =
-    totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0;
+    effectiveTotalSessions > 0
+      ? Math.round((attended / effectiveTotalSessions) * 100)
+      : 0;
   const percentageColor = getPercentageColor(percentage);
 
   // bunk stats
@@ -301,7 +309,7 @@ export function UnifiedCourseCard({
         bunkData,
         course
           ? {
-              totalSessions,
+              totalSessions: effectiveTotalSessions,
               attendedSessions: attended,
             }
           : undefined,
@@ -488,7 +496,7 @@ export function UnifiedCourseCard({
                       className="text-sm"
                       style={{ color: theme.textSecondary }}
                     >
-                      {attended} / {totalSessions} sessions
+                      {attended} / {effectiveTotalSessions} sessions
                       <Text
                         className="text-xs font-medium"
                         style={{ color: percentageColor }}
