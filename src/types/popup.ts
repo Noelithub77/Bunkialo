@@ -14,6 +14,13 @@ export type PopupIconType =
 
 export type PopupCtaAction = "run-lms-feedback-autofill" | "open-url";
 
+export interface PopupHighlight {
+  title: string;
+  description: string;
+  reference: string;
+  url: string;
+}
+
 export interface PopupCustomContentProps {
   popup: PopupNotice;
   onClose: () => void;
@@ -34,4 +41,5 @@ export interface PopupNotice {
   ctaAction?: PopupCtaAction;
   ctaUrl?: string;
   customContent?: ComponentType<PopupCustomContentProps>;
+  highlights?: PopupHighlight[];
 }

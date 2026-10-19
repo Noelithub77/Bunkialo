@@ -1,3 +1,4 @@
+import { NoticeHighlights } from "./popup/notice-highlights";
 import { NotificationReadContent } from "./notification-read-content";
 import { Colors } from "@/constants/theme";
 import { notificationAppearance } from "@/utils/portal-notification";
@@ -176,6 +177,9 @@ export function NotificationListItem({
                 </View>
               </NotificationReadContent>
             </Pressable>
+            {expanded && item.highlights && (
+              <View className="px-3.5 pb-3.5"><NoticeHighlights highlights={item.highlights} /></View>
+            )}
             {expanded && (
               <Animated.View
                 entering={FadeInDown.duration(150).reduceMotion(

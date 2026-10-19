@@ -25,7 +25,9 @@ switch budget. `WEB_NAV_OUTPUT` selects the JSON report path. Keep viewport,
 fixture, browser and build mode identical when comparing reports. These results
 do not measure campus API latency or physical-device performance.
 
-The notice check opens an unseen announcement in a fresh fixture at six viewport
-sizes. It checks the 520 px width limit, centering, short-screen scrolling,
-light and dark appearances, button/backdrop/Escape dismissal and persistence
-of the existing seen state after reload. It never resets a real account's notices.
+The notice check opens the release and AllPYQ announcements separately in fresh
+fixtures at six viewport sizes. It checks the 440 px desktop panel below the bell,
+phone bottom sheets, resize alignment, short-screen scrolling, light and dark
+appearances, source links, button/backdrop/Escape dismissal, and seen-state
+persistence after reload. It also reopens the release from the bell inbox and
+checks that the source links remain available. It never resets a real account's notices.

@@ -1,3 +1,4 @@
+import { useNotificationPlacement } from "@/hooks/use-notification-placement";
 import { presentPortalNotification } from "@/utils/portal-notification";
 import { useAttendanceStore } from "@/stores/attendance-store";
 import { NotificationInboxControls } from "@/components/dashboard/notification-inbox-controls";
@@ -26,9 +27,9 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface NoticesModalProps {
+  anchorRef: React.RefObject<React.ComponentRef<typeof View> | null>;
   visible: boolean;
   onClose: () => void;
 }
@@ -40,10 +41,10 @@ const makePortalUrl = (link: string): string =>
     ? link
     : `${ATTENDANCE_PORTAL_URL}${link.startsWith("/") ? "" : "/"}${link}`;
 
-export function NoticesModal({ visible, onClose }: NoticesModalProps) {
+export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps) {
   const isDark = useColorScheme() === "dark";
   const theme = isDark ? Colors.dark : Colors.light;
-  const insets = useSafeAreaInsets();
+  const { style: placement } = useNotificationPlacement(visible, anchorRef);
   const [concern, setConcern] = React.useState<NotificationConcern>("all");
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [clearTarget, setClearTarget] = React.useState<ClearTarget | null>(
@@ -103,6 +104,7 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
       priority: getNotificationPriority("APP", notice.isImportant),
       title: notice.title,
       body: notice.description,
+      highlights: notice.highlights,
       createdAt: notice.timestamp,
       isRead: seenPopupIds.includes(notice.id),
       imageSource: isDark
@@ -231,17 +233,18 @@ export function NoticesModal({ visible, onClose }: NoticesModalProps) {
           <View
             className="flex-1"
             style={{
-              backgroundColor: isDark ? "rgba(0,0,0,0.82)" : "rgba(0,0,0,0.28)",
+              backgroundColor: "rgba(0,0,0,0.28)",
             }}
           >
             <Pressable className="absolute inset-0" onPress={onClose} />
             <View
-              className="mx-3 mt-14 flex-1 overflow-hidden rounded-[28px] border"
-              style={{
+              testID="notification-inbox-panel"
+              className="overflow-hidden rounded-[28px] border"
+              style={[placement, {
+                height: Math.min(600, placement.maxHeight),
                 backgroundColor: theme.background,
                 borderColor: theme.border,
-                marginBottom: insets.bottom + 14,
-              }}
+              }]}
             >
               <NotificationInboxControls
                 concern={concern}

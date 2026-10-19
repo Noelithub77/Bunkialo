@@ -24,7 +24,7 @@ import { usePortalNotificationStore } from "@/stores/portal-notification-store";
 import { scheduleDeferredTask, scheduleIdleTask } from "@/utils/scheduling";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect, useIsFocused } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ComponentRef } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -81,6 +81,7 @@ export default function DashboardScreen() {
   const [showOverdue, setShowOverdue] = useState(false);
   const [showFabMenu, setShowFabMenu] = useState(false);
   const [showDevInfo, setShowDevInfo] = useState(false);
+  const notificationBellRef = useRef<ComponentRef<typeof View> | null>(null);
   const [showNoticesModal, setShowNoticesModal] = useState(false);
   const hasUnseenPopups = usePopupStore(
     (state) =>
@@ -468,7 +469,7 @@ export default function DashboardScreen() {
                 color={theme.textSecondary}
               />
             </Pressable>
-            <Pressable accessibilityLabel="Notifications" accessibilityRole="button"
+            <Pressable ref={notificationBellRef} accessibilityLabel="Notifications" accessibilityRole="button"
               onPress={() => {
                 setShowNoticesModal(true);
               }}
@@ -619,10 +620,11 @@ export default function DashboardScreen() {
       />
 
       <NoticesModal
+        anchorRef={notificationBellRef}
         visible={showNoticesModal}
         onClose={() => setShowNoticesModal(false)}
       />
-      <NoticePopup />
+      <NoticePopup anchorRef={notificationBellRef} />
     </Container>
   );
 }

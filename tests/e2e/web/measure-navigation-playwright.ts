@@ -11,6 +11,8 @@ const height = Number(process.env.WEB_NAV_HEIGHT || 900);
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext({ viewport: { width, height }, colorScheme: "dark" });
 await context.addInitScript(() => {
+  const seen = ["allpyq-launch-2026-04", "bunkialo-v1-5-2026-10"];
+  localStorage.setItem("bunkialo-popup-storage-sqlite-v1", JSON.stringify({ state: { seenPopupIds: seen, notifiedPopupIds: seen, dismissedPopupIds: [] }, version: 0 }));
   localStorage.setItem("bunkialo_lms_credentials_v1", JSON.stringify({ username: "test-student", password: "test-password" }));
   localStorage.setItem("attendance_portal_credentials_v1", JSON.stringify({ email: "test@example.edu", password: "test-password" }));
 });

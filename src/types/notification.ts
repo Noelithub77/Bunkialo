@@ -1,4 +1,5 @@
 import type { ImageSourcePropType } from "react-native";
+import type { PopupHighlight } from "./popup";
 
 export interface PortalNotification {
   id: string;
@@ -36,6 +37,7 @@ export interface NotificationInboxItem {
   isRead: boolean;
   imageSource?: ImageSourcePropType;
   action?: NotificationInboxAction;
+  highlights?: PopupHighlight[];
 }
 
 export interface PortalNotificationPresentation {
