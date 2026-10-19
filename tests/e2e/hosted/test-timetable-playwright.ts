@@ -38,7 +38,7 @@ const main = async (): Promise<void> => {
     });
 
     const pageText = await page.locator("body").innerText();
-    if (pageText.includes("Step 1 of 2")) {
+    if (new URL(page.url()).pathname === "/login") {
       throw new Error("Hosted auth state expired; run the auth setup again.");
     }
     if (!pageText.includes("No timetable yet") && !pageText.includes("Schedule")) {

@@ -30,10 +30,9 @@ const waitForPage = async (page: Page): Promise<void> => {
 };
 
 const clickStepButton = async (page: Page, label: string): Promise<void> => {
-  const button = page
-    .locator("[tabindex='0']")
-    .filter({ hasText: label })
-    .first();
+  const button = page.getByRole("button", { name: label, exact: true }).or(
+    page.locator("[tabindex='0']").filter({ hasText: label }),
+  ).first();
   await button.click({ timeout: 15000 });
 };
 

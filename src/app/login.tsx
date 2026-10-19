@@ -1,4 +1,5 @@
 import { scheduleDeferredTask } from "@/utils/scheduling";
+import { LoginLayout } from "@/components/auth/login-layout";
 import { LoginCredentialsStep } from "@/components/auth/login-credentials-step";
 import { PortalChallengeStep } from "@/components/auth/portal-challenge-step";
 import { login } from "@/services/auth/login";
@@ -19,13 +20,10 @@ import { router, useGlobalSearchParams } from "expo-router";
 import {
   Linking,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 type ChallengeRequest = Extract<
   AuthLoginRequest,
@@ -250,118 +248,73 @@ export default function LoginScreen() {
         ) : null}
       </View>
       <View className="absolute inset-0 bg-black/35" />
-      <SafeAreaView className="flex-1 px-5">
-        <KeyboardAwareScrollView
-          contentContainerClassName="flex-grow justify-center py-8"
-          keyboardShouldPersistTaps="handled"
-          bottomOffset={24}
-        >
-          <View className="mx-auto w-full max-w-[520px] gap-6">
-            <View className="gap-3 px-1">
-              <Text className="text-[42px] font-extrabold leading-[46px] tracking-[-1.5px] text-zinc-50 sm:text-5xl sm:leading-[52px]">
-                Bunkialo
-              </Text>
-              <View className="flex-row items-center gap-2">
-                <View className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-1">
-                  <Text className="text-[11px] font-semibold uppercase tracking-[1.2px] text-zinc-300">
-                    Step {step === "lms" ? "1" : "2"} of 2
-                  </Text>
-                </View>
-                <Text className="flex-1 text-xs leading-5 text-zinc-400">
-                  {step === "lms"
-                    ? "Connect your LMS account first."
-                    : "Now connect your attendance account."}
-                </Text>
-              </View>
-            </View>
-
-            <View className="rounded-[28px] border border-zinc-700/60 bg-black/80 p-5">
-              {step === "lms" ? (
-                <LoginCredentialsStep
-                  accountLabel="LMS"
-                  identifier={rollNumber}
-                  identifierLabel="Roll number"
-                  password={lmsPassword}
-                  error={error}
-                  loading={loading}
-                  submitLabel="Continue"
-                  onIdentifierChange={setRollNumber}
-                  onPasswordChange={setLmsPassword}
-                  onSubmit={() => void submitLms()}
-                />
-              ) : challenge ? (
-                <PortalChallengeStep
-                  mode={challenge.mode}
-                  code={code}
-                  error={error}
-                  loading={loading}
-                  onCodeChange={setCode}
-                  onSubmit={() => void submitChallenge()}
-                  onUseBackupCode={() =>
-                    setChallenge({ ...challenge, mode: "backupCode" })
-                  }
-                />
-              ) : (
-                <LoginCredentialsStep
-                  accountLabel="Attendance portal"
-                  identifier={email}
-                  identifierLabel="Institute email"
-                  identifierType="email-address"
-                  password={portalPassword}
-                  error={error}
-                  loading={loading}
-                  submitLabel="Finish sign in"
-                  onIdentifierChange={setEmail}
-                  onPasswordChange={setPortalPassword}
-                  onSubmit={() => void submitPortal()}
-                />
-              )}
-            </View>
-
-            {step === "attendance" && !challenge ? (
-              <View className="flex-row items-center justify-between">
-                <Pressable
-                  onPress={() => {
-                    setError(null);
-                    setStep("lms");
-                  }}
-                >
-                  <Text className="text-sm font-semibold text-zinc-400">
-                    Back
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() =>
-                    void Linking.openURL(`${ATTENDANCE_PORTAL_URL}/login`)
-                  }
-                >
-                  <Text className="text-sm font-semibold text-zinc-200">
-                    Open attendance portal ↗
-                  </Text>
-                </Pressable>
-              </View>
-            ) : null}
-            <Text className="text-center text-xs text-zinc-500">
-              {process.env.EXPO_OS === "web"
-                ? "Credentials are saved in this browser so your session can be restored."
-                : "Credentials stay encrypted on this device."}
+      <LoginLayout
+        step={step}
+        showNavigation={step === "attendance" && !challenge}
+        onBack={() => {
+          setError(null);
+          setStep("lms");
+        }}
+        onOpenPortal={() =>
+          void Linking.openURL(`${ATTENDANCE_PORTAL_URL}/login`)
+        }
+        backgroundNotice={
+          backgroundMode === "static" ? (
+            <Text className="text-center text-xs text-zinc-600">
+              Animated background is off on older or unclassified devices to
+              keep sign-in reliable.
             </Text>
-            {backgroundMode === "static" ? (
-              <Text className="text-center text-xs text-zinc-600">
-                Animated background is off on older or unclassified devices to
-                keep sign-in reliable.
-              </Text>
-            ) : backgroundMode === "fallback" ? (
-              <Text
-                accessibilityLiveRegion="polite"
-                className="text-center text-xs text-zinc-600"
-              >
-                Background animation was turned off; sign-in is unaffected.
-              </Text>
-            ) : null}
-          </View>
-        </KeyboardAwareScrollView>
-      </SafeAreaView>
+          ) : backgroundMode === "fallback" ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              className="text-center text-xs text-zinc-600"
+            >
+              Background animation was turned off; sign-in is unaffected.
+            </Text>
+          ) : null
+        }
+      >
+        {step === "lms" ? (
+          <LoginCredentialsStep
+            accountLabel="LMS"
+            identifier={rollNumber}
+            identifierLabel="Roll number"
+            password={lmsPassword}
+            error={error}
+            loading={loading}
+            submitLabel="Continue"
+            onIdentifierChange={setRollNumber}
+            onPasswordChange={setLmsPassword}
+            onSubmit={() => void submitLms()}
+          />
+        ) : challenge ? (
+          <PortalChallengeStep
+            mode={challenge.mode}
+            code={code}
+            error={error}
+            loading={loading}
+            onCodeChange={setCode}
+            onSubmit={() => void submitChallenge()}
+            onUseBackupCode={() =>
+              setChallenge({ ...challenge, mode: "backupCode" })
+            }
+          />
+        ) : (
+          <LoginCredentialsStep
+            accountLabel="Attendance portal"
+            identifier={email}
+            identifierLabel="Institute email"
+            identifierType="email-address"
+            password={portalPassword}
+            error={error}
+            loading={loading}
+            submitLabel="Finish sign in"
+            onIdentifierChange={setEmail}
+            onPasswordChange={setPortalPassword}
+            onSubmit={() => void submitPortal()}
+          />
+        )}
+      </LoginLayout>
     </View>
   );
 }

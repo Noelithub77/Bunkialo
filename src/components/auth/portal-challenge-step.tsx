@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
+import { CredentialForm } from "@/components/auth/credential-form";
 import { Input } from "@/components/ui/input";
 import type { AuthLoginRequest } from "@/types";
 import { Text, View } from "react-native";
@@ -27,10 +28,14 @@ export function PortalChallengeStep({
   onSubmit,
   onUseBackupCode,
 }: PortalChallengeStepProps) {
+  const submit = (): void => {
+    if (code.trim() && !loading) onSubmit();
+  };
+
   return (
-    <View className="gap-5">
+    <CredentialForm name="attendance-verification" onSubmit={submit}>
       <View className="gap-1">
-        <Text className="text-xs font-semibold uppercase tracking-[2px] text-zinc-400">
+        <Text className="text-xs font-semibold text-zinc-400">
           Verification
         </Text>
         <Text className="text-2xl font-bold text-zinc-50">
@@ -45,22 +50,26 @@ export function PortalChallengeStep({
         autoCorrect={false}
         keyboardType={mode === "backupCode" ? "default" : "number-pad"}
         returnKeyType="go"
-        onSubmitEditing={() => code.trim() && onSubmit()}
+        onSubmitEditing={submit}
+        autoComplete="one-time-code"
+        webId="attendance-verification-code"
+        webName="code"
+        webRequired
       />
       {error ? <Text className="text-sm text-red-200">{error}</Text> : null}
-      <Button
+      <AuthSubmitButton
         title="Verify"
-        onPress={onSubmit}
+        onPress={submit}
         loading={loading}
         disabled={!code.trim()}
       />
       {mode === "totp" && onUseBackupCode ? (
-        <Button
+        <AuthSubmitButton
           title="Use a backup code"
           variant="ghost"
           onPress={onUseBackupCode}
         />
       ) : null}
-    </View>
+    </CredentialForm>
   );
 }

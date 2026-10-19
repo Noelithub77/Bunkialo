@@ -35,3 +35,33 @@ body::-webkit-scrollbar,
     overscroll-behavior: none;
   }
 }
+
+/* The sign-in surface stays dark independently of the signed-in app theme. */
+.login-web-shell input {
+  background-color: #18181b !important;
+  border-color: #3f3f46 !important;
+  color: #fafafa !important;
+  color-scheme: dark;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+
+.login-web-shell input:focus-visible {
+  border-color: #fcd34d !important;
+  box-shadow: 0 0 0 3px rgb(252 211 77 / 12%);
+}
+
+.login-web-shell input {
+  min-width: 0;
+}
+
+.login-web-shell [role="button"]:focus-visible,
+.login-web-shell [role="link"]:focus-visible {
+  outline: 2px solid #fcd34d;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-web-shell input {
+    transition: none;
+  }
+}

@@ -58,7 +58,7 @@ const NavigationItem = ({
   const selected = pathname === item.path;
 
   return (
-    <Link href={item.href} asChild>
+    <Link href={item.href} asChild prefetch>
       <Pressable
         accessibilityRole="link"
         accessibilityState={{ selected }}
@@ -104,6 +104,7 @@ const WebTabNavigator = ({
       tabBar={() => null}
       screenOptions={{
         sceneStyle: { backgroundColor },
+        animationEnabled: false,
         swipeEnabled: !isHorizontalContentGestureActive,
         lazy: true,
         lazyPreloadDistance: 1,

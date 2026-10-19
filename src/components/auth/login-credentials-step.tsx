@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import { Input } from "@/components/ui/input";
 import { CredentialForm } from "@/components/auth/credential-form";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -34,17 +34,39 @@ export function LoginCredentialsStep({
 }: LoginCredentialsStepProps) {
   const [showPassword, setShowPassword] = useState(false);
   const ready = Boolean(identifier.trim() && password);
+  const submit = (): void => {
+    if (ready && !loading) onSubmit();
+  };
   const formName = accountLabel.toLowerCase().replaceAll(" ", "-");
 
   return (
-    <CredentialForm name={`${formName}-login`} onSubmit={onSubmit}>
-      <View className="gap-1">
-        <Text className="text-xs font-semibold uppercase tracking-[2px] text-zinc-400">
-          {accountLabel}
+    <CredentialForm name={`${formName}-login`} onSubmit={submit}>
+      <View className="gap-2">
+        {process.env.EXPO_OS !== "web" ? (
+          <Text className="text-xs font-semibold text-zinc-400">
+            {accountLabel === "LMS" ? "Moodle" : accountLabel}
+          </Text>
+        ) : null}
+        <Text
+          role="heading"
+          aria-level={2}
+          className={process.env.EXPO_OS === "web"
+            ? "text-[28px] font-semibold tracking-[-0.8px] text-zinc-50"
+            : "text-2xl font-bold text-zinc-50"}
+        >
+          {process.env.EXPO_OS === "web"
+            ? accountLabel === "LMS"
+              ? "Welcome to Bunkialo"
+              : "Connect attendance"
+            : "Connect your account"}
         </Text>
-        <Text className="text-2xl font-bold text-zinc-50">
-          Connect your account
-        </Text>
+        {process.env.EXPO_OS === "web" ? (
+          <Text className="text-sm leading-[22px] text-zinc-400">
+            {accountLabel === "LMS"
+              ? "Sign in with your Moodle account."
+              : "Use your institute attendance portal account."}
+          </Text>
+        ) : null}
       </View>
 
       <View className="gap-3">
@@ -72,7 +94,7 @@ export function LoginCredentialsStep({
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="go"
-            onSubmitEditing={() => ready && onSubmit()}
+            onSubmitEditing={submit}
             autoComplete="current-password"
             textContentType="password"
             webId={`${formName}-password`}
@@ -81,6 +103,7 @@ export function LoginCredentialsStep({
             style={{ paddingRight: 52 }}
           />
           <Pressable
+            accessibilityRole="button"
             onPress={() => setShowPassword((visible) => !visible)}
             className="absolute right-3 top-8 h-9 w-9 items-center justify-center"
             accessibilityLabel={
@@ -97,14 +120,14 @@ export function LoginCredentialsStep({
       </View>
 
       {error ? (
-        <Text className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-200">
+        <Text accessibilityRole="alert" className="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-200">
           {error}
         </Text>
       ) : null}
 
-      <Button
+      <AuthSubmitButton
         title={submitLabel}
-        onPress={onSubmit}
+        onPress={submit}
         loading={loading}
         disabled={!ready}
       />
