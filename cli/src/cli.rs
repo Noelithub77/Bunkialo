@@ -1,10 +1,37 @@
 use clap::{Args, Parser, Subcommand};
 
+const COLLEGE_POLICIES: &str = "College policies and attendance planning:
+  Planning target: strictly above 80% in each course, with a buffer rather than
+  stopping at exactly 80%. This is the user's planning convention; college rules,
+  duty leave eligibility, limits and approval must be confirmed with the college.
+
+  For duty leave handled by removing an absent session:
+    projected attendance = attended / (total sessions - approved removals) * 100
+  Keep attended unchanged. Count recorded sessions, not hours: a two-hour class
+  stored as one session is one removal. Only remove matching absent sessions.
+
+  Re-fetch live records after faculty updates. A session already marked present
+  or already removed must not be counted again as pending duty leave. Keep each
+  student's records separate and deduplicate internship and event claims.
+
+  Internship and event leave are conditional until approved. Match the student's
+  actual duty dates and sessions; nearby dates alone do not establish eligibility.
+  Internship cutoffs belong to the individual approval, not a universal policy.
+
+  Example: 28/39 with six approved absent-session removals becomes 28/33 (84.85%).
+  If one of those six is rejected, 28/34 is still 82.35%. Check this buffer per
+  course; future absences or newly uploaded sessions require recalculation.
+
+  Calculator limitation: attendance dl currently models absence-to-credit
+  conversion with a fixed total, not session removal. Do not use its projections
+  for the removal model above. Read attendance summary and report for live data.";
+
 #[derive(Parser)]
 #[command(
     name = "bunkialo",
     about = "IIIT Kottayam LMS and attendance CLI",
-    version
+    version,
+    after_help = COLLEGE_POLICIES
 )]
 pub(crate) struct Cli {
     #[command(subcommand)]
@@ -30,7 +57,10 @@ pub(crate) enum Command {
         #[command(subcommand)]
         command: LmsCommand,
     },
-    #[command(about = "Read the separate UG Attendance System")]
+    #[command(
+        about = "Read the separate UG Attendance System",
+        after_help = COLLEGE_POLICIES
+    )]
     Attendance {
         #[command(subcommand)]
         command: AttendanceCommand,
@@ -140,7 +170,10 @@ pub(crate) enum AttendanceCommand {
     Profile,
     Terms,
     Summary,
-    #[command(about = "Calculate existing classes needing duty leave credit to reach 80%")]
+    #[command(
+        about = "Calculate existing classes needing duty leave credit to reach 80%",
+        after_help = "This calculator converts absences to credits while keeping the total fixed. It does not calculate absent-session removal. For the removal formula, approval assumptions and safety buffers, run bunkialo attendance --help."
+    )]
     Dl {
         /// Optional course code or attendance course ID; defaults to all courses
         course_id: Option<String>,

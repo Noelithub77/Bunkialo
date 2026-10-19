@@ -84,6 +84,16 @@ bunkialo attendance dl [COURSE_ID] [--json]
 
 Run `bunkialo attendance dl CSS311` to filter by course code or attendance course ID. `--json` returns the source, fetch time, fixed threshold, assumptions, and per-course counts and projections. Empty or invalid course data and unknown course filters fail with a nonzero exit status; a course with no classes is reported as `no_classes`. The calculator does not submit applications, change attendance, or establish eligibility, approval, or available duty leave allowances.
 
+### College policies and attendance planning
+
+`bunkialo --help` and `bunkialo attendance --help` include the attendance planning guidance without requiring credentials or a network connection. The target of strictly above 80% with a buffer is the user's planning convention; this guidance is not an independently verified college policy. Confirm institutional thresholds, leave eligibility, limits and approvals with the college.
+
+When approved duty leave removes an absent session, calculate `attended / (total sessions - approved removals) * 100`. Keep the attended count unchanged and count recorded sessions rather than hours. For example, 28/39 with six removals becomes 28/33 (84.85%); if one removal is rejected, 28/34 remains 82.35%.
+
+Refresh live attendance after faculty updates. Exclude sessions already marked present or already removed, deduplicate overlapping internship and event claims, and match only the relevant student's actual duty dates and absent sessions. Nearby event dates do not establish eligibility. Internship cutoffs depend on the individual's approval. Pending leave is a conditional projection, and buffers must be checked separately for each course and recalculated after new sessions or absences.
+
+The current `attendance dl` calculator uses the fixed-total conversion model described above, so its projections do not implement this removal model. Its help explicitly flags that limitation. Use `attendance summary` and `attendance report` for live records when calculating removal projections.
+
 Moodle submissions require confirmation for draft upload, save, and final grading submission. `lms unsubmit` uses Moodle's revert-to-draft action when offered. Existing downloads are preserved unless `--force` is supplied.
 
 `BUNKIALO_LMS_URL` may select an official `https://lmsugYY.iiitkottayam.ac.in` cohort host. The CLI also accepts `BUNKIALO_LMS_USERNAME`, `BUNKIALO_LMS_PASSWORD`, `BUNKIALO_ATTENDANCE_EMAIL`, and `BUNKIALO_ATTENDANCE_PASSWORD` for the current process; avoid passwords in shell history. The `ACADS_` names remain as compatibility fallbacks.
