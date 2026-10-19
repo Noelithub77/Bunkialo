@@ -37,6 +37,10 @@ const main = async (): Promise<void> => {
       timeout: 30000,
     });
 
+    await page.getByText("No timetable yet", { exact: true }).or(
+      page.getByText("Schedule", { exact: true }),
+    ).first().waitFor({ timeout: 30000 });
+
     const pageText = await page.locator("body").innerText();
     if (new URL(page.url()).pathname === "/login") {
       throw new Error("Hosted auth state expired; run the auth setup again.");
