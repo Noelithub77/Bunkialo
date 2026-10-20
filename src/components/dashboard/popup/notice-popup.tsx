@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, type ComponentRef, type RefObject } from "react";
 import { Animated, Linking, Modal, Pressable, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
@@ -211,15 +211,19 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
                 {hasHeaderAction ? (
                   <Pressable
                     accessibilityRole="button"
+                    accessibilityLabel={currentPopup.ctaLabel}
+                    accessibilityHint="Open the release page"
                     onPress={() => {
                       if (currentPopup.ctaUrl) void Linking.openURL(currentPopup.ctaUrl);
                     }}
-                    className="items-center justify-center rounded-xl px-4 py-3 active:opacity-70"
+                    className="h-11 w-11 items-center justify-center rounded-xl active:opacity-70"
                     style={{ backgroundColor: theme.text }}
                   >
-                    <Text className="text-[13px] font-semibold" style={{ color: theme.background }}>
-                      {currentPopup.ctaLabel}
-                    </Text>
+                    <MaterialCommunityIcons
+                      name="update"
+                      size={23}
+                      color={theme.background}
+                    />
                   </Pressable>
                 ) : (
                   <View

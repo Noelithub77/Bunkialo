@@ -9,9 +9,11 @@
 
 ## Status
 
-Implemented locally; awaiting the user's layout and copy review. Nothing from this change has been pushed or deployed.
+The original implementation and text-button refinement are present on `origin/main` as inspected on October 21. The latest icon-button refinement remains local for review; this task has not pushed or deployed it.
 
 The user's follow-up replaces the release star with an `Update` button opening the v1.5 release page. The duplicate footer release link is removed. The updated button and layout passed the same twelve browser cases, production export, TypeScript and focused lint (one existing effect warning).
+
+The next refinement replaces the visible `Update` text with the existing Material Community `update` icon in a 44 px button. Its accessible name remains `Update`. The current `bun run typecheck`, `bun run lint` and production export pass; lint reports existing warnings. All twelve browser cases pass on rerun after an initial timing-sensitive alignment failure during the first page load.
 
 ## Verification
 
