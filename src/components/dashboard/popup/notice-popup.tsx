@@ -216,13 +216,12 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
                     onPress={() => {
                       if (currentPopup.ctaUrl) void Linking.openURL(currentPopup.ctaUrl);
                     }}
-                    className="h-11 w-11 items-center justify-center rounded-xl active:opacity-70"
-                    style={{ backgroundColor: theme.text }}
+                    className="h-11 w-11 items-center justify-center active:opacity-70"
                   >
                     <MaterialCommunityIcons
                       name="update"
                       size={23}
-                      color={theme.background}
+                      color={theme.text}
                     />
                   </Pressable>
                 ) : (
