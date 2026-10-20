@@ -18,7 +18,6 @@ import { sendReminderPush } from "./push/send-push";
 import type {
   DesktopCredentials,
   DesktopPairingCode,
-  DesktopSnapshot,
   DesktopSyncResult,
 } from "../shared/desktop";
 import { buildDesktopSnapshot } from "./desktop/timetable";

@@ -332,9 +332,6 @@ export default function SettingsScreen() {
           <AccountSettingsSection lmsUsername={username} theme={theme} />
           <DesktopPluginSection theme={theme} />
           <DashboardSettingsSection
-            backgroundActivity={backgroundActivity}
-            backgroundSyncActivityEnabled={backgroundSyncActivityEnabled}
-            devDashboardSyncEnabled={devDashboardSyncEnabled}
             isTestingNotification={isTestingNotification}
             notificationsEnabled={notificationsEnabled}
             onPressRefreshInterval={handleSetRefreshInterval}

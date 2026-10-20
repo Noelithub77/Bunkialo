@@ -50,6 +50,7 @@ const CONTENT_TYPE_EXTENSION_MAP: Record<string, string> = {
 
 const sanitizeFileName = (value: string): string =>
   value
+    // oxlint-disable-next-line no-control-regex -- Strip forbidden filename control characters.
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
     .replace(/\s+/g, " ")
     .trim();

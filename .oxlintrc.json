@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/crates/oxc_linter/configuration_schema.json",
+  "plugins": ["react", "import"],
+  "ignorePatterns": [
+    "dist/**",
+    "cli/login-ui/dist/**",
+    "bunkialo-landing/dist/**",
+    ".cloudflare/types/**",
+    "omarchy-plugin/**/*.js"
+  ]
+}

@@ -457,7 +457,7 @@ Run the checks that match the target being changed:
 ```bash
 bun test
 bun run lint
-bunx tsc --noEmit
+bun run typecheck
 (cd android && ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64)
 (cd wear-os && ./gradlew :app:assembleDebug)
 ```

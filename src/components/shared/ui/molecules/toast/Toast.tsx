@@ -57,8 +57,6 @@ const getIconForType = (type: ToastVariant) => {
   }
 };
 export const Toast: React.FC<ToastProps> = ({ toast, index }) => {
-  const prevContentRef = useRef<string | React.ReactNode | null>(null);
-  const prevTypeRef = useRef<ToastVariant | null>(null);
   const prevIndexRef = useRef<number>(-1);
 
   const { dismiss, expandedToasts, expandToast, collapseToast } = useToast();
@@ -68,9 +66,7 @@ export const Toast: React.FC<ToastProps> = ({ toast, index }) => {
   );
   const scale = useSharedValue<number>(0.9);
   const rotateZ = useSharedValue<number>(0);
-  const height = useSharedValue<number>(0);
   const expandHeight = useSharedValue<number>(0);
-  const viewRef = useRef<View>(null);
 
   const isExpanded = expandedToasts.has(toast.id);
   const hasExpandedContent = !!toast.options.expandedContent;

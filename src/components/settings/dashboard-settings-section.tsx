@@ -1,13 +1,9 @@
 import { Colors } from "@/constants/theme";
-import type { DashboardBackgroundActivity } from "@/types";
 import { Platform, Switch, Text, View } from "react-native";
 import { openBatterySettings } from "@/utils/battery-settings";
 import { SettingRow } from "./setting-row";
 
 type DashboardSettingsSectionProps = {
-  backgroundActivity: DashboardBackgroundActivity;
-  backgroundSyncActivityEnabled: boolean;
-  devDashboardSyncEnabled: boolean;
   isTestingNotification: boolean;
   notificationsEnabled: boolean;
   onPressRefreshInterval: () => void;
@@ -25,9 +21,6 @@ const Divider = ({ theme }: { theme: typeof Colors.light }) => (
 );
 
 export const DashboardSettingsSection = ({
-  backgroundActivity,
-  backgroundSyncActivityEnabled,
-  devDashboardSyncEnabled,
   isTestingNotification,
   notificationsEnabled,
   onPressRefreshInterval,

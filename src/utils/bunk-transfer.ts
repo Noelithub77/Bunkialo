@@ -107,14 +107,14 @@ const escapeXml = (value: string): string =>
 export const rowsToExcelXml = (rows: BunkTransferRow[]): string => {
   const headers = ["Course Name", "Date", "Day", "Slot", "Type"];
   const headerXml = headers
-    .map((header) => `<Cell><Data ss:Type=\"String\">${escapeXml(header)}</Data></Cell>`)
+    .map((header) => `<Cell><Data ss:Type="String">${escapeXml(header)}</Data></Cell>`)
     .join("");
 
   const rowXml = rows
     .map(
       (row) =>
         `<Row>${[row.courseName, row.date, row.day, row.slot, row.type]
-          .map((value) => `<Cell><Data ss:Type=\"String\">${escapeXml(value)}</Data></Cell>`)
+          .map((value) => `<Cell><Data ss:Type="String">${escapeXml(value)}</Data></Cell>`)
           .join("")}</Row>`,
     )
     .join("");

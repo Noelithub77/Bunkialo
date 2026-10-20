@@ -25,7 +25,6 @@ const formatDate = (dateStr: string): string => {
 
 interface SwipeableBunkItemProps {
   bunk: BunkRecord;
-  showHint?: boolean;
   isUnknown?: boolean;
   attendanceModuleId: string | null;
   onMarkDL: () => void;
@@ -43,7 +42,6 @@ const ACTION_OPACITY_THRESHOLD = 20;
 
 export function SwipeableBunkItem({
   bunk,
-  showHint = false,
   isUnknown = false,
   attendanceModuleId,
   onMarkDL,

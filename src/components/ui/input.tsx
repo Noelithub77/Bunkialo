@@ -19,9 +19,6 @@ export function Input({
   label,
   error,
   style,
-  webId,
-  webName,
-  webRequired,
   ...props
 }: InputProps) {
   const colorScheme = useColorScheme();

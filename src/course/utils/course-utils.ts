@@ -39,7 +39,6 @@ export const getSectionTone = (sectionIndex: number, isDark: boolean): Tone => {
 
 export const getModuleVisual = (
   item: LmsResourceItemNode,
-  isDark: boolean,
 ): ModuleVisual => {
   const visual = MODULE_VISUALS[item.moduleType] ?? MODULE_VISUALS.unknown;
   return {

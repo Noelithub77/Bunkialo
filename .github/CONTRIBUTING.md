@@ -22,7 +22,7 @@ Download the latest APK from the [Bunkialo2 GitHub Releases](https://github.com/
 ## Quality Checks
 
 ```bash
-bunx tsc --noEmit
+bun run typecheck
 bun test
 bun run test:lms-scraper
 bun run test:assignment

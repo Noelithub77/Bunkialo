@@ -12,7 +12,6 @@ import Animated, {
   useAnimatedProps,
   withSequence,
   Easing,
-  runOnJS,
 } from "react-native-reanimated";
 import { SegmentedControlPresets, SHADOW } from "./presets";
 import type { ISegmentedControl } from "./types";

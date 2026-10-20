@@ -53,6 +53,7 @@ const fetchFile = async (
   )?.[1];
   const fileName =
     (actualName ? decodeURIComponent(actualName) : name).replace(
+      // oxlint-disable-next-line no-control-regex -- Strip forbidden filename control characters.
       /[<>:"/\\|?*\x00-\x1F]/g,
       "",
     ) || "file";

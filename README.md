@@ -187,7 +187,7 @@ Android is the only native target; iPhone and iPad use the web app. Read [`AGENT
 ```sh
 bun test                # unit tests against app modules
 bun run lint
-bunx tsc --noEmit
+bun run typecheck
 ```
 
 Live LMS checks need `LMS_TEST_USERNAME` and `LMS_TEST_PASSWORD` in `.env`:

@@ -55,7 +55,7 @@ jobs:
         working-directory: cli/login-ui
         run: |
           bun install --frozen-lockfile
-          bunx tsc --noEmit
+          bun run typecheck
           bun run build
       - name: Install Linux build libraries
         if: runner.os == 'Linux'

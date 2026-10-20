@@ -45,7 +45,7 @@ jobs:
 
       - name: Validate generated data
         run: |
-          bunx tsc --noEmit
+          bun run typecheck
           bun test tests/unit/faculty-hostels.test.ts
 
       - name: Commit updated data to main

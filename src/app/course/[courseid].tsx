@@ -313,7 +313,7 @@ export default function CourseResourcesScreen() {
     const expanded =
       expandedByNode[nodeKey] ?? !(item.initiallyCollapsed ?? false);
 
-    const moduleVisual = getModuleVisual(item, isDark);
+    const moduleVisual = getModuleVisual(item);
     const moduleTone = isDark
       ? moduleVisual.tone.dark
       : moduleVisual.tone.light;

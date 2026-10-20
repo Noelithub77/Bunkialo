@@ -1,4 +1,3 @@
-import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import type { FacultyImageViewerProps } from "./faculty-image-viewer.types";
 import ImageViewing from "react-native-image-viewing";
