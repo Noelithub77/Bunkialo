@@ -44,7 +44,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/shajulin.jpg",
     areas: ["Cloud Computing", "IoT", "Supercomputers", "Parallel Compilers"],
     contact: {
-      phone: "+91 (0) 482-2202155",
+      phone: "0482-2202155",
       email: "shajulin@iiitkottayam.ac.in",
       room: null,
     },
@@ -71,7 +71,7 @@ export const faculties: Faculty[] = [
       "Social Computing",
     ],
     contact: {
-      phone: "+91 (0) 482-2202195",
+      phone: "0482-2202195",
       email: "ebindeniraj@iiitkottayam.ac.in",
       room: "AC 308 / AA 117",
     },
@@ -94,7 +94,7 @@ export const faculties: Faculty[] = [
       "Data Science",
     ],
     contact: {
-      phone: "+91 (0) 482-2202160",
+      phone: "0482-2202160",
       email: "bakkyaraj@iiitkottayam.ac.in",
       room: "AB 212 / AA 118",
     },
@@ -153,7 +153,7 @@ export const faculties: Faculty[] = [
       "Quantum Circuits and Quantum Chips",
     ],
     contact: {
-      phone: "+91 (0) 482-2202167",
+      phone: "0482-2202167",
       email: "kala@iiitkottayam.ac.in",
       room: "AC 314",
     },
@@ -182,7 +182,7 @@ export const faculties: Faculty[] = [
       "Privacy Preserving Techniques for Federated Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202151",
+      phone: "0482-2202151",
       email: "panchamam036@iiitkottayam.ac.in",
       room: "BD 416 /AB 218",
     },
@@ -207,7 +207,7 @@ export const faculties: Faculty[] = [
       "Cloud Computing and Optimization",
     ],
     contact: {
-      phone: "+91 (0) 482-2202165",
+      phone: "0482-2202165",
       email: "victerpaul@iiitkottayam.ac.in",
       room: "AC 312",
     },
@@ -226,7 +226,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/divya.JPG",
     areas: ["Graph Theory", "Network Science", "Algorithms"],
     contact: {
-      phone: "+91 (0) 482-2202161",
+      phone: "0482-2202161",
       email: "divyaslekha@iiitkottayam.ac.in",
       room: "BD 417 / AA 116",
     },
@@ -251,7 +251,7 @@ export const faculties: Faculty[] = [
       "Machine Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202163",
+      phone: "0482-2202163",
       email: "benifa@iiitkottayam.ac.in",
       room: "AA 113/AB 216",
     },
@@ -278,7 +278,7 @@ export const faculties: Faculty[] = [
       "Completely Anonymous Communication Over the Internet",
     ],
     contact: {
-      phone: "+91 (0)482-2202159",
+      phone: "0482-2202159",
       email: "aruncyril@iiitkottayam.ac.in",
       room: "AB 213 /AA 122",
     },
@@ -303,7 +303,7 @@ export const faculties: Faculty[] = [
       "ML in security",
     ],
     contact: {
-      phone: "+91 (0) 482-2202172",
+      phone: "0482-2202172",
       email: "manjithbc@iiitkottayam.ac.in",
       room: "AA 106",
     },
@@ -360,7 +360,7 @@ export const faculties: Faculty[] = [
       "Graph Embedding",
     ],
     contact: {
-      phone: "+91 (0) 482-2202162",
+      phone: "0482-2202162",
       email: "dhanya@iiitkottayam.ac.in",
       room: "BC 316 / AA 119",
     },
@@ -389,7 +389,7 @@ export const faculties: Faculty[] = [
       "Machine Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202173",
+      phone: "0482-2202173",
       email: "christina@iiitkottayam.ac.in",
       room: "AA 108 /AC 318",
     },
@@ -418,7 +418,7 @@ export const faculties: Faculty[] = [
       "Quantum Machine Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202152",
+      phone: "0482-2202152",
       email: "lincy@iiitkottayam.ac.in",
       room: "BC 317 / AB 219",
     },
@@ -442,7 +442,7 @@ export const faculties: Faculty[] = [
       "Wireless Networks",
     ],
     contact: {
-      phone: "+91 (0) 482-2202175",
+      phone: "0482-2202175",
       email: "ragesh@iiitkottayam.ac.in",
       room: "CAB 103 B",
     },
@@ -531,7 +531,7 @@ export const faculties: Faculty[] = [
       "Image Processing",
     ],
     contact: {
-      phone: "+91 (0) 482-2202204",
+      phone: "0482-2202204",
       email: "cinu@iiitkottayam.ac.in",
       room: "AB 222",
     },
@@ -589,7 +589,7 @@ export const faculties: Faculty[] = [
       "Deep Learning, Graph Neural Networks",
     ],
     contact: {
-      phone: "+91 (0) 482-2202208",
+      phone: "0482-2202208",
       email: "manum@iiitkottayam.ac.in",
       room: "BC 307",
     },
@@ -607,7 +607,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/nandini.JPG",
     areas: ["Graph Theory", "Operating Systems", "Data Structures"],
     contact: {
-      phone: "+91 (0) 482-2202209",
+      phone: "0482-2202209",
       email: "nandinijw@iiitkottayam.ac.in",
       room: "BC 312",
     },
@@ -633,7 +633,7 @@ export const faculties: Faculty[] = [
       "Deep Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202212",
+      phone: "0482-2202212",
       email: "selvic@iiitkottayam.ac.in",
       room: "BC 309",
     },
@@ -716,7 +716,7 @@ export const faculties: Faculty[] = [
       "AI in Agriculture",
     ],
     contact: {
-      phone: "+91 (0) 482-2202169",
+      phone: "0482-2202169",
       email: "suchithra@iiitkottayam.ac.in",
       room: "AC 317",
     },
@@ -826,7 +826,7 @@ export const faculties: Faculty[] = [
       "Medical Image Processing",
     ],
     contact: {
-      phone: "+91 (0) 482-2202178",
+      phone: "0482-2202178",
       email: "lidiya@iiitkottayam.ac.in",
       room: "AB 207",
     },
@@ -850,7 +850,7 @@ export const faculties: Faculty[] = [
       "Block Chain Technologies",
     ],
     contact: {
-      phone: "+91 (0) 482-2202189",
+      phone: "0482-2202189",
       email: "lavanya@iiitkottayam.ac.in",
       room: "AB 204",
     },
@@ -931,7 +931,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/mathew.jpeg",
     areas: ["Management Studies"],
     contact: {
-      phone: "+91 (0) 482-2202144",
+      phone: "0482-2202144",
       email: "mathewcd@iiitkottayam.ac.in",
       room: "CAB 102",
     },
@@ -991,7 +991,7 @@ export const faculties: Faculty[] = [
       "Cultural studies",
     ],
     contact: {
-      phone: "+91 (0) 482-2202203",
+      phone: "0482-2202203",
       email: "jositmariya@iiitkottayam.ac.in",
       room: "AC 304 B",
     },
@@ -1015,7 +1015,7 @@ export const faculties: Faculty[] = [
       "Optoelectronics",
     ],
     contact: {
-      phone: "+91 (0) 482-2202183",
+      phone: "0482-2202183",
       email: "della@iiitkottayam.ac.in",
       room: "BC 313",
     },
@@ -1068,7 +1068,7 @@ export const faculties: Faculty[] = [
       "V2X and V2I communications",
     ],
     contact: {
-      phone: "+91 (0) 482-2202223",
+      phone: "0482-2202223",
       email: "grajesh@iiitkottayam.ac.in",
       room: "BB 208",
     },
@@ -1090,7 +1090,7 @@ export const faculties: Faculty[] = [
       "Acoustic Source Localization",
     ],
     contact: {
-      phone: "+91 (0) 482-2202218",
+      phone: "0482-2202218",
       email: "minupillai@iiitkottayam.ac.in",
       room: "AC 305 E",
     },
@@ -1114,7 +1114,7 @@ export const faculties: Faculty[] = [
       "Digital Technologies for Wildlife and Nature Conservation",
     ],
     contact: {
-      phone: "+91 (0) 482-2202253",
+      phone: "0482-2202253",
       email: "abinphilip@iiitkottayam.ac.in",
       room: "AC 304 D",
     },
@@ -1138,7 +1138,7 @@ export const faculties: Faculty[] = [
       "Spherical Video Summarization",
     ],
     contact: {
-      phone: "+91 (0) 482-2202267",
+      phone: "0482-2202267",
       email: "priyadharshini@iiitkottayam.ac.in",
       room: "AC 305 D",
     },
@@ -1161,7 +1161,7 @@ export const faculties: Faculty[] = [
       "Machine Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202268",
+      phone: "0482-2202268",
       email: "athirab@iiitkottayam.ac.in",
       room: "BB 213",
     },
@@ -1185,7 +1185,7 @@ export const faculties: Faculty[] = [
       "Antennas for 5G RF Energy Harvesting in IoT Greens",
     ],
     contact: {
-      phone: "+91 (0) 482-2202261",
+      phone: "0482-2202261",
       email: "debarati@iiitkottayam.ac.in",
       room: "AA 112 A",
     },
@@ -1210,7 +1210,7 @@ export const faculties: Faculty[] = [
       "VLSI Circuit Design using EDA tools",
     ],
     contact: {
-      phone: "+91 (0) 482-2202260",
+      phone: "0482-2202260",
       email: "lakshmins@iiitkottayam.ac.in",
       room: "AB 223",
     },
@@ -1228,7 +1228,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/Chakradhar.JPG",
     areas: ["Graph Theory", "Algorithms", "Theoretical Computer Science"],
     contact: {
-      phone: "+91 (0) 482-2202263",
+      phone: "0482-2202263",
       email: "chakradhar@iiitkottayam.ac.in",
       room: "BD 411",
     },
@@ -1250,7 +1250,7 @@ export const faculties: Faculty[] = [
       "Game Theory",
     ],
     contact: {
-      phone: "+91 (0) 482-2202270",
+      phone: "0482-2202270",
       email: "emy@iiitkottayam.ac.in",
       room: "AC 305 A",
     },
@@ -1275,7 +1275,7 @@ export const faculties: Faculty[] = [
       "Video summarization",
     ],
     contact: {
-      phone: "+91 (0) 482-2202271",
+      phone: "0482-2202271",
       email: "sreeja@iiitkottayam.ac.in",
       room: "AB 206",
     },
@@ -1329,7 +1329,7 @@ export const faculties: Faculty[] = [
       "Orthogonal time frequency space (OTFS) modulation",
     ],
     contact: {
-      phone: "+91 (0) 482-2202273",
+      phone: "0482-2202273",
       email: "deepakjose@iiitkottayam.ac.in",
       room: "AB 209 B",
     },
@@ -1355,7 +1355,7 @@ export const faculties: Faculty[] = [
       "Machine Learning for communication systems",
     ],
     contact: {
-      phone: "+91 (0) 482-2202274",
+      phone: "0482-2202274",
       email: "vineeth@iiitkottayam.ac.in",
       room: "AB 209 C",
     },
@@ -1379,7 +1379,7 @@ export const faculties: Faculty[] = [
       "Optical Wireless Communication",
     ],
     contact: {
-      phone: "+91 (0) 482-2202221",
+      phone: "0482-2202221",
       email: "milind@iiitkottayam.ac.in",
       room: "BC 311",
     },
@@ -1498,7 +1498,7 @@ export const faculties: Faculty[] = [
       "Sports Analytics",
     ],
     contact: {
-      phone: "+91 (0) 482-2202256",
+      phone: "0482-2202256",
       email: "riyasudheen@iiitkottayam.ac.in",
       room: "BD 412",
     },
@@ -1522,7 +1522,7 @@ export const faculties: Faculty[] = [
       "Decision Making Problems",
     ],
     contact: {
-      phone: "+91 (0) 482-2202276",
+      phone: "0482-2202276",
       email: "binum@iiitkottayam.ac.in",
       room: "AC 304 B",
     },
@@ -1549,7 +1549,7 @@ export const faculties: Faculty[] = [
       "Complex Networks",
     ],
     contact: {
-      phone: "+91 (0) 482-2202259",
+      phone: "0482-2202259",
       email: "jobin@iiitkottayam.ac.in",
       room: "AB 209 G",
     },
@@ -1665,7 +1665,7 @@ export const faculties: Faculty[] = [
       "Machine Learning and Deep Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202174",
+      phone: "0482-2202174",
       email: "krishnendhu@iiitkottayam.ac.in",
       room: "AA 107",
     },
@@ -1722,7 +1722,7 @@ export const faculties: Faculty[] = [
       "Cyber security",
     ],
     contact: {
-      phone: "+91 (0) 482-2202279",
+      phone: "0482-2202279",
       email: "fasilaka@iiitkottayam.ac.in",
       room: "BA 101 A",
     },
@@ -1747,7 +1747,7 @@ export const faculties: Faculty[] = [
       "Information Security",
     ],
     contact: {
-      phone: "+91 (0) 482-2202280",
+      phone: "0482-2202280",
       email: "renudaniel@iiitkottayam.ac.in",
       room: "BA 101 B",
     },
@@ -1774,7 +1774,7 @@ export const faculties: Faculty[] = [
       "DevOps & Agile",
     ],
     contact: {
-      phone: "+91 (0) 482-2202299",
+      phone: "0482-2202299",
       email: "sararenjit@iiitkottayam.ac.in",
       room: "CAB 202 F",
     },
@@ -1792,7 +1792,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/Sushitha.jpeg",
     areas: ["Machine Learning", "Deep Learning", "Medical Image Processing"],
     contact: {
-      phone: "+91 (0) 482-2202257",
+      phone: "0482-2202257",
       email: "sushithasj@iiitkottayam.ac.in",
       room: "CAB 202 E",
     },
@@ -1816,7 +1816,7 @@ export const faculties: Faculty[] = [
       "Image Processing",
     ],
     contact: {
-      phone: "+91 (0) 482-2202224",
+      phone: "0482-2202224",
       email: "sreelakshmy@iiitkottayam.ac.in",
       room: "CAB 202 G",
     },
@@ -1843,7 +1843,7 @@ export const faculties: Faculty[] = [
       "Distributed ledger technology",
     ],
     contact: {
-      phone: "+91 (0) 482-2202226",
+      phone: "0482-2202226",
       email: "mahimamm@iiitkottayam.ac.in",
       room: "AC 304 B",
     },
@@ -1955,7 +1955,7 @@ export const faculties: Faculty[] = [
       "Machine Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202363",
+      phone: "0482-2202363",
       email: "rosebell@iiitkottayam.ac.in",
       room: "AC 305 C",
     },
@@ -1979,7 +1979,7 @@ export const faculties: Faculty[] = [
       "Brain Network and Network Analysis",
     ],
     contact: {
-      phone: "+91 (0) 482-2202364",
+      phone: "0482-2202364",
       email: "nayanapg@iiitkottayam.ac.in",
       room: "BA 101 D",
     },
@@ -2004,7 +2004,7 @@ export const faculties: Faculty[] = [
       "Nonlinear Partial Differential Equations",
     ],
     contact: {
-      phone: "+91 (0) 482-2202365",
+      phone: "0482-2202365",
       email: "reethathomas@iiitkottayam.ac.in",
       room: "BA 100 B",
     },
@@ -2025,7 +2025,7 @@ export const faculties: Faculty[] = [
       "Matrix Analysis",
     ],
     contact: {
-      phone: "+91 (0) 482-2202366",
+      phone: "0482-2202366",
       email: "gvarma@iiitkottayam.ac.in",
       room: "AC 301 E",
     },
@@ -2049,7 +2049,7 @@ export const faculties: Faculty[] = [
       "Image processing",
     ],
     contact: {
-      phone: "+91 (0) 482-2202229",
+      phone: "0482-2202229",
       email: "ansiths@iiitkottayam.ac.in",
       room: "CAB 202 B",
     },
@@ -2074,7 +2074,7 @@ export const faculties: Faculty[] = [
       "Graph Algorithms and Network Measures",
     ],
     contact: {
-      phone: "+91 (0) 482-2202230",
+      phone: "0482-2202230",
       email: "jishamj@iiitkottayam.ac.in",
       room: "CAB 202 C",
     },
@@ -2101,7 +2101,7 @@ export const faculties: Faculty[] = [
       "Educational technology",
     ],
     contact: {
-      phone: "+91 (0) 482-2202231",
+      phone: "0482-2202231",
       email: "syamala@iiitkottayam.ac.in",
       room: "CAB 202 D",
     },
@@ -2125,7 +2125,7 @@ export const faculties: Faculty[] = [
       "Machine Learning",
     ],
     contact: {
-      phone: "+91 (0) 482-2202367",
+      phone: "0482-2202367",
       email: "alkha@iiitkottayam.ac.in",
       room: "AB 216",
     },
@@ -2152,7 +2152,7 @@ export const faculties: Faculty[] = [
       "Quantum Computing",
     ],
     contact: {
-      phone: "+91 (0) 482-2202368",
+      phone: "0482-2202368",
       email: "kumaresang@iiitkottayam.ac.in",
       room: "AC 301 H",
     },
@@ -2266,7 +2266,7 @@ export const faculties: Faculty[] = [
       "Security of Routing Protocols",
     ],
     contact: {
-      phone: "+91 (0) 482-2202372",
+      phone: "0482-2202372",
       email: "jaisooraj@iiitkottayam.ac.in",
       room: "AB 219",
     },
@@ -2289,7 +2289,7 @@ export const faculties: Faculty[] = [
       "Computer Vision",
     ],
     contact: {
-      phone: "+91 (0) 482-2202373",
+      phone: "0482-2202373",
       email: "nishajs@iiitkottayam.ac.in",
       room: "AA 117",
     },
@@ -2313,7 +2313,7 @@ export const faculties: Faculty[] = [
       "Explainable AI",
     ],
     contact: {
-      phone: "+91 (0) 482-2202374",
+      phone: "0482-2202374",
       email: "anithaambat@iiitkottayam.ac.in",
       room: "AA 108",
     },
@@ -2337,7 +2337,7 @@ export const faculties: Faculty[] = [
       "Educational Technology",
     ],
     contact: {
-      phone: "+91 (0) 482-2202246",
+      phone: "0482-2202246",
       email: "jalaja@iiitkottayam.ac.in",
       room: "CAB 103 D",
     },
@@ -2360,7 +2360,7 @@ export const faculties: Faculty[] = [
       "Speaker Forensics",
     ],
     contact: {
-      phone: "+91 (0) 482-2202143",
+      phone: "0482-2202143",
       email: "leena@iiitkottayam.ac.in",
       room: "CAB 103 C",
     },

@@ -16,6 +16,13 @@ const TOP_IDS = [
   "dr-divya-sindhu-lekha",
 ];
 const clean = (value) => value?.replace(/\s+/g, " ").trim() || null;
+const phoneFor = (value) => {
+  const phone = clean(value);
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, "");
+  const landline = digits.match(/^(?:91)?0?482(\d{7})$/);
+  return landline ? `0482-${landline[1]}` : phone;
+};
 const idFor = (name) =>
   name
     .toLowerCase()
@@ -93,7 +100,7 @@ try {
       designation: f.designation || "Faculty",
       imageUrl: f.imageUrl ? new URL(f.imageUrl.trim(), BASE).href : null,
       contact: {
-        phone: clean(f.contact.phone),
+        phone: phoneFor(f.contact.phone),
         email: emailFor(f.contact.email),
         room: clean(f.contact.room),
       },
