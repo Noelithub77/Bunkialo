@@ -62,6 +62,7 @@ const files = [
   "src/components/dashboard/notices-modal.tsx",
   "src/components/dashboard/notification-inbox-controls.tsx",
   "src/components/dashboard/notification-list-item.tsx",
+  "src/components/dashboard/popup/notice-highlights.tsx",
   "src/components/dashboard/notification-read-content.tsx",
   "src/components/dashboard/notification-read-content.web.tsx",
   "src/components/settings/dashboard-settings-section.tsx",
@@ -73,6 +74,8 @@ const files = [
   "src/services/calendar-notification-sync.ts",
   "src/stores/portal-notification-store.ts",
   "src/types/notification.ts",
+  "src/types/popup.ts",
+  "src/hooks/use-notification-placement.ts",
   "src/utils/notification-inbox.ts",
   "src/utils/portal-notification.ts",
   "src/utils/calendar-reminders.ts",
@@ -191,6 +194,31 @@ writeFileSync(
         "export default function RootLayout() {",
         "export default function RootLayout() {\n  useFacultyPhotoCaching();",
       ),
+);
+
+const dashboard = resolve(destination, "src/app/(tabs)/index.tsx");
+const dashboardSource = readFileSync(dashboard, "utf8");
+if (!dashboardSource.includes("<NoticesModal\n        visible={showNoticesModal}"))
+  throw new Error("Legacy dashboard notification modal anchor missing");
+writeFileSync(
+  dashboard,
+  dashboardSource
+    .replace(
+      "import { useCallback, useEffect, useRef, useState } from \"react\";",
+      "import { useCallback, useEffect, useRef, useState, type ComponentRef } from \"react\";",
+    )
+    .replace(
+      "  const [showNoticesModal, setShowNoticesModal] = useState(false);",
+      "  const notificationBellRef = useRef<ComponentRef<typeof View> | null>(null);\n  const [showNoticesModal, setShowNoticesModal] = useState(false);",
+    )
+    .replace(
+      "            <Pressable\n              onPress={() => {\n                setShowNoticesModal(true);",
+      "            <Pressable\n              ref={notificationBellRef}\n              onPress={() => {\n                setShowNoticesModal(true);",
+    )
+    .replace(
+      "      <NoticesModal\n        visible={showNoticesModal}",
+      "      <NoticesModal\n        anchorRef={notificationBellRef}\n        visible={showNoticesModal}",
+    ),
 );
 
 const typeIndex = resolve(destination, "src/types/index.ts");
