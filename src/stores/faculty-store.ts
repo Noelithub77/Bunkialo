@@ -106,7 +106,7 @@ const MATCH_FIELD_LABELS: Record<MatchFieldKey, string> = {
   name: "Name",
   designation: "Designation",
   qualification: "Qualification",
-  "contact.room": "Room",
+  "contact.room": "Cabin",
   "contact.phone": "Phone",
   "contact.email": "Email",
   areas: "Area of expertise",

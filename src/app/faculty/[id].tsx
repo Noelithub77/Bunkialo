@@ -225,7 +225,7 @@ export default function FacultyDetailScreen() {
                   className="mb-0.5 text-[11px] uppercase tracking-[0.5px]"
                   style={{ color: theme.textSecondary }}
                 >
-                  Room
+                  Cabin
                 </Text>
                 <Text className="text-[14px]" style={{ color: theme.text }}>
                   {faculty.contact.room}
