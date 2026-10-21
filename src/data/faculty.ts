@@ -117,7 +117,7 @@ export const faculties: Faculty[] = [
       "Cryptography (Digital Water Marking)",
     ],
     contact: {
-      phone: "+917872456553",
+      phone: "0482-2202164",
       email: "jsahoo@iiitkottayam.ac.in",
       room: "AA123",
     },
@@ -330,7 +330,7 @@ export const faculties: Faculty[] = [
       "Applications and Security aspects in IoT , WSN, & MANETs",
     ],
     contact: {
-      phone: "+919790336056",
+      phone: "0482-2202171",
       email: "kguravaiah@iiitkottayam.ac.in",
       room: "AA 105",
     },
@@ -467,7 +467,7 @@ export const faculties: Faculty[] = [
       "Intrusion Detection Systems",
     ],
     contact: {
-      phone: "+919774822160",
+      phone: "0482-2202201",
       email: "amit@iiitkottayam.ac.in",
       room: "BD 407",
     },
@@ -502,7 +502,7 @@ export const faculties: Faculty[] = [
       "Optimisation Algorithms",
     ],
     contact: {
-      phone: "+919895066584",
+      phone: "0482-2202202",
       email: "johnpaul@iiitkottayam.ac.in",
       room: "BC 308",
     },
@@ -558,7 +558,7 @@ export const faculties: Faculty[] = [
       "Data Visualisation",
     ],
     contact: {
-      phone: "+919944174949",
+      phone: "0482-2202206",
       email: "vengadesh@iiitkottayam.ac.in",
       room: "BB 210",
     },
@@ -658,7 +658,7 @@ export const faculties: Faculty[] = [
       "Machine Learning",
     ],
     contact: {
-      phone: "+918637841835",
+      phone: "0482-2202214",
       email: "goutam@iiitkottayam.ac.in",
       room: "BB 209",
     },
@@ -683,7 +683,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/Sivaiah.jpeg",
     areas: ["Computer Vision", "Machine Learning", "Image Processing"],
     contact: {
-      phone: "+918142274581",
+      phone: "0482-2202170",
       email: "sivaiah@iiitkottayam.ac.in",
       room: "AA 104",
     },
@@ -743,7 +743,7 @@ export const faculties: Faculty[] = [
       "Reconfigurable Intelligent Surfaces",
     ],
     contact: {
-      phone: "+919443318734",
+      phone: "0482-2202176",
       email: "ananth@iiitkottayam.ac.in",
       room: "AB 208 / AC 313",
     },
@@ -767,7 +767,7 @@ export const faculties: Faculty[] = [
     imageUrl: "https://www.iiitkottayam.ac.in/data/images/Santhos.JPG",
     areas: ["Pattern Classification and Image Segmentation and Classification"],
     contact: {
-      phone: "+918349529678",
+      phone: "0482-2202177",
       email: "santhos@iiitkottayam.ac.in",
       room: "BD 409",
     },
@@ -797,7 +797,7 @@ export const faculties: Faculty[] = [
       "Zero-Knowledge Protocol( ZK-SNARKs)",
     ],
     contact: {
-      phone: "+919443841911",
+      phone: "0482-2202182",
       email: "balu@iiitkottayam.ac.in",
       room: "BB 207",
     },
@@ -875,7 +875,7 @@ export const faculties: Faculty[] = [
       "Soft Computing",
     ],
     contact: {
-      phone: "+919540766915",
+      phone: "0482-2202185",
       email: "joshi@iiitkottayam.ac.in",
       room: "BC 310",
     },
@@ -906,7 +906,7 @@ export const faculties: Faculty[] = [
       "Privacy preserving healthcare data using federated learning",
     ],
     contact: {
-      phone: "+919750135964",
+      phone: "0482-2202179",
       email: "silambarasan@iiitkottayam.ac.in",
       room: "BB 211",
     },
@@ -958,7 +958,7 @@ export const faculties: Faculty[] = [
       "English Language Teaching",
     ],
     contact: {
-      phone: "+918547344787",
+      phone: "0482-2202184",
       email: "gayathri@iiitkottayam.ac.in",
       room: "AB 209 E",
     },
@@ -1037,7 +1037,7 @@ export const faculties: Faculty[] = [
       "Fabrication of Nanomaterials",
     ],
     contact: {
-      phone: "+916379116250",
+      phone: "0482-2202205",
       email: "svenkatesh@iiitkottayam.ac.in",
       room: "BB 212",
     },
@@ -1298,7 +1298,7 @@ export const faculties: Faculty[] = [
       "Natural Language processing",
     ],
     contact: {
-      phone: "+919826733258",
+      phone: "0482-2202272",
       email: "kanchanlata@iiitkottayam.ac.in",
       room: "BD 410",
     },
@@ -1404,7 +1404,7 @@ export const faculties: Faculty[] = [
       "Data Science",
     ],
     contact: {
-      phone: "+919495393573",
+      phone: "0482-2202248",
       email: "asha@iiitkottayam.ac.in",
       room: "AB 217",
     },
@@ -1435,7 +1435,7 @@ export const faculties: Faculty[] = [
       "Data Science",
     ],
     contact: {
-      phone: "+919944256572",
+      phone: "0482-2202249",
       email: "murugand@iiitkottayam.ac.in",
       room: "AC 304 C",
     },
@@ -1465,7 +1465,7 @@ export const faculties: Faculty[] = [
       "Fuzzy Similarity measure",
     ],
     contact: {
-      phone: "+918610135747",
+      phone: "0482-2202254",
       email: "suriyapriya@iiitkottayam.ac.in",
       room: "AC 311",
     },
@@ -1574,7 +1574,7 @@ export const faculties: Faculty[] = [
       "Social Network Analysis",
     ],
     contact: {
-      phone: "+919629115552",
+      phone: "0482-2202258",
       email: "pbala@iiitkottayam.ac.in",
       room: "BD 408",
     },
@@ -1608,7 +1608,7 @@ export const faculties: Faculty[] = [
       "Multimodal AI",
     ],
     contact: {
-      phone: "+919578359880",
+      phone: "0482-2202275",
       email: "dhakshayani@iiitkottayam.ac.in",
       room: "AB 209 F",
     },
@@ -1636,7 +1636,7 @@ export const faculties: Faculty[] = [
       "Web Application Security",
     ],
     contact: {
-      phone: "+919962765289",
+      phone: "0482-2202277",
       email: "jaiganesh@iiitkottayam.ac.in",
       room: "AC 304 A",
     },
@@ -1691,7 +1691,7 @@ export const faculties: Faculty[] = [
       "AI for Social Good",
     ],
     contact: {
-      phone: "+919495662514",
+      phone: "0482-2202278",
       email: "jeenathomas@iiitkottayam.ac.in",
       room: "BA 101 C",
     },
@@ -1868,7 +1868,7 @@ export const faculties: Faculty[] = [
       "Knowledge Models",
     ],
     contact: {
-      phone: "+918148523188",
+      phone: "0482-2202227",
       email: "sairaj@iiitkottayam.ac.in",
       room: "AC 301 D",
     },
@@ -1898,7 +1898,7 @@ export const faculties: Faculty[] = [
       "Healthcare data analytics",
     ],
     contact: {
-      phone: "+918089706065",
+      phone: "0482-2202228",
       email: "anumaria@iiitkottayam.ac.in",
       room: "AB 209 C",
     },
@@ -1927,7 +1927,7 @@ export const faculties: Faculty[] = [
       "Social Network Analysis",
     ],
     contact: {
-      phone: "+918592084675",
+      phone: "0482-2202362",
       email: "anandhum@iiitkottayam.ac.in",
       room: "AB 209 A",
     },
@@ -2177,7 +2177,7 @@ export const faculties: Faculty[] = [
       "AI for sustainability",
     ],
     contact: {
-      phone: "+919942384499",
+      phone: "0482-2202369",
       email: "mirothalichand@iiitkottayam.ac.in",
       room: "BA 101 D",
     },
@@ -2208,7 +2208,7 @@ export const faculties: Faculty[] = [
       "Brain Computing",
     ],
     contact: {
-      phone: "+919597177687",
+      phone: "0482-2202370",
       email: "sridhar@iiitkottayam.ac.in",
       room: "AC 317",
     },
@@ -2236,7 +2236,7 @@ export const faculties: Faculty[] = [
       "Geometric Deep Learning",
     ],
     contact: {
-      phone: "+918891942230",
+      phone: "0482-2202371",
       email: "prajeesh@iiitkottayam.ac.in",
       room: "AA 119",
     },

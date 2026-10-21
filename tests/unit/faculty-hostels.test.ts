@@ -29,7 +29,7 @@ describe("official faculty and hostel roster", () => {
         expect(faculty?.contact.email).toMatch(
           /^[^@\s]+@iiitkottayam\.ac\.in$/,
         );
-        expect(faculty?.contact.phone).toMatch(/^\+91\d{10}$/);
+        expect(faculty?.contact.phone).toMatch(/^0482-\d{7}$/);
       }
     }
   });

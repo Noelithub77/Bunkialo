@@ -187,15 +187,14 @@ try {
         (f) => f.contact.email?.toLowerCase() === email.toLowerCase(),
       );
       const id = faculty?.id || idFor(warden.name);
-      // Prefer the listed mobile number for the call button; never concatenate two phone numbers.
+      // Prefer the listed campus landline; never concatenate two phone numbers.
       const phones = warden.phone
         .replace(/^Contact\s*No\s*:?\s*/i, "")
         .split(",")
         .map((p) => p.trim());
+      const landline = phones.map(phoneFor).find((p) => /^0482-\d{7}$/.test(p || ""));
       const mobile = phones.find((p) => /^\d{10}$/.test(p));
-      const phone = mobile
-        ? `+91${mobile}`
-        : phones[0].replace(/\(0\)\s*/g, "").replace(/[^\d+]/g, "");
+      const phone = landline || (mobile ? `+91${mobile}` : phoneFor(phones[0]));
       // Wardens remain ordinary faculty records; groups only reference their IDs.
       if (!faculty) {
         faculty = {
