@@ -143,6 +143,7 @@
     }
   },
   "patchedDependencies": {
-    "expo-widgets@58.0.9": "patches/expo-widgets@58.0.9.patch"
+    "expo-widgets@58.0.9": "patches/expo-widgets@58.0.9.patch",
+    "react-native-css-interop@0.2.1": "patches/react-native-css-interop@0.2.1.patch"
   }
 }
