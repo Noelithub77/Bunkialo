@@ -11,7 +11,10 @@ import type {
   MarkedDates,
   SessionType,
 } from "@/types";
-import { filterCompletedAttendanceRecords } from "@/utils/attendance-helpers";
+import {
+  filterCompletedAttendanceRecords,
+  getRecordKeyVariants,
+} from "@/utils/attendance-helpers";
 import { extractCourseName } from "@/utils/course-name";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
@@ -206,19 +209,30 @@ export function AttendanceCard({
   const totalSessions = pastRecords.length;
   const attended = pastRecords.filter((r) => r.status === "Present").length;
   const unknownCount = pastRecords.filter((r) => r.status === "Unknown").length;
-  const portalDutyLeaveCount = useMemo(
-    () => pastRecords.filter((r) => r.status === "Duty Leave").length,
-    [pastRecords],
-  );
-  const userDutyLeaveCount = useMemo(
+  const userDutyLeaveKeys = useMemo(() => {
+    const keys = new Set<string>();
+    if (!bunkCourse) return keys;
+    for (const bunk of filterPastBunks(bunkCourse.bunks)) {
+      if (bunk.isDutyLeave) {
+        for (const key of getRecordKeyVariants(bunk)) {
+          keys.add(key);
+        }
+      }
+    }
+    return keys;
+  }, [bunkCourse]);
+
+  const dutyLeaveCount = useMemo(
     () =>
-      bunkCourse
-        ? filterPastBunks(bunkCourse.bunks).filter((bunk) => bunk.isDutyLeave)
-            .length
-        : 0,
-    [bunkCourse],
+      pastRecords.filter(
+        (record) =>
+          record.status === "Duty Leave" ||
+          getRecordKeyVariants(record).some((key) =>
+            userDutyLeaveKeys.has(key),
+          ),
+      ).length,
+    [pastRecords, userDutyLeaveKeys],
   );
-  const dutyLeaveCount = portalDutyLeaveCount + userDutyLeaveCount;
   const effectiveTotalSessions = Math.max(0, totalSessions - dutyLeaveCount);
   const percentage =
     effectiveTotalSessions > 0

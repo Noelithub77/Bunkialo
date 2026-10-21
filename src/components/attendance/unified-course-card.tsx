@@ -277,19 +277,30 @@ export function UnifiedCourseCard({
         : 0,
     [bunkData],
   );
-  const portalDutyLeaveCount = useMemo(
-    () => pastRecords.filter((r) => r.status === "Duty Leave").length,
-    [pastRecords],
-  );
-  const userDutyLeaveCount = useMemo(
+  const userDutyLeaveKeys = useMemo(() => {
+    const keys = new Set<string>();
+    if (!bunkData) return keys;
+    for (const bunk of filterPastBunks(bunkData.bunks)) {
+      if (bunk.isDutyLeave) {
+        for (const key of getRecordKeyVariants(bunk)) {
+          keys.add(key);
+        }
+      }
+    }
+    return keys;
+  }, [bunkData]);
+
+  const dutyLeaveCount = useMemo(
     () =>
-      bunkData
-        ? filterPastBunks(bunkData.bunks).filter((bunk) => bunk.isDutyLeave)
-            .length
-        : 0,
-    [bunkData],
+      pastRecords.filter(
+        (record) =>
+          record.status === "Duty Leave" ||
+          getRecordKeyVariants(record).some((key) =>
+            userDutyLeaveKeys.has(key),
+          ),
+      ).length,
+    [pastRecords, userDutyLeaveKeys],
   );
-  const dutyLeaveCount = portalDutyLeaveCount + userDutyLeaveCount;
   // Unknown ("?") defaults to present; present corrections are treated as attended.
   // Duty leaves are excused from total class obligations (e.g. 31/40 with 3 DLs becomes 31/37).
   const attended =

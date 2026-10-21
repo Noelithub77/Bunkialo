@@ -137,7 +137,7 @@ export const syncAttendanceFromPayload = (
               (course.present / Math.max(0, course.total - course.dlCredited)) *
                 100,
             )
-          : course.percentage,
+          : 0,
       records: previous?.records ?? [],
       lastUpdated: Date.now(),
     };
