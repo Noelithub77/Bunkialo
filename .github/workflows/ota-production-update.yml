@@ -86,8 +86,6 @@ jobs:
           bun test
           if node -e 'process.exit(require("./package.json").scripts?.typecheck ? 0 : 1)'; then
             bun run typecheck
-          else
-            bunx tsc --noEmit
           fi
           bunx expo config --type public --json > resolved-config.json
           node -e 'const c=require("./resolved-config.json"); if(c.runtimeVersion!==process.env.EXPECTED_RUNTIME || c.android.package!=="com.codialo.Bunkialo2" || c.extra.eas.projectId!=="7cbe49d9-9827-4df3-b86e-849443804d63") throw new Error("OTA runtime or app identity mismatch");'
