@@ -40,14 +40,14 @@ export default function MoreScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={() => router.push("/course-feedback")}
-            className="flex-row items-center gap-3 px-4 py-4"
+            className="min-h-24 flex-row items-center gap-4 px-5 py-6"
           >
             <Ionicons
               name="chatbox-ellipses-outline"
-              size={20}
+              size={26}
               color={theme.textSecondary}
             />
-            <Text className="flex-1 text-[15px]" style={{ color: theme.text }}>
+            <Text className="flex-1 text-[18px] font-semibold" style={{ color: theme.text }}>
               Course feedback
             </Text>
             {pendingCount > 0 ? (
@@ -64,6 +64,18 @@ export default function MoreScreen() {
                 </Text>
               </View>
             ) : null}
+            <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
+          </Pressable>
+          <View className="mx-5 h-px" style={{ backgroundColor: theme.border }} />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push("/acad-cal")}
+            className="min-h-24 flex-row items-center gap-4 px-5 py-6"
+          >
+            <Ionicons name="calendar-outline" size={26} color={theme.textSecondary} />
+            <Text className="flex-1 text-[18px] font-semibold" style={{ color: theme.text }}>
+              Academic calendar
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={theme.textSecondary} />
           </Pressable>
         </View>

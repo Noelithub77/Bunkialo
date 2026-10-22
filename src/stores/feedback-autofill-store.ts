@@ -193,13 +193,15 @@ export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
           try {
             await ensureFeedbackSession();
             const attempted: string[] = [];
-            await runPool(courseIds, async (courseId) => {
+            await runPool([...new Set(courseIds)], async (courseId) => {
               // Failed or stale rows are re-read first so retries use fresh form links.
-              if (get().courses[courseId]?.status !== "pending") {
-                await refreshCourse(courseId);
-              }
+              if (!get().courses[courseId] || get().courses[courseId]?.status === "done") return;
+              await refreshCourse(courseId);
               const entry = get().courses[courseId];
-              if (entry?.status !== "pending") return;
+              if (entry?.status !== "pending") {
+                if (entry?.status === "failed") failed += 1;
+                return;
+              }
               attempted.push(courseId);
               const override = get().courseDefaults[courseId];
               const answers = {

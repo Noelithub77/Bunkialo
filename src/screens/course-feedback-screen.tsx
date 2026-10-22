@@ -128,6 +128,8 @@ export default function CourseFeedbackScreen() {
   const pendingIds = entries
     .filter((entry) => entry.status === "pending")
     .map((entry) => entry.courseId);
+  const failedIds = entries.filter((entry) => entry.status === "failed").map((entry) => entry.courseId);
+  const actionIds = pendingIds.length > 0 ? pendingIds : failedIds;
   const doneCount = entries.filter((entry) => entry.status === "done").length;
   const busy = activity !== "idle";
   const inFlight = entries.filter((entry) =>
@@ -328,22 +330,35 @@ export default function CourseFeedbackScreen() {
           ) : null}
         </KeyboardAwareScrollView>
 
-        <View className="px-4 pb-4 pt-2">
+        <View className="gap-2 px-4 pb-4 pt-2">
+          {pendingIds.length > 0 && failedIds.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={busy}
+              onPress={() => setConfirmIds(failedIds)}
+              className="h-11 items-center justify-center rounded-xl border"
+              style={{ borderColor: theme.border, opacity: busy ? 0.5 : 1 }}
+            >
+              <Text className="text-[14px] font-semibold" style={{ color: theme.text }}>
+                Retry failed ({failedIds.length})
+              </Text>
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityRole="button"
-            disabled={busy || pendingIds.length === 0}
-            onPress={() => setConfirmIds(pendingIds)}
+            disabled={busy || actionIds.length === 0}
+            onPress={() => setConfirmIds(actionIds)}
             className="h-12 flex-row items-center justify-center gap-2 rounded-2xl"
             style={{
               backgroundColor: theme.text,
-              opacity: busy || pendingIds.length === 0 ? 0.4 : 1,
+              opacity: busy || actionIds.length === 0 ? 0.4 : 1,
             }}
           >
             {activity === "submitting" || activity === "verifying" ? (
               <ActivityIndicator size="small" color={theme.background} />
             ) : null}
             <Text className="text-[15px] font-semibold" style={{ color: theme.background }}>
-              {pendingIds.length > 0 ? `Submit all (${pendingIds.length})` : "Nothing pending"}
+              {pendingIds.length > 0 ? `Submit all (${pendingIds.length})` : failedIds.length > 0 ? `Retry failed (${failedIds.length})` : "Nothing pending"}
             </Text>
           </Pressable>
         </View>

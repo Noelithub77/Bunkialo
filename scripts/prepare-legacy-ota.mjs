@@ -144,6 +144,8 @@ const files = [
   "tests/unit/utils/attendance-summary.test.ts",
 
   "src/services/feedback-form.ts",
+  "src/services/feedback-submission.ts",
+  "tests/unit/services/feedback-submission.test.ts",
   "src/services/feedback-autofill.ts",
   "src/stores/feedback-autofill-store.ts",
   "src/screens/course-feedback-screen.tsx",
@@ -292,10 +294,8 @@ const fabAction = (icon, label, route) =>
   `    {\n      icon: "${icon}",\n      label: "${label}",\n      color: theme.text,\n      style: { backgroundColor: theme.backgroundSecondary },\n      labelStyle: actionLabelStyle,\n      containerStyle: actionContainerStyle,\n      onPress: () => {\n        setShowFabMenu(false);\n        router.push("${route}");\n      },\n    },\n`;
 patchFile("src/app/(tabs)/index.tsx", [
   [
-    "    ...(isOldBatch",
-    fabAction("calendar-month", "Academic Calendar", "/acad-cal") +
-      fabAction("dots-horizontal", "More", "/more") +
-      "    ...(isOldBatch",
+    "  const fabActions = [\n",
+    "  const fabActions = [\n" + fabAction("dots-horizontal", "More", "/more"),
   ],
 ]);
 const modalRoute = (name) =>

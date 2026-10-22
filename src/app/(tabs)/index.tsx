@@ -323,6 +323,18 @@ export default function DashboardScreen() {
 
   const fabActions = [
     {
+      icon: "dots-horizontal",
+      label: "More",
+      color: theme.text,
+      style: { backgroundColor: theme.backgroundSecondary },
+      labelStyle: actionLabelStyle,
+      containerStyle: actionContainerStyle,
+      onPress: () => {
+        setShowFabMenu(false);
+        router.push("/more");
+      },
+    },
+    {
       icon: "calculator-variant",
       label: "GPA Calculator",
       color: theme.text,
@@ -344,30 +356,6 @@ export default function DashboardScreen() {
       onPress: () => {
         setShowFabMenu(false);
         Linking.openURL("https://attendance.iiitkottayam.ac.in/");
-      },
-    },
-    {
-      icon: "calendar-month",
-      label: "Academic Calendar",
-      color: theme.text,
-      style: { backgroundColor: theme.backgroundSecondary },
-      labelStyle: actionLabelStyle,
-      containerStyle: actionContainerStyle,
-      onPress: () => {
-        setShowFabMenu(false);
-        router.push("/acad-cal");
-      },
-    },
-    {
-      icon: "dots-horizontal",
-      label: "More",
-      color: theme.text,
-      style: { backgroundColor: theme.backgroundSecondary },
-      labelStyle: actionLabelStyle,
-      containerStyle: actionContainerStyle,
-      onPress: () => {
-        setShowFabMenu(false);
-        router.push("/more");
       },
     },
     ...(isOldBatch

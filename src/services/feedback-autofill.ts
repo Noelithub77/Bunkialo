@@ -1,15 +1,14 @@
 import { checkSession, tryAutoLogin } from "@/services/auth/lms-auth";
 import { api, getCurrentBaseUrl } from "@/services/api";
 import {
-  buildFeedbackSubmission,
   collectFeedbackLinks,
-  getFeedbackCompletionUrl,
-  getFeedbackFormError,
   getFeedbackState,
   getFeedbackTitle,
   type FeedbackAnswers,
   type FeedbackFormState,
 } from "@/services/feedback-form";
+import { isAxiosError } from "axios";
+import { submitFeedbackWithTransport } from "@/services/feedback-submission";
 import { isLoginHtml } from "@/utils/moodle-url";
 
 export interface CourseFeedbackForm {
@@ -18,8 +17,17 @@ export interface CourseFeedbackForm {
   state: FeedbackFormState;
 }
 
-const MAX_FORM_PAGES = 10;
 const RETRY_DELAYS_MS = [700, 1600];
+
+const feedbackRequestError = (error: unknown, stage: string): Error => {
+  if (isAxiosError(error)) {
+    const status = error.response?.status;
+    return new Error(status
+      ? `${stage}: LMS returned ${status}. Retry with a fresh form.`
+      : `${stage}: connection interrupted. Check status and retry.`);
+  }
+  return error instanceof Error ? error : new Error(`${stage} failed`);
+};
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -41,7 +49,7 @@ const getPage = async (url: string): Promise<string> => {
       await wait(delay);
     }
   }
-  throw lastError instanceof Error ? lastError : new Error("Could not load LMS page");
+  throw feedbackRequestError(lastError, "Loading form");
 };
 
 export const ensureFeedbackSession = async (): Promise<void> => {
@@ -71,40 +79,18 @@ export const submitFeedback = async (
   viewUrl: string,
   answers: FeedbackAnswers,
 ): Promise<"done"> => {
-  const baseUrl = getCurrentBaseUrl();
-  const viewHtml = await getPage(viewUrl);
-  const completionUrl = getFeedbackCompletionUrl(viewHtml, baseUrl);
-  if (!completionUrl) {
-    if (getFeedbackState(viewHtml) === "done") return "done";
-    throw new Error("This feedback is not open");
-  }
-
-  let pageUrl = completionUrl;
-  let pageHtml = await getPage(completionUrl);
-  for (let page = 0; page < MAX_FORM_PAGES; page += 1) {
-    const submission = buildFeedbackSubmission(pageHtml, pageUrl, answers);
-    if (!submission) break;
-
-    const response = await api.post<string>(submission.actionUrl, submission.body, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    });
-    if (isLoginHtml(response.data)) {
-      throw new Error("LMS session expired while submitting");
-    }
-    const next = buildFeedbackSubmission(response.data, submission.actionUrl, answers);
-    if (submission.isFinalPage || !next) {
-      if (next?.isFinalPage && submission.isFinalPage) {
-        throw new Error(getFeedbackFormError(response.data) ?? "The LMS rejected the answers");
+  return submitFeedbackWithTransport(viewUrl, answers, {
+    get: getPage,
+    post: async (url, body) => {
+      try {
+        const response = await api.post<string>(url, body, {
+          headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Retry-After-Reauth": "true" },
+        });
+        if (isLoginHtml(response.data)) throw new Error("LMS session expired while submitting");
+        return response.data;
+      } catch (error) {
+        throw feedbackRequestError(error, "Submitting answers");
       }
-      break;
-    }
-    pageUrl = submission.actionUrl;
-    pageHtml = response.data;
-  }
-
-  // A completion link only disappears once Moodle has stored the response.
-  if (getFeedbackState(await getPage(viewUrl)) === "pending") {
-    throw new Error("The LMS still shows this feedback as pending");
-  }
-  return "done";
+    },
+  });
 };
