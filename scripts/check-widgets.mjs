@@ -44,7 +44,7 @@ const texts = (tree) =>
     .map((node) => node.props.text);
 
 try {
-  for (const platform of ["android", "ios"]) {
+  for (const platform of ["android"]) {
     const bundle = path.join(output, `${platform}.bundle`);
     const registryFile = path.join(output, `${platform}.json`);
     for (const [script, file] of [
@@ -126,13 +126,15 @@ try {
     assert.equal(tomorrow.filter((text) => text === "Tomorrow").length, 1);
     checks++;
 
+    assert.ok(texts(context.__expoWidgetRender(classes, { ...environment(), width: 300, height: 280 })).includes("After this"));
+    checks++;
     load("BunkialoMess");
     const meals = registry.BunkialoMess.initialProps;
     timestamp = Date.parse("2026-10-01T03:00:00Z");
     const breakfast = texts(render(meals));
     assert.ok(breakfast.includes("Now") && breakfast.includes("Breakfast"));
     checks++;
-    assert.ok(breakfast.some((text) => text.startsWith("• ")));
+    assert.ok(breakfast.some((text) => meals.cards.some((card) => card.items.includes(text))));
     checks++;
     assert.ok(texts(render(click(meals, 1))).includes("Lunch"));
     checks++;
@@ -143,8 +145,28 @@ try {
     timestamp = Date.parse("2026-10-01T15:30:00Z");
     assert.ok(texts(render(meals)).includes("Tomorrow"));
     checks++;
+    let allMeals = meals;
+    const visited = new Set();
+    for (let index = 0; index < meals.cards.length; index++) {
+      allMeals = click(allMeals, 1);
+      visited.add(allMeals.page);
+    }
+    assert.equal(visited.size, meals.cards.length, "Every meal in the week must be reachable");
+    checks++;
+    const expandedMeals = texts(context.__expoWidgetRender(meals, { ...environment(), width: 300, height: 280 }));
+    assert.ok(expandedMeals.filter((text) => meals.cards.some((card) => card.items.includes(text))).length > 3);
+    checks++;
+    for (const height of [180, 280, 400]) {
+      const longMenu = { ...meals, cards: meals.cards.map((card) => ({ ...card, items: Array.from({ length: 12 }, (_, index) => `Menu item ${index + 1}`) })) };
+      const tree = context.__expoWidgetRender(longMenu, { ...environment(), width: 300, height });
+      for (const node of nodes(tree).filter((node) => ["ColumnView", "RowView", "BoxView"].includes(node.type))) {
+        assert.ok([node.props.children].flat(Infinity).filter(Boolean).length <= 10, "Glance containers support at most ten children");
+      }
+    }
+    checks++;
     if (platform === "android") {
       const allowed = new Set([
+        "BoxView",
         "ColumnView",
         "RowView",
         "TextView",

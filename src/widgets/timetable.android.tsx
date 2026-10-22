@@ -1,10 +1,10 @@
 /** @jsxImportSource react */
 import {
+  Box,
   Column,
   Row,
   Text,
   TextButton,
-  Spacer,
 } from "@expo/ui/jetpack-compose";
 import {
   background,
@@ -12,16 +12,17 @@ import {
   fillMaxSize,
   fillMaxWidth,
   paddingAll,
+  padding,
+  width,
   semantics,
   size,
-  weight,
 } from "@expo/ui/jetpack-compose/modifiers";
 import { createWidget, type WidgetEnvironment } from "expo-widgets";
 import type { ScheduleWidgetProps } from "@/types";
 
 export const WidgetLayout = (
   props: ScheduleWidgetProps,
-  environment: WidgetEnvironment,
+  environment: WidgetEnvironment & { width?: number; height?: number },
 ) => {
   "widget";
   const now = environment.date?.getTime() ?? Date.now();
@@ -42,13 +43,17 @@ export const WidgetLayout = (
       }
       return { card, start, end };
     })
-    .sort((a, b) => a.start - b.start)
-    .slice(0, 5);
+    .sort((a, b) => a.start - b.start);
   const page =
     props.anchor === windows[0]?.start
       ? Math.max(0, Math.min(props.page, windows.length - 1))
       : 0;
   const selected = windows[page];
+  const widgetHeight = environment.height ?? 180;
+  const widgetWidth = environment.width ?? 180;
+  const inset = widgetWidth < 200 ? 12 : 16;
+  const contentWidth = Math.max(100, widgetWidth - inset * 2);
+  const wide = widgetWidth >= 260;
   const dark = environment.colorScheme === "dark";
   const ink = dark ? "#F5F5F5" : "#24202B";
   const muted = dark ? "#C1BCC9" : "#615A6C";
@@ -68,11 +73,7 @@ export const WidgetLayout = (
       ? "Now"
       : page === 0
         ? "Next"
-        : localDay === 0
-          ? "Today"
-          : localDay === 1
-            ? "Tomorrow"
-            : days[selected?.card.day ?? 0];
+        : "Later";
   const move = (delta: number) => ({
     ...props,
     page: (page + delta + windows.length) % windows.length,
@@ -94,79 +95,55 @@ export const WidgetLayout = (
         </Text>
       </Column>
     );
+  const dayLabel = localDay === 0 ? "Today" : localDay === 1 ? "Tomorrow" : days[selected.card.day];
+  const buttonSurface = dark ? "#FFFFFF18" : "#FFFFFF90";
+  const followingCount = Math.max(0, Math.min(4, Math.floor((widgetHeight - 146) / 48)));
+  const following = windows.slice(page + 1, page + 1 + followingCount);
   return (
-    <Column
-      modifiers={[
-        fillMaxSize(),
-        background(surface),
-        cornerRadius(24),
-        paddingAll(14),
-      ]}
-      verticalArrangement={{ spacedBy: 5 }}
-    >
-      <Row modifiers={[fillMaxWidth()]} verticalAlignment="center">
-        <Text color={muted} style={{ fontSize: 11, fontWeight: "600" }}>
-          {status}
-        </Text>
-        <Spacer modifiers={[weight(1)]} />
-        <Text color={muted} style={{ fontSize: 10 }}>
-          {page === 0 && localDay > 0
-            ? localDay === 1
-              ? "Tomorrow"
-              : days[selected.card.day]
-            : ""}
-        </Text>
-      </Row>
-      <Text
-        color={ink}
-        style={{ fontSize: 21, fontWeight: "700" }}
-        maxLines={2}
-        overflow="ellipsis"
-      >
-        {selected.card.name}
-      </Text>
-      <Text color={muted} style={{ fontSize: 12 }}>
-        {selected.card.time}
-      </Text>
-      <Spacer modifiers={[weight(1)]} />
-      {windows.length > 1 && (
-        <Row
-          modifiers={[fillMaxWidth()]}
-          horizontalArrangement="spaceBetween"
-          verticalAlignment="center"
-        >
-          <TextButton
-            onClick={() => move(-1)}
-            colors={{ contentColor: muted }}
-            contentPadding={{ start: 0, end: 0, top: 0, bottom: 0 }}
-            modifiers={[
-              size(32, 28),
-              semantics({ contentDescription: "Previous class" }),
-            ]}
-          >
-            <Text color={muted} style={{ fontSize: 20 }}>
-              ‹
-            </Text>
-          </TextButton>
-          <Text color={muted} style={{ fontSize: 11 }}>
-            {windows.map((_, index) => (index === page ? "●" : "·")).join("  ")}
+    <Box modifiers={[fillMaxSize(), background(surface), cornerRadius(24), paddingAll(inset)]}>
+      <Column modifiers={[fillMaxWidth()]}>
+        <Row modifiers={[fillMaxWidth(), padding(0, 0, 0, 6)]}>
+          <Text color={muted} style={{ fontSize: 11, fontWeight: "600" }} modifiers={[width(contentWidth / 2)]}>
+            {status}
           </Text>
-          <TextButton
-            onClick={() => move(1)}
-            colors={{ contentColor: muted }}
-            contentPadding={{ start: 0, end: 0, top: 0, bottom: 0 }}
-            modifiers={[
-              size(32, 28),
-              semantics({ contentDescription: "Next class" }),
-            ]}
-          >
-            <Text color={muted} style={{ fontSize: 20 }}>
-              ›
-            </Text>
-          </TextButton>
+          <Text color={muted} style={{ fontSize: 11, textAlign: "right" }} modifiers={[width(contentWidth / 2)]}>
+            {dayLabel}
+          </Text>
         </Row>
+        <Text color={ink} style={{ fontSize: wide ? 24 : 20, fontWeight: "700" }} maxLines={2} overflow="ellipsis">
+          {selected.card.name}
+        </Text>
+        <Text color={muted} style={{ fontSize: 12 }} modifiers={[padding(0, 3, 0, 8)]}>
+          {selected.card.time}
+        </Text>
+        {following.length > 0 && (
+          <Column>
+            <Text color={muted} style={{ fontSize: 11 }} modifiers={[padding(0, 2, 0, 6)]}>After this</Text>
+            {following.map((entry) => (
+              <Column key={entry.card.id} modifiers={[padding(0, 0, 0, 8)]}>
+                <Text color={ink} style={{ fontSize: 13, fontWeight: "600" }} maxLines={1} overflow="ellipsis">{entry.card.name}</Text>
+                <Text color={muted} style={{ fontSize: 11 }} maxLines={1}>{`${days[entry.card.day]} · ${entry.card.time}`}</Text>
+              </Column>
+            ))}
+          </Column>
+        )}
+      </Column>
+      {windows.length > 1 && (
+        <Box modifiers={[fillMaxSize()]} contentAlignment="bottomStart">
+          <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
+            <TextButton onClick={() => move(-1)} colors={{ contentColor: ink, containerColor: buttonSurface }} contentPadding={{ start: 0, end: 0, top: 0, bottom: 0 }} modifiers={[size(40, 36), cornerRadius(18), semantics({ contentDescription: "Previous class" })]}>
+              <Text>‹</Text>
+            </TextButton>
+            <Text color={muted} style={{ fontSize: 11, textAlign: "center" }} modifiers={[width(Math.max(20, contentWidth - 80))]}>
+              {`${page + 1} / ${windows.length}`}
+            </Text>
+            <TextButton onClick={() => move(1)} colors={{ contentColor: ink, containerColor: buttonSurface }} contentPadding={{ start: 0, end: 0, top: 0, bottom: 0 }} modifiers={[size(40, 36), cornerRadius(18), semantics({ contentDescription: "Next class" })]}>
+              <Text>›</Text>
+            </TextButton>
+          </Row>
+        </Box>
       )}
-    </Column>
+    </Box>
   );
 };
 

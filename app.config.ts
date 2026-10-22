@@ -20,6 +20,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
     ![
       "1.4.1-sdk58-widgets-v1",
       "1.5.0-sdk58-widgets-v1",
+      "1.5.0-sdk58-widgets-pdf-v1",
       `${pkgVersion}-sdk58-widgets-pdf-v1`,
     ].includes(otaRuntime)
   ) {

@@ -1,12 +1,35 @@
 diff --git a/bundle/react-stub.ts b/bundle/react-stub.ts
-index dc78634f06d13b7272197056d0f829ab9e0f793f..5a5b8e90b9056e52da9aecce7c02e07a351e3bf5 100644
 --- a/bundle/react-stub.ts
 +++ b/bundle/react-stub.ts
-@@ -28,3 +28,7 @@ export const createContext = <T>(defaultValue: T): StubContext<T> => ({
+@@ -28,3 +28,7 @@
  });
- 
+
  export const useContext = <T>(context: StubContext<T>): T => context._currentValue;
 +
 +// Expo UI 58 evaluates memoized LazyItems when importing the widget globals.
 +// Widgets render once per snapshot, so memoization is an identity operation.
 +export const memo = <T>(component: T): T => component;
+diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt b/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
+--- a/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
++++ b/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
+@@ -25,7 +25,7 @@
+     val layout = WidgetsLayoutRegistry.layout(appContext, widgetName)
+       ?: return createErrorRoot("No layout found for $widgetName")
+     val props = WidgetsLayoutRegistry.props(appContext, widgetName)
+-    val environment = getWidgetEnvironment(appContext)
++    val environment = getWidgetEnvironment(appContext) + mapOf("width" to size.width.value, "height" to size.height.value)
+     val node = evaluateLayout(appContext, layout, props, environment)
+
+     return node.toPeekRoot(appContext, widgetName, size)
+diff --git a/android/build.gradle b/android/build.gradle
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -109,4 +109,8 @@
+   inputs.file file("$expoWidgetsPackageDir/scripts/build-layout-registry.mjs")
+   inputs.file file("$expoWidgetsPackageDir/bundle/layout-registry-entry.js")
+   inputs.files(expoWidgetsLayoutRegistryConfigFile)
++  // Include app-owned widget layouts and the static menu in incremental builds.
++  inputs.files(project.fileTree(file("$expoWidgetsProjectRoot/src")) {
++    include "widgets/**", "data/mess.ts"
++  })
+   outputs.file(expoWidgetsLayoutRegistryOutput)
