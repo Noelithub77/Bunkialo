@@ -12,7 +12,7 @@ export type PopupIconType =
   | "school"
   | "star";
 
-export type PopupCtaAction = "run-lms-feedback-autofill" | "open-url";
+export type PopupCtaAction = "open-course-feedback" | "open-url";
 
 export interface PopupHighlight {
   title: string;

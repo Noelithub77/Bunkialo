@@ -356,6 +356,7 @@ export default function SettingsScreen() {
             onCheckForUpdates={handleCheckForUpdates}
             onClearCache={handleClearCache}
             onLogout={handleLogout}
+            onOpenCourseFeedback={() => router.push("/course-feedback")}
             onResetBunks={handleResetBunks}
             onSetTheme={handleSetTheme}
             theme={theme}

@@ -129,6 +129,14 @@ const files = [
   "tests/unit/services/google-calendar-feed.test.ts",
   "tests/unit/utils/academic-event-visibility.test.ts",
   "tests/unit/faculty-hostels.test.ts",
+
+  "src/services/feedback-form.ts",
+  "src/services/feedback-autofill.ts",
+  "src/stores/feedback-autofill-store.ts",
+  "src/screens/course-feedback-screen.tsx",
+  "src/app/(fab-group)/course-feedback.tsx",
+  "src/app/(fab-group)/more.tsx",
+  "tests/unit/services/feedback-form.test.ts",
 ];
 for (const file of files) {
   mkdirSync(dirname(resolve(destination, file)), { recursive: true });
@@ -227,3 +235,61 @@ writeFileSync(
   readFileSync(typeIndex, "utf8") +
     '\nexport * from "./attachment-preview";\nexport * from "./saved-lms-file";\nexport * from "./lms-forum";\n',
 );
+
+// Course feedback replaces the old autofill popup; wire it into the legacy screens.
+const { rmSync } = await import("node:fs");
+const patchFile = (file, replacements) => {
+  const path = resolve(destination, file);
+  let text = readFileSync(path, "utf8");
+  for (const [from, to] of replacements) {
+    if (!text.includes(from)) throw new Error(`Legacy anchor missing in ${file}: ${from.slice(0, 60)}`);
+    text = text.replace(from, to);
+  }
+  writeFileSync(path, text);
+};
+rmSync(resolve(destination, "src/components/dashboard/popup/feedback-autofill-popup-content.tsx"));
+patchFile("src/components/dashboard/popup/index.ts", [
+  ['export { FeedbackAutofillPopupContent } from "./feedback-autofill-popup-content";\n', ""],
+]);
+const currentPopups = readFileSync("src/data/popups.ts", "utf8");
+const feedbackNotice = currentPopups.match(/  \{\n    id: "course-feedback-2026-10",[\s\S]*?\n  \},\n/)?.[0];
+if (!feedbackNotice) throw new Error("Course feedback notice missing from src/data/popups.ts");
+patchFile("src/data/popups.ts", [
+  ["export const POPUP_NOTICES: PopupNotice[] = [\n", `export const POPUP_NOTICES: PopupNotice[] = [\n${feedbackNotice}`],
+]);
+patchFile("src/components/dashboard/popup/notice-popup.tsx", [
+  ['import { Image } from "expo-image";', 'import { Image } from "expo-image";\nimport { router } from "expo-router";'],
+  [
+    "                {isOpenUrlPopup ? (\n                  <Pressable\n                    onPress={() => {\n                      if (!currentPopup.ctaUrl) return;\n                      void Linking.openURL(currentPopup.ctaUrl);",
+    '                {isOpenUrlPopup || currentPopup.ctaAction === "open-course-feedback" ? (\n                  <Pressable\n                    onPress={() => {\n                      if (currentPopup.ctaAction === "open-course-feedback") router.push("/course-feedback");\n                      else if (currentPopup.ctaUrl) void Linking.openURL(currentPopup.ctaUrl);',
+  ],
+]);
+patchFile("src/components/settings/general-settings-section.tsx", [
+  ["  onLogout: () => void;", "  onLogout: () => void;\n  onOpenCourseFeedback: () => void;"],
+  ["  onLogout,", "  onLogout,\n  onOpenCourseFeedback,"],
+  [
+    '      <SettingRow\n        icon="cloud-download-outline"',
+    '      <SettingRow\n        icon="chatbox-ellipses-outline"\n        label="Course Feedback"\n        onPress={onOpenCourseFeedback}\n        theme={theme}\n      />\n      <View\n        className="h-px"\n        style={{ marginLeft: 48, backgroundColor: theme.border }}\n      />\n      <SettingRow\n        icon="cloud-download-outline"',
+  ],
+]);
+patchFile("src/app/settings.tsx", [
+  ["            onLogout={handleLogout}", '            onLogout={handleLogout}\n            onOpenCourseFeedback={() => router.push("/course-feedback")}'],
+]);
+const fabAction = (icon, label, route) =>
+  `    {\n      icon: "${icon}",\n      label: "${label}",\n      color: theme.text,\n      style: { backgroundColor: theme.backgroundSecondary },\n      labelStyle: actionLabelStyle,\n      containerStyle: actionContainerStyle,\n      onPress: () => {\n        setShowFabMenu(false);\n        router.push("${route}");\n      },\n    },\n`;
+patchFile("src/app/(tabs)/index.tsx", [
+  [
+    "    ...(isOldBatch",
+    fabAction("calendar-month", "Academic Calendar", "/acad-cal") +
+      fabAction("dots-horizontal", "More", "/more") +
+      "    ...(isOldBatch",
+  ],
+]);
+const modalRoute = (name) =>
+  `                <Stack.Screen\n                  name="(fab-group)/${name}"\n                  options={{\n                    presentation: "modal",\n                    animation: "slide_from_bottom",\n                    gestureEnabled: true,\n                    fullScreenGestureEnabled: true,\n                  }}\n                />\n`;
+patchFile("src/app/_layout.tsx", [
+  [
+    '                <Stack.Screen\n                  name="(fab-group)/acad-cal"',
+    modalRoute("more") + modalRoute("course-feedback") + '                <Stack.Screen\n                  name="(fab-group)/acad-cal"',
+  ],
+]);

@@ -346,6 +346,30 @@ export default function DashboardScreen() {
         Linking.openURL("https://attendance.iiitkottayam.ac.in/");
       },
     },
+    {
+      icon: "calendar-month",
+      label: "Academic Calendar",
+      color: theme.text,
+      style: { backgroundColor: theme.backgroundSecondary },
+      labelStyle: actionLabelStyle,
+      containerStyle: actionContainerStyle,
+      onPress: () => {
+        setShowFabMenu(false);
+        router.push("/acad-cal");
+      },
+    },
+    {
+      icon: "dots-horizontal",
+      label: "More",
+      color: theme.text,
+      style: { backgroundColor: theme.backgroundSecondary },
+      labelStyle: actionLabelStyle,
+      containerStyle: actionContainerStyle,
+      onPress: () => {
+        setShowFabMenu(false);
+        router.push("/more");
+      },
+    },
     ...(isOldBatch
       ? [
           {

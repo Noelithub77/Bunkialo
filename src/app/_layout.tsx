@@ -192,6 +192,24 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name="(fab-group)/more"
+                  options={{
+                    presentation: "modal",
+                    animation: "slide_from_bottom",
+                    gestureEnabled: true,
+                    fullScreenGestureEnabled: true,
+                  }}
+                />
+                <Stack.Screen
+                  name="(fab-group)/course-feedback"
+                  options={{
+                    presentation: "modal",
+                    animation: "slide_from_bottom",
+                    gestureEnabled: true,
+                    fullScreenGestureEnabled: true,
+                  }}
+                />
+                <Stack.Screen
                   name="(fab-group)/wifix"
                   options={{
                     presentation: "modal",

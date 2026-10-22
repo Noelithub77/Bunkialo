@@ -23,7 +23,7 @@ export type NotificationReadFilter = "all" | "unread" | "read";
 
 export type NotificationInboxAction =
   | { type: "openUrl"; label: string; url: string }
-  | { type: "runPopupAction"; label: string; noticeId: string };
+  | { type: "openCourseFeedback"; label: string };
 
 export interface NotificationInboxItem {
   id: string;

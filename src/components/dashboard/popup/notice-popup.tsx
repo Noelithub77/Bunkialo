@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState, type ComponentRef, type RefObj
 import { Animated, Linking, Modal, Pressable, Text, View } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
@@ -178,6 +179,8 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
     : currentPopup.imageSourceLight || currentPopup.imageSource;
   const isOpenUrlPopup =
     currentPopup.ctaAction === "open-url" && Boolean(currentPopup.ctaUrl);
+  const hasBodyAction =
+    isOpenUrlPopup || currentPopup.ctaAction === "open-course-feedback";
   const hasHeaderAction = isOpenUrlPopup && currentPopup.ctaPlacement === "header";
 
   return (
@@ -264,11 +267,14 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
               ) : (
                 <>
                   <DefaultPopupContent popup={currentPopup} />
-                  {isOpenUrlPopup && !hasHeaderAction ? (
+                  {hasBodyAction && !hasHeaderAction ? (
                     <Pressable
                       onPress={() => {
-                        if (!currentPopup.ctaUrl) return;
-                        void Linking.openURL(currentPopup.ctaUrl);
+                        if (currentPopup.ctaAction === "open-course-feedback") {
+                          router.push("/course-feedback");
+                        } else if (currentPopup.ctaUrl) {
+                          void Linking.openURL(currentPopup.ctaUrl);
+                        }
                         animateOut();
                       }}
                       className="mb-3 items-center justify-center rounded-2xl py-3.5 active:opacity-70"

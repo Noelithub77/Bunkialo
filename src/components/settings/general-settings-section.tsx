@@ -8,6 +8,7 @@ type GeneralSettingsSectionProps = {
   onCheckForUpdates: () => void;
   onClearCache: () => void;
   onLogout: () => void;
+  onOpenCourseFeedback: () => void;
   onResetBunks: () => void;
   onSetTheme: () => void;
   theme: typeof Colors.light;
@@ -21,6 +22,7 @@ export const GeneralSettingsSection = ({
   onCheckForUpdates,
   onClearCache,
   onLogout,
+  onOpenCourseFeedback,
   onResetBunks,
   onSetTheme,
   theme,
@@ -42,6 +44,16 @@ export const GeneralSettingsSection = ({
         icon="color-palette-outline"
         label={`Theme: ${themeLabel}`}
         onPress={onSetTheme}
+        theme={theme}
+      />
+      <View
+        className="h-px"
+        style={{ marginLeft: 48, backgroundColor: theme.border }}
+      />
+      <SettingRow
+        icon="chatbox-ellipses-outline"
+        label="Course Feedback"
+        onPress={onOpenCourseFeedback}
         theme={theme}
       />
       <View

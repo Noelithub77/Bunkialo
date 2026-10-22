@@ -1,116 +1,260 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import {
+  checkCourseFeedback,
+  ensureFeedbackSession,
+  submitFeedback,
+} from "@/services/feedback-autofill";
+import { normalizeRating } from "@/services/feedback-form";
+import { fetchCourses } from "@/services/lms-courses";
 import { zustandStorage } from "@/stores/storage";
 
-type CourseFeedbackDefaults = Record<
-  string,
-  {
-    grade: string;
-    textResponse: string;
-  }
->;
+export type CourseFeedbackStatus =
+  | "unknown"
+  | "checking"
+  | "pending"
+  | "submitting"
+  | "verifying"
+  | "done"
+  | "none"
+  | "closed"
+  | "failed";
+
+export interface CourseFeedbackEntry {
+  courseId: string;
+  name: string;
+  status: CourseFeedbackStatus;
+  formUrls: string[];
+  message: string | null;
+  submittedAt: string | null;
+  updatedAt: string;
+}
+
+interface CourseFeedbackDefault {
+  grade: string;
+  textResponse: string;
+}
 
 interface FeedbackAutofillState {
-  courseDefaults: CourseFeedbackDefaults;
-  setCourseDefault: (
-    courseId: string,
-    grade: string,
-    textResponse: string,
-  ) => void;
-  ensureCourseDefault: (courseId: string) => void;
-  setCourseDefaults: (defaults: CourseFeedbackDefaults) => void;
-  clearCourseDefaults: () => void;
+  courseDefaults: Record<string, CourseFeedbackDefault>;
+  defaultGrade: string;
+  defaultText: string;
+  courses: Record<string, CourseFeedbackEntry>;
+  courseOrder: string[];
+  lastCheckedAt: string | null;
+  activity: "idle" | "checking" | "submitting" | "verifying";
+  error: string | null;
+  setDefaults: (grade: string, text: string) => void;
+  setCourseDefault: (courseId: string, grade: string, textResponse: string) => void;
+  clearCourseDefault: (courseId: string) => void;
+  checkAll: () => Promise<void>;
+  submit: (courseIds: string[]) => Promise<{ submitted: number; failed: number }>;
+  markInterrupted: () => void;
 }
+
+const CONCURRENCY = 3;
+const TRANSIENT: CourseFeedbackStatus[] = ["checking", "submitting", "verifying"];
+
+const runPool = async <T>(items: T[], task: (item: T) => Promise<void>) => {
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const item = items[next];
+      next += 1;
+      await task(item);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, items.length) }, worker),
+  );
+};
+
+const errorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : "Something went wrong";
 
 export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
   persist(
-    (set) => ({
-      courseDefaults: {},
-
-      setCourseDefault: (courseId, grade, textResponse) => {
-        const id = courseId.trim();
-        if (!id) return;
-
-        const normalizedGrade = /^[0-5]$/.test(grade.trim())
-          ? grade.trim()
-          : "3";
-
-        set((state) => ({
-          courseDefaults: {
-            ...state.courseDefaults,
-            [id]: {
-              grade: normalizedGrade,
-              textResponse,
-            },
-          },
-        }));
-      },
-
-      ensureCourseDefault: (courseId) => {
-        const id = courseId.trim();
-        if (!id) return;
+    (set, get) => {
+      const update = (courseId: string, patch: Partial<CourseFeedbackEntry>) =>
         set((state) => {
-          const existing = state.courseDefaults[id];
-          if (existing) {
-            const normalizedGrade = /^[0-5]$/.test(existing.grade)
-              ? existing.grade
-              : "3";
-            const normalizedText =
-              existing.textResponse.length > 0 ? existing.textResponse : "_";
-
-            if (
-              normalizedGrade === existing.grade &&
-              normalizedText === existing.textResponse
-            ) {
-              return state;
-            }
-
-            return {
-              courseDefaults: {
-                ...state.courseDefaults,
-                [id]: {
-                  grade: normalizedGrade,
-                  textResponse: normalizedText,
-                },
-              },
-            };
-          }
-
+          const current = state.courses[courseId];
+          if (!current) return state;
           return {
-            courseDefaults: {
-              ...state.courseDefaults,
-              [id]: { grade: "3", textResponse: "_" },
+            courses: {
+              ...state.courses,
+              [courseId]: { ...current, ...patch, updatedAt: new Date().toISOString() },
             },
           };
         });
-      },
 
-      setCourseDefaults: (defaults) => {
-        const sanitized: CourseFeedbackDefaults = {};
-        for (const [courseId, value] of Object.entries(defaults)) {
-          const id = courseId.trim();
-          if (!id) continue;
-          const normalizedGrade = /^[0-5]$/.test(String(value.grade).trim())
-            ? String(value.grade).trim()
-            : "3";
-          const normalizedText = String(value.textResponse ?? "");
-          sanitized[id] = {
-            grade: normalizedGrade,
-            textResponse: normalizedText.length > 0 ? normalizedText : "_",
-          };
+      const refreshCourse = async (courseId: string) => {
+        update(courseId, { status: "checking" });
+        try {
+          const forms = await checkCourseFeedback(courseId);
+          const pending = forms.filter((form) => form.state === "pending");
+          const status: CourseFeedbackStatus =
+            forms.length === 0
+              ? "none"
+              : pending.length > 0
+                ? "pending"
+                : forms.some((form) => form.state === "done")
+                  ? "done"
+                  : "closed";
+          update(courseId, {
+            status,
+            formUrls: pending.map((form) => form.url),
+            message: null,
+          });
+        } catch (error) {
+          update(courseId, { status: "failed", message: errorMessage(error) });
         }
+      };
 
-        set({ courseDefaults: sanitized });
-      },
+      return {
+        courseDefaults: {},
+        defaultGrade: "3",
+        defaultText: "-",
+        courses: {},
+        courseOrder: [],
+        lastCheckedAt: null,
+        activity: "idle",
+        error: null,
 
-      clearCourseDefaults: () => set({ courseDefaults: {} }),
-    }),
+        // A run cut short by the app closing must be checked again, not shown as in progress.
+        markInterrupted: () =>
+          set((state) => ({
+            courses: Object.fromEntries(
+              Object.entries(state.courses).map(([id, entry]) => [
+                id,
+                TRANSIENT.includes(entry.status)
+                  ? { ...entry, status: "unknown" as const, message: "Interrupted" }
+                  : entry,
+              ]),
+            ),
+          })),
+
+        setDefaults: (grade, text) =>
+          set({ defaultGrade: normalizeRating(grade), defaultText: text }),
+
+        setCourseDefault: (courseId, grade, textResponse) =>
+          set((state) => ({
+            courseDefaults: {
+              ...state.courseDefaults,
+              [courseId]: { grade: normalizeRating(grade), textResponse },
+            },
+          })),
+
+        clearCourseDefault: (courseId) =>
+          set((state) => {
+            const { [courseId]: _removed, ...rest } = state.courseDefaults;
+            return { courseDefaults: rest };
+          }),
+
+        checkAll: async () => {
+          if (get().activity !== "idle") return;
+          set({ activity: "checking", error: null });
+          try {
+            await ensureFeedbackSession();
+            const courses = await fetchCourses();
+            const now = new Date().toISOString();
+            set((state) => ({
+              courseOrder: courses.map((course) => course.id),
+              courses: Object.fromEntries(
+                courses.map((course) => [
+                  course.id,
+                  state.courses[course.id]
+                    ? { ...state.courses[course.id], name: course.name }
+                    : {
+                        courseId: course.id,
+                        name: course.name,
+                        status: "unknown" as const,
+                        formUrls: [],
+                        message: null,
+                        submittedAt: null,
+                        updatedAt: now,
+                      },
+                ]),
+              ),
+            }));
+            await runPool(courses.map((course) => course.id), refreshCourse);
+            set({ lastCheckedAt: new Date().toISOString() });
+          } catch (error) {
+            set({ error: errorMessage(error) });
+          } finally {
+            set({ activity: "idle" });
+          }
+        },
+
+        submit: async (courseIds) => {
+          if (get().activity !== "idle") return { submitted: 0, failed: 0 };
+          set({ activity: "submitting", error: null });
+          let submitted = 0;
+          let failed = 0;
+          try {
+            await ensureFeedbackSession();
+            const attempted: string[] = [];
+            await runPool(courseIds, async (courseId) => {
+              // Failed or stale rows are re-read first so retries use fresh form links.
+              if (get().courses[courseId]?.status !== "pending") {
+                await refreshCourse(courseId);
+              }
+              const entry = get().courses[courseId];
+              if (entry?.status !== "pending") return;
+              attempted.push(courseId);
+              const override = get().courseDefaults[courseId];
+              const answers = {
+                rating: override?.grade ?? get().defaultGrade,
+                text: override?.textResponse || get().defaultText,
+              };
+              update(courseId, { status: "submitting", message: null });
+              try {
+                for (const url of entry.formUrls) {
+                  await submitFeedback(url, answers);
+                }
+                update(courseId, { status: "verifying" });
+              } catch (error) {
+                update(courseId, { status: "failed", message: errorMessage(error) });
+              }
+            });
+
+            // Final pass: trust only what the LMS reports after every submission.
+            set({ activity: "verifying" });
+            await runPool(attempted, async (courseId) => {
+              const submitError = get().courses[courseId]?.message ?? null;
+              await refreshCourse(courseId);
+              const { status, message: checkError } = get().courses[courseId] ?? {};
+              if (status === "done") {
+                submitted += 1;
+                update(courseId, { submittedAt: new Date().toISOString() });
+              } else {
+                failed += 1;
+                update(courseId, {
+                  status: "failed",
+                  message: submitError ?? checkError ?? "Still pending on the LMS",
+                });
+              }
+            });
+          } catch (error) {
+            set({ error: errorMessage(error) });
+          } finally {
+            set({ activity: "idle", lastCheckedAt: new Date().toISOString() });
+          }
+          return { submitted, failed };
+        },
+      };
+    },
     {
       name: "bunkialo-feedback-autofill-storage-sqlite-v1",
       storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({
         courseDefaults: state.courseDefaults,
+        defaultGrade: state.defaultGrade,
+        defaultText: state.defaultText,
+        courses: state.courses,
+        courseOrder: state.courseOrder,
+        lastCheckedAt: state.lastCheckedAt,
       }),
+      onRehydrateStorage: () => (state) => state?.markInterrupted(),
     },
   ),
 );

@@ -16,6 +16,7 @@ import {
   isNotificationRecent,
 } from "@/utils/notification-inbox";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
 import {
   Linking,
@@ -125,11 +126,10 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
               label: notice.ctaLabel ?? "Open",
               url: notice.ctaUrl,
             }
-          : notice.ctaAction === "run-lms-feedback-autofill"
+          : notice.ctaAction === "open-course-feedback"
             ? {
-                type: "runPopupAction" as const,
+                type: "openCourseFeedback" as const,
                 label: notice.ctaLabel ?? "Open",
-                noticeId: notice.id,
               }
             : undefined,
     }));
@@ -222,6 +222,7 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
       return;
     }
     onClose();
+    router.push("/course-feedback");
   };
 
   const emptyMessage =
