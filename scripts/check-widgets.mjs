@@ -81,14 +81,6 @@ try {
     });
     const render = (props, scheme = "light", family = "systemSmall") =>
       context.__expoWidgetRender(props, environment(scheme, family));
-    const click = (props, direction) => {
-      const buttons = nodes(render(props)).filter((node) => node.props?.target);
-      assert.equal(buttons.length, 2);
-      return context.__expoWidgetHandlePress(props, {
-        ...environment(),
-        target: buttons[direction].props.target,
-      });
-    };
     const load = (name) => {
       context.__expoWidgetLayout = vm.runInContext(
         `(${registry[name].layout})`,
@@ -98,60 +90,44 @@ try {
     load("BunkialoTimetable");
     assert.ok(
       texts(render(registry.BunkialoTimetable.initialProps)).includes(
-        "No classes",
+        "Timetable",
       ),
     );
     checks++;
-    assert.ok(texts(render(classes)).includes("Now"));
+    assert.ok(texts(render(classes)).includes("Physics"));
+    assert.ok(!texts(render(classes)).includes("Algorithms"));
     checks++;
-    assert.ok(texts(render(classes)).includes("Algorithms"));
+    assert.equal(nodes(render(classes)).filter((node) => node.props?.target).length, 0);
     checks++;
-    const next = click(classes, 1);
-    assert.equal(next.page, 1);
-    assert.ok(texts(render(next)).includes("Physics"));
+    assert.notEqual(JSON.stringify(render(classes)), JSON.stringify(render(classes, "dark")));
     checks++;
-    assert.ok(texts(render(click(classes, 0))).includes("Design"));
+    timestamp = Date.parse("2026-10-01T05:01:00Z");
+    assert.ok(texts(render(classes)).includes("Design"));
     checks++;
-    assert.notEqual(
-      JSON.stringify(render(classes)),
-      JSON.stringify(render(classes, "dark")),
-    );
-    checks++;
-    timestamp = Date.parse("2026-10-01T04:31:00Z");
-    const moved = texts(render(next));
-    assert.ok(moved.includes("Physics") && moved.includes("Next"));
-    checks++;
-    timestamp = Date.parse("2026-10-01T15:31:00Z");
-    const tomorrow = texts(render(classes));
-    assert.equal(tomorrow.filter((text) => text === "Tomorrow").length, 1);
-    checks++;
-
-    assert.ok(texts(context.__expoWidgetRender(classes, { ...environment(), width: 300, height: 280 })).includes("After this"));
+    const forbidden = new Set(["Now", "Next", "Today", "Tomorrow", "Next meal", "Next class", "After this"]);
+    assert.ok(texts(render(classes)).every((text) => !forbidden.has(text)));
     checks++;
     load("BunkialoMess");
     const meals = registry.BunkialoMess.initialProps;
     timestamp = Date.parse("2026-10-01T03:00:00Z");
-    const breakfast = texts(render(meals));
-    assert.ok(breakfast.includes("Now") && breakfast.includes("Breakfast"));
+    const nextMeal = texts(render(meals));
+    assert.ok(nextMeal.includes("Lunch"));
+    assert.ok(!nextMeal.includes("Breakfast"), "An ongoing meal must not replace the next meal");
     checks++;
-    assert.ok(breakfast.some((text) => meals.cards.some((card) => card.items.includes(text))));
+    assert.ok(nextMeal.some((text) => meals.cards.some((card) => card.items.includes(text))));
     checks++;
-    assert.ok(texts(render(click(meals, 1))).includes("Lunch"));
+    assert.equal(nodes(render(meals)).filter((node) => node.props?.target).length, 0);
+    assert.deepEqual(texts(render({ ...meals, page: 20, anchor: 123 })), nextMeal);
     checks++;
     timestamp = Date.parse("2026-10-01T04:15:00Z");
-    const lunch = texts(render(meals));
-    assert.ok(lunch.includes("Lunch") && lunch.includes("Next"));
+    assert.ok(texts(render(meals)).includes("Lunch"));
+    checks++;
+    timestamp = Date.parse("2026-10-01T06:30:00Z");
+    assert.ok(texts(render(meals)).includes("Snacks"), "Advance when the next meal begins");
     checks++;
     timestamp = Date.parse("2026-10-01T15:30:00Z");
-    assert.ok(texts(render(meals)).includes("Tomorrow"));
-    checks++;
-    let allMeals = meals;
-    const visited = new Set();
-    for (let index = 0; index < meals.cards.length; index++) {
-      allMeals = click(allMeals, 1);
-      visited.add(allMeals.page);
-    }
-    assert.equal(visited.size, meals.cards.length, "Every meal in the week must be reachable");
+    const tomorrowMeal = texts(render(meals));
+    assert.ok(tomorrowMeal.includes("Breakfast") && tomorrowMeal.every((text) => !text.includes("Tomorrow")));
     checks++;
     const expandedMeals = texts(context.__expoWidgetRender(meals, { ...environment(), width: 300, height: 280 }));
     assert.ok(expandedMeals.filter((text) => meals.cards.some((card) => card.items.includes(text))).length > 3);
@@ -164,26 +140,18 @@ try {
       }
     }
     checks++;
-    if (platform === "android") {
-      const allowed = new Set([
-        "BoxView",
-        "ColumnView",
-        "RowView",
-        "TextView",
-        "SpacerView",
-        "TextButton",
-      ]);
-      assert.ok(nodes(render(meals)).every((node) => allowed.has(node.type)));
-      checks++;
-    } else {
-      assert.ok(
-        texts(render(meals, "light", "systemMedium")).filter((text) =>
-          text.startsWith("• "),
-        ).length >= 5,
-      );
+    const allowed = new Set(["ColumnView", "RowView", "TextView"]);
+    for (const name of ["BunkialoMess", "BunkialoTimetable"]) {
+      load(name);
+      const props = name === "BunkialoMess" ? meals : classes;
+      for (const [width, height] of [[150, 100], [150, 140], [180, 180], [300, 220], [300, 340], [500, 200]]) {
+        const tree = context.__expoWidgetRender(props, { ...environment(), width, height });
+        assert.ok(nodes(tree).every((node) => allowed.has(node.type)));
+        assert.ok(texts(tree).every((text) => !forbidden.has(text)));
+      }
       checks++;
     }
-    console.log(`${platform}: widget rendering and paging passed`);
+    console.log(`${platform}: widget rendering, selection and sizes passed`);
   }
   console.log(`${checks} native widget checks passed`);
 } finally {

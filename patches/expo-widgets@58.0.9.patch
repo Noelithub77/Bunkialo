@@ -33,3 +33,35 @@ diff --git a/android/build.gradle b/android/build.gradle
 +    include "widgets/**", "data/mess.ts"
 +  })
    outputs.file(expoWidgetsLayoutRegistryOutput)
+diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt b/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
+--- a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
++++ b/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
+@@ -4,6 +4,10 @@
+
+ import android.annotation.SuppressLint
+ import android.content.Context
++import android.content.Intent
++import android.content.pm.PackageManager
++import android.net.Uri
++import androidx.glance.appwidget.action.actionStartActivity
+ import android.graphics.Color as AndroidColor
+ import androidx.compose.ui.unit.DpSize
+ import androidx.compose.ui.unit.TextUnit
+@@ -123,6 +127,17 @@
+ internal fun ReadableMap.toPeekRoot(context: Context, source: String, size: DpSize): Emittable {
+   val converterContext = WidgetConverterContext(context, size)
+   return EmittableColumn().also { root ->
++    val metadata = context.packageManager.getApplicationInfo(
++      context.packageName, PackageManager.GET_META_DATA
++    ).metaData
++    val url = metadata?.getString("expo.modules.widgets.OPEN_URL.$source")
++    val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
++    if (url != null && launchIntent != null) {
++      launchIntent.action = Intent.ACTION_VIEW
++      launchIntent.data = Uri.parse(url)
++      launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
++      root.modifier = GlanceModifier.fillMaxSize().clickable(actionStartActivity(launchIntent))
++    }
+     root.children += toPeekNodes(converterContext, source)
+   }
+ }

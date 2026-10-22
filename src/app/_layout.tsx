@@ -107,7 +107,9 @@ export default function RootLayout() {
           ? SHARED_ASSIGNMENT_ROUTE
           : params.returnTo === DESKTOP_PAIRING_ROUTE
             ? DESKTOP_PAIRING_ROUTE
-            : "/(tabs)";
+            : params.returnTo === "/mess" || params.returnTo === "/timetable"
+              ? params.returnTo
+              : "/(tabs)";
       const publicPath =
         pathname === "/login" || pathname === DESKTOP_PAIRING_ROUTE;
       if (isLoggedIn && pathname === "/login") {

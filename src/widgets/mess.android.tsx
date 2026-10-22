@@ -1,22 +1,13 @@
 /** @jsxImportSource react */
-import {
-  Box,
-  Column,
-  Row,
-  Text,
-  TextButton,
-} from "@expo/ui/jetpack-compose";
+import { Column, Text } from "@expo/ui/jetpack-compose";
 import {
   background,
   cornerRadius,
   fillMaxSize,
   fillMaxWidth,
-  paddingAll,
-  padding,
-  width,
   height,
-  semantics,
-  size,
+  padding,
+  paddingAll,
 } from "@expo/ui/jetpack-compose/modifiers";
 import { createWidget, type WidgetEnvironment } from "expo-widgets";
 import type { ScheduleWidgetProps } from "@/types";
@@ -32,142 +23,72 @@ export const WidgetLayout = (
   const midnight =
     Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()) -
     props.utcOffsetMinutes * 60000;
-  const windows = props.cards
+  const selected = props.cards
     .map((card) => {
-      let start =
-        midnight +
+      let start = midnight +
         ((card.day - local.getUTCDay() + 7) % 7) * 86400000 +
         card.startMinute * 60000;
-      let end = start + (card.endMinute - card.startMinute) * 60000;
-      if (end <= now) {
-        start += 604800000;
-        end += 604800000;
-      }
-      return { card, start, end };
+      if (start <= now) start += 604800000;
+      return { card, start };
     })
-    .sort((a, b) => a.start - b.start);
-  const page =
-    props.anchor === windows[0]?.start
-      ? Math.max(0, Math.min(props.page, windows.length - 1))
-      : 0;
-  const selected = windows[page];
-  const widgetHeight = environment.height ?? 180;
+    .sort((a, b) => a.start - b.start)[0];
   const widgetWidth = environment.width ?? 180;
-  const inset = widgetWidth < 200 ? 12 : 16;
-  const contentWidth = Math.max(100, widgetWidth - inset * 2);
-  const wide = widgetWidth >= 260;
+  const widgetHeight = environment.height ?? 180;
+  const compact = widgetWidth < 220 || widgetHeight < 180;
+  const expanded = widgetWidth >= 260 && widgetHeight >= 260;
+  const inset = compact ? 12 : 16;
   const dark = environment.colorScheme === "dark";
-  const ink = dark ? "#F5F5F5" : "#24202B";
-  const muted = dark ? "#C1BCC9" : "#615A6C";
-  const surface = selected
-    ? dark
-      ? selected.card.darkBackground
-      : selected.card.lightBackground
-    : dark
-      ? "#262131"
-      : "#F1EBFC";
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const localDay = selected
-    ? Math.floor((selected.start - midnight) / 86400000)
-    : 0;
-  const status =
-    selected && selected.start <= now
-      ? "Now"
-      : page === 0
-        ? "Next"
-        : "Later";
-  const move = (delta: number) => ({
-    ...props,
-    page: (page + delta + windows.length) % windows.length,
-    anchor: windows[0]?.start ?? 0,
-  });
-  if (!selected)
-    return (
-      <Column
-        modifiers={[
-          fillMaxSize(),
-          background(surface),
-          cornerRadius(24),
-          paddingAll(16),
-        ]}
-        verticalArrangement="center"
-      >
-        <Text color={muted} style={{ fontSize: 16 }}>
-          No menu available
-        </Text>
-      </Column>
-    );
-  const dayLabel = localDay === 0 ? "Today" : localDay === 1 ? "Tomorrow" : days[selected.card.day];
-  const buttonSurface = dark ? "#FFFFFF18" : "#FFFFFF90";
-  const itemLimit = Math.max(1, Math.floor((widgetHeight - 150) / 17));
-  const visibleItems = selected.card.items.slice(0, itemLimit);
-  const remaining = selected.card.items.length - visibleItems.length;
-  const followingCount = Math.max(0, Math.min(3, Math.floor((widgetHeight - 170 - visibleItems.length * 17) / 48)));
-  const following = windows.slice(page + 1, page + 1 + followingCount);
+  const ink = dark ? "#FFEDD3" : "#4C2E16";
+  const muted = dark ? "#F0C894" : "#81501F";
+  const chip = dark ? "#5A3C25" : "#F2D9B4";
+  const minRowHeight = compact ? 18 : expanded ? 22 : 21;
+  const availableHeight = Math.max(minRowHeight, widgetHeight - inset * 2 - (compact ? 76 : 92));
+  const capacity = Math.max(1, Math.floor(availableHeight / minRowHeight));
+  const items = selected?.card.items.slice(0, capacity) ?? [];
+  const rowHeight = Math.min(36, Math.max(minRowHeight, availableHeight / Math.max(1, items.length)));
   return (
-    <Box modifiers={[fillMaxSize(), background(surface), cornerRadius(24), paddingAll(inset)]}>
-      <Column modifiers={[fillMaxWidth()]}>
-        <Row modifiers={[fillMaxWidth(), padding(0, 0, 0, 6)]}>
-          <Text color={muted} style={{ fontSize: 11, fontWeight: "600" }} modifiers={[width(contentWidth / 2)]}>
-            {status}
-          </Text>
-          <Text color={muted} style={{ fontSize: 11, textAlign: "right" }} modifiers={[width(contentWidth / 2)]}>
-            {dayLabel}
-          </Text>
-        </Row>
-        <Text color={ink} style={{ fontSize: wide ? 24 : 20, fontWeight: "700" }} maxLines={1} overflow="ellipsis">
-          {selected.card.name}
+    <Column
+      modifiers={[
+        fillMaxSize(),
+        background(dark ? "#382B20" : "#FFF0D9"),
+        cornerRadius(24),
+        paddingAll(inset),
+      ]}
+      verticalArrangement="center"
+      horizontalAlignment="center"
+    >
+      <Text
+        color={ink}
+        style={{ fontSize: compact ? 24 : expanded ? 34 : 30, fontWeight: "700", textAlign: "center" }}
+        maxLines={1}
+        overflow="ellipsis"
+        modifiers={[fillMaxWidth(), padding(0, 0, 0, compact ? 6 : 10)]}
+      >
+        {selected?.card.name ?? "Mess menu"}
+      </Text>
+      <Column modifiers={[background(chip), cornerRadius(16), padding(12, 5, 12, 5)]}>
+        <Text color={muted} style={{ fontSize: compact ? 12 : 14, fontWeight: "500", textAlign: "center" }}>
+          {selected?.card.time ?? "Open menu"}
         </Text>
-        <Text color={muted} style={{ fontSize: 12 }} modifiers={[padding(0, 3, 0, 8)]}>
-          {selected.card.time}
-        </Text>
-        <Column>
-          {Array.from({ length: Math.ceil(visibleItems.length / 8) }, (_, group) => (
-            <Column key={group}>
-              {visibleItems.slice(group * 8, group * 8 + 8).map((item, index) => (
-                <Text
-                  key={`${selected.card.id}-${group}-${index}`}
-                  color={ink}
-                  style={{ fontSize: 12 }}
-                  maxLines={1}
-                  overflow="ellipsis"
-                  modifiers={[height(17)]}
-                >
-                  {item}
-                </Text>
-              ))}
-            </Column>
-          ))}
-          {remaining > 0 && <Text color={muted} style={{ fontSize: 11 }}>{`+${remaining} more`}</Text>}
-        </Column>
-        {following.length > 0 && (
-          <Column modifiers={[padding(0, 12, 0, 0)]}>
-            <Text color={muted} style={{ fontSize: 11 }} modifiers={[padding(0, 0, 0, 6)]}>After this</Text>
-            {following.map((entry) => (
-              <Column key={entry.card.id} modifiers={[padding(0, 0, 0, 8)]}>
-                <Text color={ink} style={{ fontSize: 13, fontWeight: "600" }} maxLines={1} overflow="ellipsis">{entry.card.name}</Text>
-                <Text color={muted} style={{ fontSize: 11 }} maxLines={1}>{`${days[entry.card.day]} · ${entry.card.time}`}</Text>
-              </Column>
-            ))}
-          </Column>
-        )}
       </Column>
-      {windows.length > 1 && (
-        <Box modifiers={[fillMaxSize()]} contentAlignment="bottomStart">
-          <Row verticalAlignment="center" modifiers={[fillMaxWidth()]}>
-            <TextButton onClick={() => move(-1)} colors={{ contentColor: ink, containerColor: buttonSurface }} contentPadding={{ start: 0, end: 0, top: 0, bottom: 0 }} modifiers={[size(40, 36), cornerRadius(18), semantics({ contentDescription: "Previous meal" })]}>
-              <Text>‹</Text>
-            </TextButton>
-            <Text color={muted} style={{ fontSize: 11, textAlign: "center" }} modifiers={[width(Math.max(20, contentWidth - 80))]}>
-              {`${page + 1} / ${windows.length}`}
+      <Column modifiers={[height(compact ? 10 : 16)]} />
+      {Array.from({ length: Math.ceil(items.length / 8) }, (_, group) => (
+        <Column key={group} horizontalAlignment="center">
+          {items.slice(group * 8, group * 8 + 8).map((item, index) => (
+            <Text
+              key={`${group}-${index}`}
+              color={ink}
+              style={{ fontSize: compact ? 12 : expanded ? 16 : 14, textAlign: "center" }}
+              maxLines={1}
+              overflow="ellipsis"
+              modifiers={[fillMaxWidth(), height(rowHeight)]}
+            >
+              {item}
             </Text>
-            <TextButton onClick={() => move(1)} colors={{ contentColor: ink, containerColor: buttonSurface }} contentPadding={{ start: 0, end: 0, top: 0, bottom: 0 }} modifiers={[size(40, 36), cornerRadius(18), semantics({ contentDescription: "Next meal" })]}>
-              <Text>›</Text>
-            </TextButton>
-          </Row>
-        </Box>
-      )}
-    </Box>
+          ))}
+        </Column>
+      ))}
+    </Column>
   );
 };
 

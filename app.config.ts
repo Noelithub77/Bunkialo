@@ -84,7 +84,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
         },
       ],
       // Dangerous mods run in reverse registration order: patch after widget files exist.
-      "./plugins/with-widget-refresh",
+      "./plugins/with-widget-refresh.ts",
       [
         "expo-widgets",
         {
@@ -93,7 +93,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
             {
               name: "BunkialoTimetable",
               displayName: "Timetable",
-              description: "Now and next",
+              description: "Your class and time",
               ios: {
                 supportedFamilies: ["systemSmall", "systemMedium"],
                 contentMarginsDisabled: true,
@@ -101,9 +101,9 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
               },
               android: {
                 targetCellWidth: 2,
-                targetCellHeight: 2,
+                targetCellHeight: 1,
                 minWidth: 150,
-                minHeight: 160,
+                minHeight: 100,
                 resizeMode: "both",
                 initialLayout: "./src/widgets/timetable.android.tsx",
               },
@@ -111,7 +111,7 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
             {
               name: "BunkialoMess",
               displayName: "Mess",
-              description: "Next meal",
+              description: "Meal and menu",
               ios: {
                 supportedFamilies: ["systemSmall", "systemMedium"],
                 contentMarginsDisabled: true,

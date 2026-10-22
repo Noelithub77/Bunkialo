@@ -1,17 +1,23 @@
-# Android home widgets
+# Android home widgets and 1.5.1 release
 
-Adaptive pastel cards [chosen]: compact widgets show one current or next item; larger sizes reveal details. Add matching picker previews.
+Single upcoming item per widget [chosen]. The user replaced the carousel request with a simple upcoming-meal widget using Expo SDK 58 `expo-widgets`. Show centered meal name, time chip and menu; show centered class name and time chip. Use a timetable graphic when height permits. Unsynced timetable opens the timetable instead of claiming there are no classes. Remove redundant next/today labels. Use discrete size breakpoints and bounded resize dimensions. No paging controls, counters, day lists or stacked cards. Tapping the whole widget opens its matching app tab [chosen]: Mess or Timetable, preserving the destination through login. The uncommitted native StackView experiment was removed.
 
-- Completed feedback, notification, scrolling and duty-leave changes are pushed; production updates were published directly with the CLI for all four installed runtimes and verified at Expo's production endpoint.
-- The shipped widget bundle and embedded layouts render successfully in the serialized runtime. The picker has no preview and therefore displays the loading placeholder. Cold native rendering remains under test.
-- Implemented picker previews, explicit initial sync placeholders, native size information and adaptive content. Removed unsupported weight modifiers. Sixteen serialized Android layout and paging checks pass.
-- Android debug build passed (734 tasks). Serialized checks pass. Native preview resources are present in the APK. The local emulator repeatedly exited during visual inspection; cold rendering, controls, resize pixels and screenshots remain under verification.
-- Preparing the user-requested Android 1.5.1 production build and Play submission. Native resources are separate from the already published JavaScript updates.
+- Earlier scrolling, notifications, feedback and attendance fixes were published directly through the CLI to all four installed runtimes and verified at Expo's production endpoint.
+- Vercel uses `main` for production. Deployment `dpl_7BwQh56LRHvudMQH3SwbQEnGsMTo` succeeded; https://bunkialo2.vercel.app returned HTTP 200.
+- Picker previews and adaptive dimensions require the new Android build. Existing installations keep their compatible runtime; 1.5.1 uses `1.5.1-sdk58-widgets-pdf-v1`.
+- Native widget registry inputs include app widget sources to avoid stale incremental builds. Long menus stay below Glance's ten-child container limit.
+- The earlier 1.5.1 release workflow `39750375150` was canceled before building or submitting.
+- Typed plugin configuration/prebuild, typecheck and lint pass. Sixteen serialized checks cover upcoming-item selection, stale paging state, rollover, supported components, container limits and six widget sizes. Light native meal pixels and timetable sync from the real test account were verified. Timetable deep linking preserved the destination through sign-in. Release-build cold launches and replacement 1.5.1 build/Play submission are in progress.
 
-## Carousel follow-up
+- Whole-widget taps use native Glance `actionStartActivity` with explicit app launch intents and distinct deep-link data; the typed plugin supplies per-widget URLs through application metadata.
 
-- Full-week paging replaces the five-item limit. Footer controls use explicit widths and bottom alignment because the Android bridge ignores Compose space-between and spaced-by arrangements.
-- Menu rows use the widget height; larger cards show following items when space permits. Menus are grouped below Glance's ten-child container limit.
-- Added app widget sources and menu data to the native registry task inputs so incremental builds cannot reuse obsolete layouts.
-- Frozen install, 633 unit tests, typecheck and lint pass (existing lint warnings remain). Eighteen serialized widget checks cover full-week navigation, adaptive details and native container limits. Android debug build passes; cold Mess rendering and live button paging pass on the isolated emulator. Compact and timetable pixels remain under verification.
-- Vercel main production deployment succeeded: dpl_7BwQh56LRHvudMQH3SwbQEnGsMTo, https://bunkialo2.vercel.app returns HTTP 200.
+The colour question is optional; no answer has arrived, so the proposed app-purple/class and warm/meal palette is the working default.
+
+## Primary guidance checked
+
+- https://docs.expo.dev/versions/latest/sdk/widgets/ — `createWidget`, `widget` directive, TSX Expo UI components and supported Android modifiers. Android environment only documents `colorScheme`; the existing dimension bridge supplies actual width/height.
+- https://developer.android.com/docs/quality-guidelines/widget-quality — rearrange useful content at size breakpoints, avoid linear text scaling, cap sizes that only add blank space, and provide accurate picker previews.
+- https://developer.android.com/develop/ui/views/appwidgets/layouts — native responsive sizing and minimum/maximum resize dimensions.
+- https://docs.expo.dev/config-plugins/plugins/ — typed config plugin conventions. Verified this erasable TypeScript plugin with the project's pinned Node 24 using actual Expo config and prebuild; no parser dependency was added.
+
+- https://developer.android.com/develop/ui/compose/glance/user-interaction — native activity actions open the app directly without receiver/service trampolines.
