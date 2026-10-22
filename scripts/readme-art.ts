@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { chromium, type Page } from "playwright";
 
 const url = process.argv[2] ?? "http://127.0.0.1:4180/";
-const root = join(import.meta.dir, "..");
+const root = join(import.meta.dir, "..", "bunkialo-landing");
 const out = join(root, "..", "assets", "readme");
 const fonts = { nunito: join(root, "../assets/landing/fonts/nunito.woff2"), hand: join(root, "../assets/landing/fonts/excalifont.woff2") };
 const scenes = ["name", "bunks", "portals", "wifix", "agent"];

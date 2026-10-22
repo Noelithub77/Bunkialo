@@ -259,7 +259,7 @@ The animated SVGs in this README are exported from the landing page's own scenes
 
 ```sh
 bun run build && bunx vite preview --port 4180 &
-bun scripts/readme-art.ts
+bun ../scripts/readme-art.ts
 ```
 
 See [`bunkialo-landing/README.md`](bunkialo-landing/README.md) for media and deployment.
