@@ -104,6 +104,7 @@
   "patchedDependencies": {
     "react-native-css-interop@0.2.1": "patches/react-native-css-interop@0.2.1.patch",
     "expo-widgets@58.0.9": "patches/expo-widgets@58.0.9.patch",
+    "react-native-tab-view@4.2.2": "patches/react-native-tab-view@4.2.2.patch",
   },
   "packages": {
     "2g": ["2g@0.4.4", "", { "peerDependencies": { "typescript": ">=5.8.0" }, "optionalPeers": ["typescript"], "bin": { "2g": "bin/cli.js" } }, "sha512-ZwH02IRQicm+92YzJZMS8imSAJaqTPI+VASb1zMnisotnWcEP4e7nb57Mr8C2dGAA5G8ZmialbMmpkGLWgAY/w=="],

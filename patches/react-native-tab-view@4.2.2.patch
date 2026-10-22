@@ -1,0 +1,144 @@
+diff --git a/node_modules/react-native-tab-view/.bun-tag-26ea829671a39662 b/.bun-tag-26ea829671a39662
+new file mode 100644
+index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
+diff --git a/lib/module/PagerViewAdapter.js b/lib/module/PagerViewAdapter.js
+index 398a63d05ed279e9fc5b55a69f4104742d4379c2..ef14f70a66dd1055f53b2c2dec4e181e9538fa37 100644
+--- a/lib/module/PagerViewAdapter.js
++++ b/lib/module/PagerViewAdapter.js
+@@ -1,7 +1,7 @@
+ "use strict";
+ 
+ import * as React from 'react';
+-import { Animated, Keyboard, Platform, StyleSheet } from 'react-native';
++import { Animated, Keyboard, Platform, StyleSheet, View } from 'react-native';
+ import ViewPager from 'react-native-pager-view';
+ import useLatestCallback from 'use-latest-callback';
+ import { useAnimatedValue } from "./useAnimatedValue.js";
+@@ -28,6 +28,18 @@ export function PagerViewAdapter({
+   const pagerRef = React.useRef(null);
+   const indexRef = React.useRef(index);
+   const navigationStateRef = React.useRef(navigationState);
++  const settleCorrectionRef = React.useRef(false);
++  const [isPagerMoving, setIsPagerMoving] = React.useState(false);
++  const scrollStateRef = React.useRef('idle');
++  // react-native-pager-view 9 (Compose) catches a touch during its settle animation as a
++  // new drag. If a scene's scroll view then takes that touch, the pager never sees it end
++  // and stays between pages. Scenes ignore touches until the pager is idle, so such a
++  // touch always reaches the pager, and an idle pager is re-targeted at the selected page;
++  // the idle caused by that correction is skipped.
++  const settlePager = () => {
++    settleCorrectionRef.current = true;
++    pagerRef.current?.setPage(indexRef.current);
++  };
+   const position = useAnimatedValue(index);
+   const offset = useAnimatedValue(0);
+   React.useEffect(() => {
+@@ -60,11 +72,22 @@ export function PagerViewAdapter({
+     const {
+       pageScrollState
+     } = state.nativeEvent;
++    scrollStateRef.current = pageScrollState;
++    setIsPagerMoving(pageScrollState !== 'idle');
+     switch (pageScrollState) {
+       case 'idle':
+         onSwipeEnd?.();
++        if (settleCorrectionRef.current) {
++          settleCorrectionRef.current = false;
++        } else {
++          // Let a page selection from the same gesture land first.
++          setTimeout(() => {
++            if (scrollStateRef.current === 'idle') settlePager();
++          }, 50);
++        }
+         return;
+       case 'dragging':
++        settleCorrectionRef.current = false;
+         {
+           const subscription = offset.addListener(({
+             value
+@@ -118,7 +141,12 @@ export function PagerViewAdapter({
+       },
+       onPageScrollStateChanged: onPageScrollStateChanged,
+       scrollEnabled: swipeEnabled,
+-      children: children
++      children: React.Children.map(children, child => /*#__PURE__*/_jsx(View, {
++        collapsable: false,
++        pointerEvents: isPagerMoving ? 'none' : 'auto',
++        style: styles.container,
++        children: child
++      }, /*#__PURE__*/React.isValidElement(child) ? child.key : undefined))
+     })
+   });
+ }
+diff --git a/src/PagerViewAdapter.tsx b/src/PagerViewAdapter.tsx
+index d4a0a0efaaa142c9193a00a4ae5743457194409f..b70f1f271410a36b1eb57367497f3652f05e8289 100644
+--- a/src/PagerViewAdapter.tsx
++++ b/src/PagerViewAdapter.tsx
+@@ -1,5 +1,5 @@
+ import * as React from 'react';
+-import { Animated, Keyboard, Platform, StyleSheet } from 'react-native';
++import { Animated, Keyboard, Platform, StyleSheet, View } from 'react-native';
+ import ViewPager, {
+   type PageScrollStateChangedNativeEvent,
+ } from 'react-native-pager-view';
+@@ -58,6 +58,18 @@ export function PagerViewAdapter<T extends Route>({
+   const indexRef = React.useRef<number>(index);
+   const navigationStateRef = React.useRef(navigationState);
+ 
++  const settleCorrectionRef = React.useRef(false);
++  const [isPagerMoving, setIsPagerMoving] = React.useState(false);
++  const scrollStateRef = React.useRef<string>('idle');
++  // react-native-pager-view 9 (Compose) catches a touch during its settle animation as a
++  // new drag. If a scene's scroll view then takes that touch, the pager never sees it end
++  // and stays between pages. Scenes ignore touches until the pager is idle, so such a
++  // touch always reaches the pager, and an idle pager is re-targeted at the selected page;
++  // the idle caused by that correction is skipped.
++  const settlePager = () => {
++    settleCorrectionRef.current = true;
++    pagerRef.current?.setPage(indexRef.current);
++  };
+   const position = useAnimatedValue(index);
+   const offset = useAnimatedValue(0);
+ 
+@@ -100,11 +112,22 @@ export function PagerViewAdapter<T extends Route>({
+   ) => {
+     const { pageScrollState } = state.nativeEvent;
+ 
++    scrollStateRef.current = pageScrollState;
++    setIsPagerMoving(pageScrollState !== 'idle');
+     switch (pageScrollState) {
+       case 'idle':
+         onSwipeEnd?.();
++        if (settleCorrectionRef.current) {
++          settleCorrectionRef.current = false;
++        } else {
++          // Let a page selection from the same gesture land first.
++          setTimeout(() => {
++            if (scrollStateRef.current === 'idle') settlePager();
++          }, 50);
++        }
+         return;
+-      case 'dragging': {
++      case 'dragging':
++        settleCorrectionRef.current = false; {
+         const subscription = offset.addListener(({ value }) => {
+           const next =
+             index + (value > 0 ? Math.ceil(value) : Math.floor(value));
+@@ -172,7 +195,16 @@ export function PagerViewAdapter<T extends Route>({
+         onPageScrollStateChanged={onPageScrollStateChanged}
+         scrollEnabled={swipeEnabled}
+       >
+-        {children}
++        {React.Children.map(children, (child) => (
++          <View
++            key={React.isValidElement(child) ? child.key : undefined}
++            collapsable={false}
++            pointerEvents={isPagerMoving ? 'none' : 'auto'}
++            style={styles.container}
++          >
++            {child}
++          </View>
++        ))}
+       </AnimatedViewPager>
+     ),
+   });
