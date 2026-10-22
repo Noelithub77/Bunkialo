@@ -8,7 +8,7 @@ import {
   type FeedbackFormState,
 } from "@/services/feedback-form";
 import { isAxiosError } from "axios";
-import { submitFeedbackWithTransport } from "@/services/feedback-submission";
+import { FeedbackRequestError, submitFeedbackWithTransport } from "@/services/feedback-submission";
 import { isLoginHtml } from "@/utils/moodle-url";
 
 export interface CourseFeedbackForm {
@@ -22,9 +22,9 @@ const RETRY_DELAYS_MS = [700, 1600];
 const feedbackRequestError = (error: unknown, stage: string): Error => {
   if (isAxiosError(error)) {
     const status = error.response?.status;
-    return new Error(status
+    return new FeedbackRequestError(status
       ? `${stage}: LMS returned ${status}. Retry with a fresh form.`
-      : `${stage}: connection interrupted. Check status and retry.`);
+      : `${stage}: connection interrupted. Check status and retry.`, status);
   }
   return error instanceof Error ? error : new Error(`${stage} failed`);
 };
@@ -78,6 +78,7 @@ export const checkCourseFeedback = async (
 export const submitFeedback = async (
   viewUrl: string,
   answers: FeedbackAnswers,
+  onRetry?: (attempt: number) => void,
 ): Promise<"done"> => {
   return submitFeedbackWithTransport(viewUrl, answers, {
     get: getPage,
@@ -92,5 +93,5 @@ export const submitFeedback = async (
         throw feedbackRequestError(error, "Submitting answers");
       }
     },
-  });
+  }, onRetry);
 };

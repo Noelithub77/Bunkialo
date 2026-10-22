@@ -6,13 +6,23 @@ import {
   type FeedbackAnswers,
 } from "@/services/feedback-form";
 
+export class FeedbackRequestError extends Error {
+  constructor(message: string, readonly status?: number) {
+    super(message);
+    this.name = "FeedbackRequestError";
+  }
+  get retryable(): boolean {
+    return this.status === undefined || [404, 408, 409, 429].includes(this.status) || this.status >= 500;
+  }
+}
+
 interface FeedbackTransport {
   get: (url: string) => Promise<string>;
   post: (url: string, body: string) => Promise<string>;
 }
 
 /** A failed POST is verified, never blindly replayed. A retry starts with a fresh form. */
-export async function submitFeedbackWithTransport(
+async function submitAttempt(
   viewUrl: string,
   answers: FeedbackAnswers,
   transport: FeedbackTransport,
@@ -44,7 +54,31 @@ export async function submitFeedbackWithTransport(
   // A network failure can happen after the LMS saved the response.
   const state = getFeedbackState(await transport.get(viewUrl));
   if (state === "done") return "done";
-  if (submissionError instanceof Error) throw submissionError;
+  if (submissionError instanceof Error) {
+    // A new POST is allowed only after the LMS explicitly reports pending.
+    if (state === "pending") throw submissionError;
+    throw new Error(`${submissionError.message}. Completion could not be verified; check status.`);
+  }
   if (state === "pending") throw new Error("Still pending on the LMS. Retry to use a fresh form.");
   throw new Error("Completion could not be verified. Check status before retrying.");
+}
+
+export async function submitFeedbackWithTransport(
+  viewUrl: string,
+  answers: FeedbackAnswers,
+  transport: FeedbackTransport,
+  onRetry?: (attempt: number) => void,
+  wait: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+): Promise<"done"> {
+  const delays = [1500, 3000, 6000];
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await submitAttempt(viewUrl, answers, transport);
+    } catch (error) {
+      const delay = delays[attempt];
+      if (!(error instanceof FeedbackRequestError) || !error.retryable || delay === undefined) throw error;
+      onRetry?.(attempt + 2);
+      await wait(delay);
+    }
+  }
 }

@@ -28,6 +28,7 @@ const STATUS_PRESENTATION: Record<
   unknown: { label: "Not checked", color: Colors.gray[500] },
   checking: { label: "Checking", color: Colors.status.info, busy: true },
   pending: { label: "Pending", color: Colors.status.warning },
+  retrying: { label: "Retrying", color: Colors.status.info, busy: true },
   submitting: { label: "Submitting", color: Colors.status.info, busy: true },
   verifying: { label: "Verifying", color: Colors.status.info, busy: true },
   done: { label: "Done", color: Colors.status.success },
@@ -133,7 +134,7 @@ export default function CourseFeedbackScreen() {
   const doneCount = entries.filter((entry) => entry.status === "done").length;
   const busy = activity !== "idle";
   const inFlight = entries.filter((entry) =>
-    ["submitting", "verifying"].includes(entry.status),
+    ["submitting", "retrying", "verifying"].includes(entry.status),
   ).length;
 
   useEffect(() => {
@@ -284,7 +285,7 @@ export default function CourseFeedbackScreen() {
                                 : theme.textSecondary,
                           }}
                         >
-                          {entry.status === "failed" || entry.message === "Interrupted"
+                          {entry.status === "failed" || entry.status === "retrying" || entry.message === "Interrupted"
                             ? (entry.message ?? extractCourseCode(entry.name))
                             : `${extractCourseCode(entry.name)}${override ? ` · Rating ${override.grade}` : ""}`}
                         </Text>

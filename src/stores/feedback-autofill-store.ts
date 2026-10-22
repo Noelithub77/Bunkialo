@@ -13,6 +13,7 @@ export type CourseFeedbackStatus =
   | "unknown"
   | "checking"
   | "pending"
+  | "retrying"
   | "submitting"
   | "verifying"
   | "done"
@@ -53,9 +54,9 @@ interface FeedbackAutofillState {
 }
 
 const CONCURRENCY = 3;
-const TRANSIENT: CourseFeedbackStatus[] = ["checking", "submitting", "verifying"];
+const TRANSIENT: CourseFeedbackStatus[] = ["checking", "submitting", "retrying", "verifying"];
 
-const runPool = async <T>(items: T[], task: (item: T) => Promise<void>) => {
+const runPool = async <T>(items: T[], task: (item: T) => Promise<void>, concurrency = CONCURRENCY) => {
   let next = 0;
   const worker = async () => {
     while (next < items.length) {
@@ -65,7 +66,7 @@ const runPool = async <T>(items: T[], task: (item: T) => Promise<void>) => {
     }
   };
   await Promise.all(
-    Array.from({ length: Math.min(CONCURRENCY, items.length) }, worker),
+    Array.from({ length: Math.min(concurrency, items.length) }, worker),
   );
 };
 
@@ -211,13 +212,15 @@ export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
               update(courseId, { status: "submitting", message: null });
               try {
                 for (const url of entry.formUrls) {
-                  await submitFeedback(url, answers);
+                  await submitFeedback(url, answers, (attempt) =>
+                    update(courseId, { status: "retrying", message: `Attempt ${attempt} of 4` }),
+                  );
                 }
                 update(courseId, { status: "verifying" });
               } catch (error) {
                 update(courseId, { status: "failed", message: errorMessage(error) });
               }
-            });
+            }, 1);
 
             // Final pass: trust only what the LMS reports after every submission.
             set({ activity: "verifying" });

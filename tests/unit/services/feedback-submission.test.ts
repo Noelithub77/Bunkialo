@@ -47,3 +47,34 @@ test("completed feedback never submits and a closed form never counts as verifie
     post: async () => "Saved",
   })).rejects.toThrow("could not be verified");
 });
+
+test("transient 404s retry at most four times with fresh forms and increasing delays", async () => {
+  const { FeedbackRequestError } = await import("@/services/feedback-submission");
+  let posts = 0;
+  let formReads = 0;
+  const attempts: number[] = [];
+  const delays: number[] = [];
+  const transport = {
+    get: async (url: string) => url === viewUrl ? (posts === 4 ? done : pending) : (formReads++, form),
+    post: async () => { if (++posts < 4) throw new FeedbackRequestError("Submitting answers: LMS returned 404", 404); return done; },
+  };
+  expect(await submitFeedbackWithTransport(viewUrl, answers, transport,
+    (attempt) => { attempts.push(attempt); }, async (ms) => { delays.push(ms); },
+  )).toBe("done");
+  expect(posts).toBe(4);
+  expect(formReads).toBe(4);
+  expect(attempts).toEqual([2, 3, 4]);
+  expect(delays).toEqual([1500, 3000, 6000]);
+});
+
+test("persistent transient failures stop after four attempts and validation errors never retry", async () => {
+  const { FeedbackRequestError } = await import("@/services/feedback-submission");
+  for (const [status, expectedPosts] of [[429, 4], [400, 1]]) {
+    let posts = 0;
+    await expect(submitFeedbackWithTransport(viewUrl, answers, {
+      get: async (url) => url === viewUrl ? pending : form,
+      post: async () => { posts++; throw new FeedbackRequestError(`LMS returned ${status}`, status); },
+    }, undefined, async () => {})).rejects.toThrow(`LMS returned ${status}`);
+    expect(posts).toBe(expectedPosts);
+  }
+});
