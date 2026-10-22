@@ -20,6 +20,7 @@ import React from "react";
 import {
   Linking,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -27,6 +28,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface NoticesModalProps {
   anchorRef: React.RefObject<React.ComponentRef<typeof View> | null>;
@@ -44,7 +46,13 @@ const makePortalUrl = (link: string): string =>
 export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps) {
   const isDark = useColorScheme() === "dark";
   const theme = isDark ? Colors.dark : Colors.light;
+  const insets = useSafeAreaInsets();
   const { style: placement } = useNotificationPlacement(visible, anchorRef);
+  // Android keeps the full-height inbox under the header; the bell-anchored sheet is web-only.
+  const panelLayout =
+    Platform.OS === "web"
+      ? [placement, { height: Math.min(600, placement.maxHeight) }]
+      : { flex: 1, marginHorizontal: 12, marginTop: 56, marginBottom: insets.bottom + 14 };
   const [concern, setConcern] = React.useState<NotificationConcern>("all");
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [clearTarget, setClearTarget] = React.useState<ClearTarget | null>(
@@ -233,15 +241,17 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
           <View
             className="flex-1"
             style={{
-              backgroundColor: "rgba(0,0,0,0.28)",
+              backgroundColor:
+                isDark && Platform.OS !== "web"
+                  ? "rgba(0,0,0,0.82)"
+                  : "rgba(0,0,0,0.28)",
             }}
           >
             <Pressable className="absolute inset-0" onPress={onClose} />
             <View
               testID="notification-inbox-panel"
               className="overflow-hidden rounded-[28px] border"
-              style={[placement, {
-                height: Math.min(600, placement.maxHeight),
+              style={[panelLayout, {
                 backgroundColor: theme.background,
                 borderColor: theme.border,
               }]}
