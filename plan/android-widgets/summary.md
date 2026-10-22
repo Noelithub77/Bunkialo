@@ -35,4 +35,7 @@
 
 - [chosen] Match the timetable card: use its course-coloured gradient stops, plain secondary time text and no decorative grid icon or filled pill. Continue reading the saved course colour.
 - Version gradient cache filenames so existing widgets cannot reuse the previous glow artwork. Meal widgets retain their existing design.
-- Typecheck, 110 unit tests and 20 serialized widget checks pass. Lint passes with existing warnings. Publish directly through the CLI for the installed 1.5.1 runtime and verify the downloaded layout on Android.
+- Typecheck, 110 unit tests and 20 serialized widget checks pass. Lint passes with existing warnings. Published directly through the CLI for the installed 1.5.1 runtime; verified the downloaded layout on Android.
+
+- Course-colour update group `39997539-9aff-4081-8162-2a812e4740b3`, Android update `01a1642f-b127-7548-ab77-81e1d777ecfb`, code commit `10376d9`. The production manifest returned HTTP 200 with the exact update and runtime.
+- Installed 1.5.1 (68) downloaded and cold-launched that update: one successful launch, zero failed launches. Existing compact and tall placements show the new layout in both appearances. Stored widget props use the new course gradient cache, and stored layout contains no grid icon. Evidence: `artifacts/ota-course-colours/`.
