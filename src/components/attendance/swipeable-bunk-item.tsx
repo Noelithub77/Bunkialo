@@ -227,7 +227,7 @@ export function SwipeableBunkItem({
                 )}
               </View>
 
-              {bunk.source === "manual" && (
+              {bunk.source === "user" && (
                 <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: theme.backgroundSecondary }}>
                   <Text className="text-[10px] font-medium" style={{ color: theme.textSecondary }}>Manual</Text>
                 </View>
