@@ -151,6 +151,27 @@ try {
       }
       checks++;
     }
+    const luminance = (hex) => {
+      const channels = [1, 3, 5].map((index) => Number.parseInt(hex.slice(index, index + 2), 16) / 255)
+        .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+      return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    for (const name of ["BunkialoMess", "BunkialoTimetable"]) {
+      load(name);
+      for (const color of ["#62df15", "#1be7a3", "#b16d07", "#6d20b0", "#F87171", "#A78BFA", "#000000", "#FFFFFF"]) {
+        const props = { ...classes, cards: classes.cards.map((card) => ({ ...card, color })) };
+        for (const scheme of ["light", "dark"]) {
+          const tree = render(props, scheme);
+          assert.ok(JSON.stringify(tree).includes(color), "Use the selected content colour");
+          const time = nodes(tree).find((node) => node.type === "TextView" && node.props.text === "9am–10am");
+          assert.ok(time);
+          const light = Math.max(luminance(color), luminance(time.props.color));
+          const dark = Math.min(luminance(color), luminance(time.props.color));
+          assert.ok((light + 0.05) / (dark + 0.05) >= 4.5, "Time chip needs readable contrast for every accent");
+        }
+      }
+      checks++;
+    }
     console.log(`${platform}: widget rendering, selection and sizes passed`);
   }
   console.log(`${checks} native widget checks passed`);

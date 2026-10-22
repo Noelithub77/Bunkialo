@@ -43,15 +43,25 @@ export const WidgetLayout = (
     (widgetHeight - inset * 2 - (showIcon ? 80 : 0) - 44) / (titleSize * 1.3),
   )));
   const dark = environment.colorScheme === "dark";
-  const ink = dark ? "#F2E9FF" : "#35205A";
-  const muted = dark ? "#D3B9F7" : "#69439B";
-  const accent = dark ? "#D3B9F7" : "#7046A5";
-  const chip = dark ? "#463258" : "#DECEF3";
+  const rawColor = selected?.card.color ?? "#A78BFA";
+  const seed = /^#[\da-f]{6}$/i.test(rawColor) ? rawColor : "#A78BFA";
+  const channels = [1, 3, 5].map((index) => Number.parseInt(seed.slice(index, index + 2), 16));
+  const surface = "#" + channels.map((channel) => Math.round(
+    (dark ? 18 : 255) * (dark ? 0.66 : 0.74) + channel * (dark ? 0.34 : 0.26),
+  ).toString(16).padStart(2, "0")).join("");
+  const linear = channels.map((channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+  const chip = seed;
+  const muted = (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? "#000000" : "#FFFFFF";
+  const ink = dark ? "#F8F5FC" : "#241E2B";
   return (
     <Column
       modifiers={[
         fillMaxSize(),
-        background(dark ? "#2F2341" : "#EEE5FC"),
+        background(surface),
         cornerRadius(24),
         paddingAll(inset),
       ]}
@@ -64,7 +74,7 @@ export const WidgetLayout = (
         verticalArrangement="center"
       >
         <Row modifiers={[padding(0, 0, 0, 5)]}>
-          <Text color={accent} style={{ fontSize: 19, fontWeight: "700" }}>▦</Text>
+          <Text color={muted} style={{ fontSize: 19, fontWeight: "700" }}>▦</Text>
         </Row>
       </Column>}
       <Text

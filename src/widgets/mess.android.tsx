@@ -38,9 +38,20 @@ export const WidgetLayout = (
   const expanded = widgetWidth >= 260 && widgetHeight >= 260;
   const inset = compact ? 12 : 16;
   const dark = environment.colorScheme === "dark";
-  const ink = dark ? "#FFEDD3" : "#4C2E16";
-  const muted = dark ? "#F0C894" : "#81501F";
-  const chip = dark ? "#5A3C25" : "#F2D9B4";
+  const rawColor = selected?.card.color ?? "#F59E0B";
+  const seed = /^#[\da-f]{6}$/i.test(rawColor) ? rawColor : "#F59E0B";
+  const channels = [1, 3, 5].map((index) => Number.parseInt(seed.slice(index, index + 2), 16));
+  const surface = "#" + channels.map((channel) => Math.round(
+    (dark ? 18 : 255) * (dark ? 0.66 : 0.74) + channel * (dark ? 0.34 : 0.26),
+  ).toString(16).padStart(2, "0")).join("");
+  const linear = channels.map((channel) => {
+    const value = channel / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+  const chip = seed;
+  const muted = (luminance + 0.05) / 0.05 >= 1.05 / (luminance + 0.05) ? "#000000" : "#FFFFFF";
+  const ink = dark ? "#F8F5FC" : "#241E2B";
   const minRowHeight = compact ? 18 : expanded ? 22 : 21;
   const availableHeight = Math.max(minRowHeight, widgetHeight - inset * 2 - (compact ? 76 : 92));
   const capacity = Math.max(1, Math.floor(availableHeight / minRowHeight));
@@ -50,7 +61,7 @@ export const WidgetLayout = (
     <Column
       modifiers={[
         fillMaxSize(),
-        background(dark ? "#382B20" : "#FFF0D9"),
+        background(surface),
         cornerRadius(24),
         paddingAll(inset),
       ]}

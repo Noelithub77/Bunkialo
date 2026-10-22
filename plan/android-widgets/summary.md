@@ -6,12 +6,13 @@ Single upcoming item per widget [chosen]. The user replaced the carousel request
 - Vercel uses `main` for production. Deployment `dpl_7BwQh56LRHvudMQH3SwbQEnGsMTo` succeeded; https://bunkialo2.vercel.app returned HTTP 200.
 - Picker previews and adaptive dimensions require the new Android build. Existing installations keep their compatible runtime; 1.5.1 uses `1.5.1-sdk58-widgets-pdf-v1`.
 - Native widget registry inputs include app widget sources to avoid stale incremental builds. Long menus stay below Glance's ten-child container limit.
+- Fixed-palette run `39759536229` was canceled during build before submission when the user selected content-derived dynamic colours.
 - The earlier 1.5.1 release workflow `39750375150` was canceled before building or submitting.
-- Typed plugin configuration/prebuild, typecheck and lint pass. Sixteen serialized checks cover upcoming-item selection, stale paging state, rollover, supported components, container limits and six widget sizes. Light native meal pixels and timetable sync from the real test account were verified. Timetable deep linking preserved the destination through sign-in. Release-build cold launches and replacement 1.5.1 build/Play submission are in progress.
+- Typed plugin configuration/prebuild, typecheck and lint pass. Eighteen serialized checks cover upcoming-item selection, stale paging state, rollover, supported components, container limits and six widget sizes plus accent contrast. Light native meal pixels and timetable sync from the real test account were verified. Timetable deep linking preserved the destination through sign-in. Release-build cold launches and replacement 1.5.1 build/Play submission are in progress.
 
 - Whole-widget taps use native Glance `actionStartActivity` with explicit app launch intents and distinct deep-link data; the typed plugin supplies per-widget URLs through application metadata.
 
-The colour question is optional; no answer has arrived, so the proposed app-purple/class and warm/meal palette is the working default.
+Content-derived dynamic colours [chosen]: the user explicitly rejected wallpaper colours. Course configuration drives class colour; meal category drives meal colour. Surfaces are derived from each seed, with black/white chip text selected by contrast.
 
 ## Primary guidance checked
 
