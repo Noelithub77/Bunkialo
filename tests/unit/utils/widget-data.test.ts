@@ -60,7 +60,19 @@ describe("home widget data", () => {
     const props = buildMessWidgetProps();
     expect(props.cards).toHaveLength(28);
     expect(props.cards.every((card) => card.items.length > 0)).toBe(true);
-    expect(getWidgetBoundaries(props.cards)).toHaveLength(56);
+    // 56 meal starts and ends plus a midnight redraw for each day label.
+    const boundaries = getWidgetBoundaries(props.cards);
+    expect(boundaries).toHaveLength(63);
+    expect(boundaries.filter((minute) => minute % 1440 === 0)).toHaveLength(7);
+  });
+
+  test("explains an empty timetable", () => {
+    expect(buildTimetableWidgetProps([], [], {}, false).emptyMessage).toBe(
+      "Sign in to see your classes",
+    );
+    expect(buildTimetableWidgetProps([], [], {}).emptyMessage).toBe(
+      "No classes this week",
+    );
   });
 
   test("schedules India-time boundaries and repeats through a week rollover", () => {

@@ -45,8 +45,16 @@ const withWidgetRefresh: ConfigPlugin = (config) => {
         const resources = path.dirname(root);
         await fs.mkdir(path.join(resources, "layout"), { recursive: true });
         await fs.mkdir(path.join(resources, "drawable"), { recursive: true });
-        await fs.writeFile(path.join(resources, "drawable", `bunkialo_${kind}_surface.xml`),
-          `<shape xmlns:android="http://schemas.android.com/apk/res/android"><solid android:color="${kind === "mess" ? "#C4F9E7" : "#E8E1FE"}"/><corners android:radius="24dp"/></shape>`);
+        for (const dark of [false, true]) {
+          const drawable = path.join(resources, dark ? "drawable-night" : "drawable");
+          const values = path.join(resources, dark ? "values-night" : "values");
+          await fs.mkdir(drawable, { recursive: true });
+          await fs.mkdir(values, { recursive: true });
+          await fs.writeFile(path.join(drawable, `bunkialo_${kind}_surface.xml`),
+            `<shape xmlns:android="http://schemas.android.com/apk/res/android"><gradient android:angle="315" android:startColor="${dark ? kind === "mess" ? "#20352D" : "#30283F" : kind === "mess" ? "#E1F1E9" : "#EEE7F9"}" android:endColor="${dark ? "#050505" : "#EFEFEF"}"/><corners android:radius="24dp"/></shape>`);
+          await fs.writeFile(path.join(values, `bunkialo_${kind}_colors.xml`),
+            `<resources><color name="bunkialo_${kind}_ink">${dark ? "#FAFAFA" : "#171717"}</color><color name="bunkialo_${kind}_muted">${dark ? "#A3A3A3" : "#525252"}</color></resources>`);
+        }
         const layout = (preview: boolean) => `<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent" android:layout_height="match_parent"
@@ -54,11 +62,11 @@ const withWidgetRefresh: ConfigPlugin = (config) => {
   android:background="@drawable/bunkialo_${kind}_surface">
   <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
     android:text="${preview ? kind === "mess" ? "Lunch" : "Your class" : kind === "mess" ? "Mess menu" : "Timetable"}"
-    android:gravity="center" android:textColor="#241E2B" android:textStyle="bold" android:textSize="28sp" android:maxLines="2"/>
+    android:gravity="center" android:textColor="@color/bunkialo_${kind}_ink" android:textStyle="bold" android:textSize="28sp" android:maxLines="2"/>
   <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp"
-    android:text="${preview ? kind === "mess" ? "12pm–2:30pm" : "9am–10:30am" : kind === "mess" ? "Open menu" : "Open timetable"}"
-    android:gravity="center" android:textColor="#241E2B" android:textSize="14sp"/>
-  ${preview && kind === "mess" ? '<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Rice · Roti · Curry" android:gravity="center" android:textColor="#241E2B" android:textSize="12sp"/>' : ""}
+    android:text="${preview ? kind === "mess" ? "12pm–2:30pm" : "9am–10:30am" : kind === "mess" ? "Syncing menu" : "Syncing classes"}"
+    android:gravity="center" android:textColor="@color/bunkialo_${kind}_muted" android:textSize="14sp"/>
+  ${preview && kind === "mess" ? '<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Rice · Roti · Curry" android:gravity="center" android:textColor="@color/bunkialo_mess_muted" android:textSize="12sp"/>' : ""}
 </LinearLayout>`;
         for (const preview of [false, true]) {
           await fs.writeFile(path.join(resources, "layout", `bunkialo_${kind}_${preview ? "preview" : "initial"}.xml`), layout(preview));

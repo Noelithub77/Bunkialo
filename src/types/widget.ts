@@ -8,6 +8,9 @@ export interface WidgetCard {
   color: string;
   lightBackground: string;
   darkBackground: string;
+  /** File URIs of the generated gradient images (Android). */
+  darkBackgroundImage?: string;
+  lightBackgroundImage?: string;
   items: string[];
 }
 
@@ -16,4 +19,6 @@ export interface ScheduleWidgetProps {
   page: number;
   anchor: number;
   utcOffsetMinutes: number;
+  /** Shown when there are no cards, e.g. while signed out. */
+  emptyMessage?: string;
 }

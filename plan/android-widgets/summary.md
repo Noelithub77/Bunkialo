@@ -22,3 +22,11 @@ Content-derived dynamic colours [chosen]: the user explicitly rejected wallpaper
 - https://docs.expo.dev/config-plugins/plugins/ — typed config plugin conventions. Verified this erasable TypeScript plugin with the project's pinned Node 24 using actual Expo config and prebuild; no parser dependency was added.
 
 - https://developer.android.com/develop/ui/compose/glance/user-interaction — native activity actions open the app directly without receiver/service trampolines.
+
+## Final gradient revision
+
+- Bunkialo gradients [chosen]: course and meal accents glow over a black gradient in dark mode and a pale neutral gradient in light mode. Content stays centered and tap destinations remain Mess and Timetable.
+- Empty timetable text now distinguishes signed-out and no-class states; it no longer displays an action label as content. Midnight joins class and meal refresh boundaries.
+- Optimised release verification exposed two native issues: WorkManager constructors removed by R8 and Peek rejecting renamed Glance node classes. The Expo build-properties configuration preserves those constructors and Glance class names. Peek 0.3.0 checks `node.javaClass.name.startsWith("androidx.glance.")`; verified against its compiled dependency and upstream source.
+- Production run `39760709472` was canceled before release/submission so it cannot ship the superseded layout or native optimisation failure.
+- Typecheck, lint and 109 unit tests pass; 20 serialized widget checks pass. Final release rebuild and on-device gradient verification are in progress, limited to two workers, two CPU cores and a 2 GB Java heap with Kotlin in-process. The emulator remains running.

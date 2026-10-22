@@ -101,6 +101,23 @@ try {
     checks++;
     assert.notEqual(JSON.stringify(render(classes)), JSON.stringify(render(classes, "dark")));
     checks++;
+    const withImages = {
+      ...classes,
+      cards: classes.cards.map((card) => ({
+        ...card,
+        darkBackgroundImage: "file:///widgets/dark.png",
+        lightBackgroundImage: "file:///widgets/light.png",
+      })),
+    };
+    for (const [scheme, uri] of [["dark", "file:///widgets/dark.png"], ["light", "file:///widgets/light.png"]]) {
+      const images = nodes(render(withImages, scheme)).filter((node) => node.type === "ImageView");
+      assert.equal(images.length, 1, "Draw the gradient behind the content");
+      assert.equal(images[0].props.source.uri, uri, "Use the gradient for the current theme");
+    }
+    checks++;
+    const empty = texts(render({ ...registry.BunkialoTimetable.initialProps, emptyMessage: "No classes this week" }));
+    assert.ok(empty.includes("No classes this week") && !empty.includes("Open timetable"));
+    checks++;
     timestamp = Date.parse("2026-10-01T05:01:00Z");
     assert.ok(texts(render(classes)).includes("Design"));
     checks++;
@@ -140,7 +157,7 @@ try {
       }
     }
     checks++;
-    const allowed = new Set(["ColumnView", "RowView", "TextView"]);
+    const allowed = new Set(["BoxView", "ColumnView", "ImageView", "RowView", "TextView"]);
     for (const name of ["BunkialoMess", "BunkialoTimetable"]) {
       load(name);
       const props = name === "BunkialoMess" ? meals : classes;

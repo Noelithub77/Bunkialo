@@ -129,7 +129,19 @@ export default ({ config }: { config: ExpoConfig }): ExpoConfig => {
           ],
         },
       ],
-      "expo-build-properties",
+      [
+        "expo-build-properties",
+        {
+          android: {
+            // WorkManager uses reflection; Peek validates Glance nodes by package name.
+            extraProguardRules: [
+              "-keepnames class androidx.glance.**",
+              "-keep class * extends androidx.work.InputMerger { <init>(); }",
+              "-keep class * extends androidx.work.ListenableWorker { <init>(android.content.Context, androidx.work.WorkerParameters); }",
+            ].join("\n"),
+          },
+        },
+      ],
       "expo-background-task",
       "expo-font",
       "expo-sqlite",

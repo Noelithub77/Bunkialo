@@ -38,17 +38,22 @@ const withPalette = (color: string) => ({
   lightBackground: blendWidgetColor(color, false),
   darkBackground: blendWidgetColor(color, true),
 });
-const props = (cards: WidgetCard[]): ScheduleWidgetProps => ({
+const props = (
+  cards: WidgetCard[],
+  emptyMessage?: string,
+): ScheduleWidgetProps => ({
   cards,
   page: 0,
   anchor: 0,
   utcOffsetMinutes: CAMPUS_UTC_OFFSET_MINUTES,
+  ...(emptyMessage ? { emptyMessage } : {}),
 });
 
 export const buildTimetableWidgetProps = (
   slots: TimetableSlot[],
   courses: CourseBunkData[],
   hiddenCourses: Record<string, unknown>,
+  isLoggedIn = true,
 ): ScheduleWidgetProps =>
   props(
     slots
@@ -71,6 +76,7 @@ export const buildTimetableWidgetProps = (
           items: [],
         };
       }),
+    isLoggedIn ? "No classes this week" : "Sign in to see your classes",
   );
 
 export const buildMessWidgetProps = (): ScheduleWidgetProps =>
@@ -89,14 +95,16 @@ export const buildMessWidgetProps = (): ScheduleWidgetProps =>
     ),
   );
 
+/** Minutes of the week when a widget must redraw: each start, end and midnight. */
 export const getWidgetBoundaries = (cards: WidgetCard[]): number[] =>
   [
-    ...new Set(
-      cards.flatMap((card) => [
+    ...new Set([
+      ...Array.from({ length: 7 }, (_, day) => day * 1440),
+      ...cards.flatMap((card) => [
         card.day * 1440 + card.startMinute,
         card.day * 1440 + card.endMinute,
       ]),
-    ),
+    ]),
   ].sort((a, b) => a - b);
 
 /** iOS timelines refresh at class/meal boundaries while the app is suspended. */
