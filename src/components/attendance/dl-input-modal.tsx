@@ -62,7 +62,7 @@ export function DLInputModal({
               color={Colors.status.info}
             />
             <Text className="text-lg font-semibold" style={{ color: theme.text }}>
-              Mark as Duty Leave
+              Mark full-day duty leave
             </Text>
           </View>
 

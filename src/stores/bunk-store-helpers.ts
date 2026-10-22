@@ -16,6 +16,10 @@ import {
   recordsReferToSameSession,
 } from "@/utils/attendance-helpers";
 import { extractCourseCode, extractCourseName } from "@/utils/course-name";
+import {
+  applyDutyLeaveDays,
+  getBunkDay,
+} from "@/utils/duty-leave-days";
 import { evaluateCoursesAgainstCurrentSemester } from "@/utils/semester-course-filter";
 
 export const generateBunkId = (): string =>
@@ -207,10 +211,10 @@ export const buildSyncedBunkState = (
   }
 
   return {
-    courses: [
+    courses: applyDutyLeaveDays([
       ...courses,
       ...state.courses.filter((course) => course.isCustomCourse),
-    ],
+    ]),
     hiddenCourses,
     lastSyncTime: Date.now(),
   };
@@ -236,21 +240,35 @@ export const buildResetBunkCourses = (
   ...savedCourses.filter((course) => course.isCustomCourse),
 ];
 
+/** One entry per duty-leave day, listing every course it excused. */
 export const selectAllDutyLeaves = (
   courses: CourseBunkData[],
-): DutyLeaveInfo[] =>
-  courses.flatMap((course) =>
-    filterPastBunks(course.bunks)
-      .filter((bunk) => bunk.isDutyLeave)
-      .map((bunk) => ({
-        courseId: course.courseId,
-        courseName: course.config?.alias || course.courseName,
-        bunkId: bunk.id,
-        date: bunk.date,
-        timeSlot: bunk.timeSlot,
-        note: bunk.dutyLeaveNote,
-      })),
-  );
+): DutyLeaveInfo[] => {
+  const byDay = new Map<string, DutyLeaveInfo>();
+  for (const course of courses) {
+    for (const bunk of filterPastBunks(course.bunks)) {
+      const day = bunk.isDutyLeave ? getBunkDay(bunk) : null;
+      if (!day) continue;
+      const courseName = course.config?.alias || course.courseName;
+      const existing = byDay.get(day);
+      if (!existing) {
+        byDay.set(day, {
+          courseId: course.courseId,
+          courseName,
+          bunkId: bunk.id,
+          date: bunk.date,
+          timeSlot: null,
+          note: bunk.dutyLeaveNote,
+        });
+      } else if (!existing.courseName.split(", ").includes(courseName)) {
+        existing.courseName = `${existing.courseName}, ${courseName}`;
+      }
+    }
+  }
+  return [...byDay.entries()]
+    .sort(([first], [second]) => second.localeCompare(first))
+    .map(([, info]) => info);
+};
 
 export const selectCourseStats = (
   course: CourseBunkData,

@@ -126,18 +126,14 @@ export const syncAttendanceFromPayload = (
       lmsCourseId: identity?.lmsCourseId ?? null,
       mappingSource: identity?.mappingSource ?? "unresolved",
       attendanceModuleId: null,
-      totalSessions: Math.max(0, course.total - course.dlCredited),
+      // The portal total already leaves out duty-leave sessions (13 sessions
+      // with 2 DLs report total 11), so its counts are used as-is.
+      totalSessions: course.total,
       attended: course.present,
       present: course.present,
       dlCredited: course.dlCredited,
       dlOverflow: course.dlOverflow,
-      percentage:
-        Math.max(0, course.total - course.dlCredited) > 0
-          ? Math.round(
-              (course.present / Math.max(0, course.total - course.dlCredited)) *
-                100,
-            )
-          : 0,
+      percentage: course.percentage,
       records: previous?.records ?? [],
       lastUpdated: Date.now(),
     };

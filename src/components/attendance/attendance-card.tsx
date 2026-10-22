@@ -11,10 +11,8 @@ import type {
   MarkedDates,
   SessionType,
 } from "@/types";
-import {
-  filterCompletedAttendanceRecords,
-  getRecordKeyVariants,
-} from "@/utils/attendance-helpers";
+import { filterCompletedAttendanceRecords } from "@/utils/attendance-helpers";
+import { summarizeAttendance } from "@/utils/attendance-summary";
 import { extractCourseName } from "@/utils/course-name";
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
@@ -206,39 +204,14 @@ export function AttendanceCard({
     () => filterCompletedAttendanceRecords(course.records),
     [course.records],
   );
-  const totalSessions = pastRecords.length;
-  const attended = pastRecords.filter((r) => r.status === "Present").length;
-  const unknownCount = pastRecords.filter((r) => r.status === "Unknown").length;
-  const userDutyLeaveKeys = useMemo(() => {
-    const keys = new Set<string>();
-    if (!bunkCourse) return keys;
-    for (const bunk of filterPastBunks(bunkCourse.bunks)) {
-      if (bunk.isDutyLeave) {
-        for (const key of getRecordKeyVariants(bunk)) {
-          keys.add(key);
-        }
-      }
-    }
-    return keys;
-  }, [bunkCourse]);
-
-  const dutyLeaveCount = useMemo(
+  const { totalSessions, attended, unknownCount, percentage } = useMemo(
     () =>
-      pastRecords.filter(
-        (record) =>
-          record.status === "Duty Leave" ||
-          getRecordKeyVariants(record).some((key) =>
-            userDutyLeaveKeys.has(key),
-          ),
-      ).length,
-    [pastRecords, userDutyLeaveKeys],
+      summarizeAttendance(
+        pastRecords,
+        bunkCourse ? filterPastBunks(bunkCourse.bunks) : [],
+      ),
+    [pastRecords, bunkCourse],
   );
-  const effectiveTotalSessions = Math.max(0, totalSessions - dutyLeaveCount);
-  const percentage =
-    effectiveTotalSessions > 0
-      ? Math.round((attended / effectiveTotalSessions) * 100)
-      : 0;
-
   const percentageColor = getPercentageColor(percentage);
   const markedDates = useMemo(
     () => buildMarkedDates(pastRecords),
@@ -274,7 +247,7 @@ export function AttendanceCard({
       });
   }, [selectedDate, pastRecords, bunkByRecordKey]);
 
-  if (totalSessions === 0) {
+  if (pastRecords.length === 0) {
     return (
       <GradientCard>
         <View className="flex-row items-start justify-between">
@@ -331,7 +304,7 @@ export function AttendanceCard({
                   className="text-sm"
                   style={{ color: theme.textSecondary }}
                 >
-                  {attended} / {effectiveTotalSessions} sessions
+                  {attended} / {totalSessions} sessions
                 </Text>
                 {unknownCount > 0 && (
                   <View className="flex-row items-center gap-1">
