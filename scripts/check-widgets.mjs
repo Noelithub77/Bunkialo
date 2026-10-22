@@ -179,12 +179,19 @@ try {
         const props = { ...classes, cards: classes.cards.map((card) => ({ ...card, color })) };
         for (const scheme of ["light", "dark"]) {
           const tree = render(props, scheme);
-          assert.ok(JSON.stringify(tree).includes(color), "Use the selected content colour");
           const time = nodes(tree).find((node) => node.type === "TextView" && node.props.text === "9am–10am");
           assert.ok(time);
-          const light = Math.max(luminance(color), luminance(time.props.color));
-          const dark = Math.min(luminance(color), luminance(time.props.color));
-          assert.ok((light + 0.05) / (dark + 0.05) >= 4.5, "Time chip needs readable contrast for every accent");
+          const background = name === "BunkialoMess" ? color : scheme === "dark" ? props.cards[0].darkBackground : props.cards[0].lightBackground;
+          if (name === "BunkialoMess") {
+            assert.ok(JSON.stringify(tree).includes(color), "Use the selected meal colour");
+          } else {
+            assert.ok(!texts(tree).includes("▦"), "Course cards do not need a decorative grid icon");
+            const timeContainer = nodes(tree).find((node) => [node.props?.children].flat(Infinity).includes(time));
+            assert.ok(!JSON.stringify(timeContainer?.props?.modifiers ?? []).includes(color), "Keep the time plain instead of a solid course-colour pill");
+          }
+          const light = Math.max(luminance(background), luminance(time.props.color));
+          const dark = Math.min(luminance(background), luminance(time.props.color));
+          assert.ok((light + 0.05) / (dark + 0.05) >= 4.5, "Time needs readable contrast");
         }
       }
       checks++;

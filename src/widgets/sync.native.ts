@@ -19,13 +19,13 @@ import type { ScheduleWidgetProps } from "@/types";
 const GRADIENT_VERSION = 1;
 
 // Each accent and theme gets one cached gradient image in the widgets directory.
-const withGradients = (props: ScheduleWidgetProps): ScheduleWidgetProps => {
+const withGradients = (props: ScheduleWidgetProps, style: "glow" | "course" = "glow"): ScheduleWidgetProps => {
   if (!widgetsDirectory) return props;
   const imageFor = (color: string, dark: boolean): string | undefined => {
-    const name = `gradient-v${GRADIENT_VERSION}-${dark ? "dark" : "light"}-${color.replace("#", "").toLowerCase()}.png`;
+    const name = `gradient-${style}-v${GRADIENT_VERSION}-${dark ? "dark" : "light"}-${color.replace("#", "").toLowerCase()}.png`;
     try {
       const file = new File(widgetsDirectory, name);
-      if (!file.exists) file.write(encodeWidgetGradient(color, dark));
+      if (!file.exists) file.write(encodeWidgetGradient(color, dark, 96, style));
       return file.uri;
     } catch (error) {
       console.warn("Widget gradient could not be written", error);
@@ -61,7 +61,7 @@ export async function syncHomeWidgets(): Promise<void> {
   );
   let meals = buildMessWidgetProps();
   if (Platform.OS === "android") {
-    classes = withGradients(classes);
+    classes = withGradients(classes, "course");
     meals = withGradients(meals);
   }
   const [timetableWidget, messWidget] =

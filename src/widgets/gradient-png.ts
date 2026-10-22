@@ -57,15 +57,19 @@ const parseHex = (hex: string): [number, number, number] => {
 
 /**
  * Bunkialo's card gradient with a soft accent glow from the top-left corner:
- * #1C1C1C to #050505 in dark mode, white to #EFEFEF in light mode.
+ * The course variant follows the app's timetable gradient stops.
  */
 export const encodeWidgetGradient = (
   accent: string,
   dark = true,
   size = 96,
+  style: "glow" | "course" = "glow",
 ): Uint8Array => {
-  const [red, green, blue] = parseHex(accent);
+  const channels = parseHex(accent);
   const [from, to, strength] = dark ? [28, 5, 0.3] : [255, 239, 0.2];
+  const courseBase = dark ? [4, 7, 13] : [255, 255, 255];
+  const start = dark ? 0x70 / 255 : 0x45 / 255;
+  const middle = dark ? 0x32 / 255 : 0x18 / 255;
   const raw = new Uint8Array(size * (size * 3 + 1));
   for (let y = 0; y < size; y += 1) {
     const row = y * (size * 3 + 1);
@@ -73,12 +77,23 @@ export const encodeWidgetGradient = (
     for (let x = 0; x < size; x += 1) {
       const u = x / (size - 1);
       const v = y / (size - 1);
-      const base = from + (to - from) * ((u + v) / 2);
-      const glow = strength * Math.max(0, 1 - Math.hypot(u, v * 1.15) / 0.95) ** 2;
+      const progress = (u + v) / 2;
       const pixel = row + 1 + x * 3;
-      raw[pixel] = Math.round(base + (red - base) * glow);
-      raw[pixel + 1] = Math.round(base + (green - base) * glow);
-      raw[pixel + 2] = Math.round(base + (blue - base) * glow);
+      if (style === "course") {
+        // Match the timetable card's accent stops: 70/32 in dark, 45/18 in light.
+        const alpha = progress < 0.5
+          ? start + (middle - start) * progress * 2
+          : middle * (2 - progress * 2);
+        for (let index = 0; index < 3; index += 1) {
+          raw[pixel + index] = Math.round(courseBase[index] + (channels[index] - courseBase[index]) * alpha);
+        }
+      } else {
+        const base = from + (to - from) * progress;
+        const glow = strength * Math.max(0, 1 - Math.hypot(u, v * 1.15) / 0.95) ** 2;
+        for (let index = 0; index < 3; index += 1) {
+          raw[pixel + index] = Math.round(base + (channels[index] - base) * glow);
+        }
+      }
     }
   }
   const header = new Uint8Array([...uint32(size), ...uint32(size), 8, 2, 0, 0, 0]);

@@ -30,3 +30,9 @@
 - https://developer.android.com/develop/ui/views/appwidgets/layouts
 - https://developer.android.com/develop/ui/compose/glance/user-interaction
 - https://github.com/jakex7/peek/blob/main/peek-emittables/src/main/kotlin/io/github/jakex7/peek/emittables/EmittableTree.kt
+
+## Course-colour refinement
+
+- [chosen] Match the timetable card: use its course-coloured gradient stops, plain secondary time text and no decorative grid icon or filled pill. Continue reading the saved course colour.
+- Version gradient cache filenames so existing widgets cannot reuse the previous glow artwork. Meal widgets retain their existing design.
+- Typecheck, 110 unit tests and 20 serialized widget checks pass. Lint passes with existing warnings. Publish directly through the CLI for the installed 1.5.1 runtime and verify the downloaded layout on Android.

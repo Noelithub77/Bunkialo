@@ -37,4 +37,14 @@ describe("widget gradient png", () => {
   test("uses a fallback accent for invalid colours", () => {
     expect(encodeWidgetGradient("not-a-colour", true, 8).length).toBeGreaterThan(0);
   });
+
+  test("matches the timetable card's course-colour gradient stops", () => {
+    const pixels = inflateSync(readChunks(encodeWidgetGradient("#22C55E", true, 9, "course"))[1].data);
+    const pixel = (x: number, y: number) => [...pixels.slice(y * 28 + 1 + x * 3, y * 28 + 4 + x * 3)];
+    expect(pixel(0, 0)).toEqual([17, 90, 49]);
+    expect(pixel(4, 4)).toEqual([10, 44, 29]);
+    expect(pixel(8, 8)).toEqual([4, 7, 13]);
+    const violet = encodeWidgetGradient("#A78BFA", true, 9, "course");
+    expect(violet).not.toEqual(encodeWidgetGradient("#22C55E", true, 9, "course"));
+  });
 });
