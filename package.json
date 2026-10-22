@@ -21,6 +21,7 @@
     "test:wifix:atomic": "bun tests/integration/wifix/test-wifix-atomic.ts",
     "test:lms-scraper": "bun tests/integration/lms/test-scraper.ts",
     "test:dashboard": "bun tests/integration/lms/test-dashboard.ts",
+    "test:feedback-api": "bun tests/integration/lms/test-feedback-api.ts",
     "test:resources": "bun tests/integration/lms/test-resources-scraper.ts",
     "test:downloads": "bun tests/integration/lms/test-lms-download.ts",
     "test:web-relay": "bun tests/integration/worker/test-web-lms-login.ts",
