@@ -1,3 +1,4 @@
+import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { Colors } from "@/constants/theme";
@@ -97,18 +98,21 @@ export const AllBunksContent = () => {
 
   const confirmContent = getConfirmContent();
 
+  const refreshGesture = useDirectionalRefresh(handleRefresh);
+
   return (
     <>
       <ScrollView
+        {...refreshGesture.touchHandlers}
         className="flex-1"
         contentContainerClassName="p-4 pb-12"
         showsVerticalScrollIndicator={false}
         nestedScrollEnabled
         refreshControl={
           <RefreshControl
-            enabled={Platform.OS !== "web"}
+            enabled={Platform.OS !== "web" && refreshGesture.enabled}
             refreshing={isLoading}
-            onRefresh={handleRefresh}
+            onRefresh={refreshGesture.onRefresh}
             tintColor={theme.text}
           />
         }

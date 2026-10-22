@@ -134,6 +134,10 @@ export default function TabLayout() {
 
   return (
     <MaterialBottomTabs
+      screenListeners={{
+        swipeStart: () => useGestureUiStore.getState().setTabSwipeActive(true),
+        swipeEnd: () => useGestureUiStore.getState().setTabSwipeActive(false),
+      }}
       backBehavior="initialRoute"
       tabBarPosition="bottom"
       screenOptions={{

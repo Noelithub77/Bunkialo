@@ -1,3 +1,4 @@
+import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";
 import { scheduleDeferredTask } from "@/utils/scheduling";
 import { CourseEditModal } from "@/components/attendance/course-edit-modal";
 import { CreateCourseModal } from "@/components/attendance/create-course-modal";
@@ -341,16 +342,20 @@ export default function TimetableScreen() {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
+  const refreshGesture = useDirectionalRefresh(handleRefresh);
+
   return (
     <Container>
       <ScrollView
+        {...refreshGesture.touchHandlers}
         className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
+              enabled={refreshGesture.enabled}
             refreshing={refreshing || isAttendanceLoading}
-            onRefresh={handleRefresh}
+            onRefresh={refreshGesture.onRefresh}
             tintColor={theme.text}
           />
         }

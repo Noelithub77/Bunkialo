@@ -1,3 +1,4 @@
+import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";
 import { DayMeals } from "@/components/mess/day-meals";
 import { MealCarousel } from "@/components/mess/meal-carousel";
 import { MealDaySelector } from "@/components/mess/meal-day-selector";
@@ -24,16 +25,20 @@ export default function MessScreen() {
     setTimeout(() => setRefreshing(false), 500);
   };
 
+  const refreshGesture = useDirectionalRefresh(handleRefresh);
+
   return (
     <Container>
       <ScrollView
+        {...refreshGesture.touchHandlers}
         className="flex-1"
         contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
+              enabled={refreshGesture.enabled}
             refreshing={refreshing}
-            onRefresh={handleRefresh}
+            onRefresh={refreshGesture.onRefresh}
             tintColor={theme.text}
           />
         }

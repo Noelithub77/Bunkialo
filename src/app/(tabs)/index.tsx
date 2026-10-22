@@ -1,3 +1,4 @@
+import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";
 import { startBackgroundRefresh } from "@/background/dashboard-background";
 import { EventCard } from "@/components/dashboard/event-card";
 import { NoticesModal } from "@/components/dashboard/notices-modal";
@@ -439,6 +440,8 @@ export default function DashboardScreen() {
         ]),
   ];
 
+  const refreshGesture = useDirectionalRefresh(handleRefresh);
+
   return (
     <Container>
       <View className="flex-1">
@@ -519,12 +522,14 @@ export default function DashboardScreen() {
         </View>
 
         <ScrollView
+        {...refreshGesture.touchHandlers}
           className="flex-1"
           contentContainerClassName="px-4 pb-14"
           refreshControl={
             <RefreshControl
+              enabled={refreshGesture.enabled}
               refreshing={isLoading}
-              onRefresh={handleRefresh}
+              onRefresh={refreshGesture.onRefresh}
               tintColor={theme.text}
             />
           }

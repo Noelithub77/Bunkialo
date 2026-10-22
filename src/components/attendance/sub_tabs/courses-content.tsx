@@ -1,3 +1,4 @@
+import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { SlotConflictModal } from "@/components/modals/slot-conflict-modal";
 import { Colors } from "@/constants/theme";
@@ -202,9 +203,12 @@ export const CoursesContent = () => {
     return <View className="h-6" />;
   };
 
+  const refreshGesture = useDirectionalRefresh(handleRefresh);
+
   return (
     <>
       <FlatList
+        {...refreshGesture.touchHandlers}
         data={allCourses}
         keyExtractor={(item) =>
           item.bunkData?.courseId || item.course?.courseId || ""
@@ -252,9 +256,9 @@ export const CoursesContent = () => {
         ItemSeparatorComponent={() => <View className="h-4" />}
         refreshControl={
           <RefreshControl
-            enabled={Platform.OS !== "web"}
+            enabled={Platform.OS !== "web" && refreshGesture.enabled}
             refreshing={isLoading}
-            onRefresh={handleRefresh}
+            onRefresh={refreshGesture.onRefresh}
             tintColor={theme.text}
           />
         }

@@ -144,6 +144,13 @@ const files = [
   "tests/unit/utils/attendance-summary.test.ts",
 
   "src/services/feedback-form.ts",
+  "src/hooks/use-directional-refresh.ts",
+  "src/stores/gesture-ui-store.ts",
+  "src/app/(tabs)/mess.tsx",
+  "src/utils/refresh-gesture.ts",
+  "tests/unit/utils/refresh-gesture.test.ts",
+  "src/components/attendance/sub_tabs/courses-content.tsx",
+  "src/components/attendance/sub_tabs/all-bunks-content.tsx",
   "src/services/feedback-submission.ts",
   "tests/unit/services/feedback-submission.test.ts",
   "src/services/feedback-autofill.ts",
@@ -306,3 +313,32 @@ patchFile("src/app/_layout.tsx", [
     modalRoute("more") + modalRoute("course-feedback") + '                <Stack.Screen\n                  name="(fab-group)/acad-cal"',
   ],
 ]);
+
+// Keep refresh direction handling without importing SDK 58 navigation or widgets.
+for (const file of ["src/app/(tabs)/index.tsx", "src/app/(tabs)/timetable.tsx"]) {
+  const path = resolve(destination, file);
+  let text = readFileSync(path, "utf8");
+  const handler = text.indexOf("  const handleRefresh =");
+  const render = text.indexOf("\n  return (", handler);
+  if (handler < 0 || render < 0) throw new Error(`Legacy refresh handler missing in ${file}`);
+  text = text.slice(0, render) + "\n  const refreshGesture = useDirectionalRefresh(handleRefresh);\n" + text.slice(render);
+  text = 'import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";\n' + text;
+  const control = text.indexOf("refreshControl={");
+  const scroll = text.lastIndexOf("<ScrollView", control);
+  if (control < 0 || scroll < 0) throw new Error(`Legacy refresh container missing in ${file}`);
+  const lineEnd = text.indexOf("\n", scroll);
+  text = text.slice(0, lineEnd) + "\n        {...refreshGesture.touchHandlers}" + text.slice(lineEnd);
+  text = text.replace("<RefreshControl\n", "<RefreshControl\n              enabled={refreshGesture.enabled}\n")
+    .replace("onRefresh={handleRefresh}", "onRefresh={refreshGesture.onRefresh}");
+  writeFileSync(path, text);
+}
+
+patchFile("src/app/(tabs)/_layout.tsx", [[
+  "    <MaterialBottomTabs\n",
+  `    <MaterialBottomTabs
+      screenListeners={{
+        swipeStart: () => useGestureUiStore.getState().setTabSwipeActive(true),
+        swipeEnd: () => useGestureUiStore.getState().setTabSwipeActive(false),
+      }}
+`,
+]]);
