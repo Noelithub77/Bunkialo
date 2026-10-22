@@ -42,11 +42,9 @@ export function DutyLeaveModal({
           <Text className="text-[12px]" style={{ color: theme.textSecondary }}>
             {formatDate(item.date)}
           </Text>
-          {item.timeSlot && (
-            <Text className="text-[12px]" style={{ color: theme.textSecondary }}>
-              {item.timeSlot}
-            </Text>
-          )}
+          <Text className="text-[12px]" style={{ color: theme.textSecondary }}>
+            {item.timeSlot ?? "Full day"}
+          </Text>
         </View>
         {item.note && (
           <Text

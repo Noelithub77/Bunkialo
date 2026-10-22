@@ -48,6 +48,7 @@ export interface CourseBunkData {
 }
 
 export interface CourseAttendanceSnapshot {
+  /** Completed sessions, excluding sessions excused by duty leave. */
   totalSessions: number;
   attendedSessions: number;
 }

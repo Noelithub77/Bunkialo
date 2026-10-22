@@ -16,6 +16,7 @@ import {
   filterCompletedAttendanceRecords,
   getRecordKeyVariants,
 } from "@/utils/attendance-helpers";
+import { summarizeAttendance } from "@/utils/attendance-summary";
 import { Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
@@ -237,11 +238,6 @@ export function UnifiedCourseCard({
     () => (course ? filterCompletedAttendanceRecords(course.records) : []),
     [course],
   );
-  const totalSessions = pastRecords.length;
-  const confirmedPresentCount = pastRecords.filter(
-    (r) => r.status === "Present",
-  ).length;
-
   const bunkKeys = useMemo(() => {
     const keys = new Set<string>();
     if (!bunkData) return keys;
@@ -263,36 +259,15 @@ export function UnifiedCourseCard({
     [pastRecords, bunkKeys],
   );
 
-  const unresolvedUnknown = useMemo(
-    () => displayRecords.filter((record) => record.status === "Unknown"),
-    [displayRecords],
-  );
-
-  const unknownCount = unresolvedUnknown.length;
-  const correctedPresentCount = useMemo(
-    () =>
-      bunkData
-        ? filterPastBunks(bunkData.bunks).filter((bunk) => bunk.isMarkedPresent)
-            .length
-        : 0,
+  const pastBunks = useMemo(
+    () => (bunkData ? filterPastBunks(bunkData.bunks) : []),
     [bunkData],
   );
-  const dutyLeaveCount = useMemo(
-    () =>
-      bunkData
-        ? filterPastBunks(bunkData.bunks).filter((bunk) => bunk.isDutyLeave)
-            .length
-        : 0,
-    [bunkData],
+  const summary = useMemo(
+    () => summarizeAttendance(pastRecords, pastBunks),
+    [pastRecords, pastBunks],
   );
-  // Unknown ("?") defaults to present; DL and present corrections are treated as attended.
-  const attended =
-    confirmedPresentCount +
-    unknownCount +
-    correctedPresentCount +
-    dutyLeaveCount;
-  const percentage =
-    totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0;
+  const { totalSessions, attended, unknownCount, percentage } = summary;
   const percentageColor = getPercentageColor(percentage);
 
   // bunk stats
@@ -307,10 +282,6 @@ export function UnifiedCourseCard({
           : undefined,
       )
     : null;
-  const pastBunks = useMemo(
-    () => (bunkData ? filterPastBunks(bunkData.bunks) : []),
-    [bunkData],
-  );
   const bunksByDay = useMemo(() => {
     const byDay = new Map<DayKey, BunkRecord[]>();
     for (const bunk of pastBunks) {
@@ -415,7 +386,7 @@ export function UnifiedCourseCard({
   };
 
   // for custom courses with no bunks yet, still show the card
-  if (!isCustomCourse && totalSessions === 0 && pastBunks.length === 0) {
+  if (!isCustomCourse && pastRecords.length === 0 && pastBunks.length === 0) {
     return (
       <GradientCard>
         <View className="flex-row items-start justify-between">

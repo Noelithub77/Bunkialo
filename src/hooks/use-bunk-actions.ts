@@ -43,9 +43,6 @@ export const useBunkActions = () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           return;
         }
-        if (existingBunk.isDutyLeave) {
-          removeDutyLeave(courseId, existingBunk.id);
-        }
         markAsPresent(courseId, existingBunk.id, "");
       } else {
         addBunk(courseId, {
@@ -62,12 +59,7 @@ export const useBunkActions = () => {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
-    [
-      addBunk,
-      findMatchingBunk,
-      markAsPresent,
-      removeDutyLeave,
-    ],
+    [addBunk, findMatchingBunk, markAsPresent],
   );
 
   // apply unknown as absent
@@ -77,9 +69,6 @@ export const useBunkActions = () => {
       if (existingBunk) {
         if (existingBunk.isMarkedPresent) {
           removePresenceCorrection(courseId, existingBunk.id);
-        }
-        if (existingBunk.isDutyLeave) {
-          removeDutyLeave(courseId, existingBunk.id);
         }
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         return;
@@ -97,7 +86,7 @@ export const useBunkActions = () => {
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
-    [addBunk, findMatchingBunk, removeDutyLeave, removePresenceCorrection],
+    [addBunk, findMatchingBunk, removePresenceCorrection],
   );
 
   // revert unknown status
@@ -111,13 +100,10 @@ export const useBunkActions = () => {
         if (existingBunk.isMarkedPresent) {
           removePresenceCorrection(courseId, existingBunk.id);
         }
-        if (existingBunk.isDutyLeave) {
-          removeDutyLeave(courseId, existingBunk.id);
-        }
       }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
-    [findMatchingBunk, removeBunk, removeDutyLeave, removePresenceCorrection],
+    [findMatchingBunk, removeBunk, removePresenceCorrection],
   );
 
   // handlers for All Bunks tab
@@ -151,9 +137,6 @@ export const useBunkActions = () => {
       if (!modal) return;
       const existingBunk = findMatchingBunk(modal.courseId, modal.record);
       if (existingBunk) {
-        if (existingBunk.isDutyLeave) {
-          removeDutyLeave(modal.courseId, existingBunk.id);
-        }
         markAsPresent(modal.courseId, existingBunk.id, note);
       } else {
         addBunk(modal.courseId, {
@@ -170,7 +153,7 @@ export const useBunkActions = () => {
       closeModal();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
-    [addBunk, closeModal, findMatchingBunk, markAsPresent, removeDutyLeave],
+    [addBunk, closeModal, findMatchingBunk, markAsPresent],
   );
 
   const handleConfirmDLAbsences = useCallback(

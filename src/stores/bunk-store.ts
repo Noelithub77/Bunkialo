@@ -12,6 +12,11 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { useAttendanceStore } from "./attendance-store";
 import {
+  applyDutyLeaveDays,
+  getBunkDay,
+  setDutyLeaveDay,
+} from "@/utils/duty-leave-days";
+import {
   buildResetBunkCourses,
   buildSyncedBunkState,
   generateBunkId,
@@ -42,6 +47,7 @@ interface BunkActions {
   removePresenceCorrection: (courseId: string, bunkId: string) => void;
   removeBunk: (courseId: string, bunkId: string) => void;
   setHasHydrated: (hasHydrated: boolean) => void;
+  applyDutyLeaveDays: () => void;
   addCustomCourse: (input: CustomCourseInput) => string;
   hideCourse: (
     courseId: string,
@@ -89,6 +95,17 @@ const updateBunk = (
     ),
   }));
 
+const findBunkDay = (
+  courses: CourseBunkData[],
+  courseId: string,
+  bunkId: string,
+): string | null => {
+  const bunk = courses
+    .find((course) => course.courseId === courseId)
+    ?.bunks.find((item) => item.id === bunkId);
+  return bunk ? getBunkDay(bunk) : null;
+};
+
 export const useBunkStore = create<BunkStoreState & BunkActions>()(
   persist(
     (set, get) => ({
@@ -101,6 +118,8 @@ export const useBunkStore = create<BunkStoreState & BunkActions>()(
       hasHydrated: false,
 
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
+      applyDutyLeaveDays: () =>
+        set((state) => ({ courses: applyDutyLeaveDays(state.courses) })),
       syncFromLms: () => {
         const state = get();
         set(
@@ -140,13 +159,15 @@ export const useBunkStore = create<BunkStoreState & BunkActions>()(
         })),
       addBunk: (courseId, bunk) =>
         set((state) => ({
-          courses: updateCourse(state.courses, courseId, (course) => ({
-            ...course,
-            bunks: [
-              ...course.bunks,
-              { ...bunk, id: generateBunkId(), source: "user" },
-            ],
-          })),
+          courses: applyDutyLeaveDays(
+            updateCourse(state.courses, courseId, (course) => ({
+              ...course,
+              bunks: [
+                ...course.bunks,
+                { ...bunk, id: generateBunkId(), source: "user" },
+              ],
+            })),
+          ),
         })),
       updateBunkNote: (courseId, bunkId, note) =>
         set((state) => ({
@@ -155,37 +176,46 @@ export const useBunkStore = create<BunkStoreState & BunkActions>()(
             note,
           })),
         })),
+      // Marking a duty leave on a session covers its whole day; the chosen session
+      // drops any present correction so the leave applies to it as well.
       markAsDutyLeave: (courseId, bunkId, note) =>
-        set((state) => ({
-          courses: updateBunk(state.courses, courseId, bunkId, (bunk) => ({
+        set((state) => {
+          const day = findBunkDay(state.courses, courseId, bunkId);
+          if (!day) return state;
+          const courses = updateBunk(state.courses, courseId, bunkId, (bunk) => ({
             ...bunk,
-            isDutyLeave: true,
-            dutyLeaveNote: note,
-          })),
-        })),
+            isMarkedPresent: false,
+            presenceNote: "",
+          }));
+          return { courses: setDutyLeaveDay(courses, day, note) };
+        }),
       removeDutyLeave: (courseId, bunkId) =>
-        set((state) => ({
-          courses: updateBunk(state.courses, courseId, bunkId, (bunk) => ({
-            ...bunk,
-            isDutyLeave: false,
-            dutyLeaveNote: "",
-          })),
-        })),
+        set((state) => {
+          const day = findBunkDay(state.courses, courseId, bunkId);
+          return day
+            ? { courses: setDutyLeaveDay(state.courses, day, null) }
+            : state;
+        }),
+      // Present overrides a duty-leave day for this session only.
       markAsPresent: (courseId, bunkId, note) =>
         set((state) => ({
           courses: updateBunk(state.courses, courseId, bunkId, (bunk) => ({
             ...bunk,
             isMarkedPresent: true,
             presenceNote: note,
+            isDutyLeave: false,
+            dutyLeaveNote: "",
           })),
         })),
       removePresenceCorrection: (courseId, bunkId) =>
         set((state) => ({
-          courses: updateBunk(state.courses, courseId, bunkId, (bunk) => ({
-            ...bunk,
-            isMarkedPresent: false,
-            presenceNote: "",
-          })),
+          courses: applyDutyLeaveDays(
+            updateBunk(state.courses, courseId, bunkId, (bunk) => ({
+              ...bunk,
+              isMarkedPresent: false,
+              presenceNote: "",
+            })),
+          ),
         })),
       removeBunk: (courseId, bunkId) =>
         set((state) => ({
@@ -332,7 +362,10 @@ export const useBunkStore = create<BunkStoreState & BunkActions>()(
         autoDropOptOutBySemester: state.autoDropOptOutBySemester,
         lastSyncTime: state.lastSyncTime,
       }),
-      onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
+      onRehydrateStorage: () => (state) => {
+        state?.applyDutyLeaveDays();
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );
