@@ -154,6 +154,7 @@ const files = [
   "src/components/attendance/sub_tabs/all-bunks-content.tsx",
   "src/services/feedback-submission.ts",
   "tests/unit/services/feedback-submission.test.ts",
+  "tests/unit/services/feedback-store.test.ts",
   "src/services/feedback-autofill.ts",
   "src/stores/feedback-autofill-store.ts",
   "src/screens/course-feedback-screen.tsx",

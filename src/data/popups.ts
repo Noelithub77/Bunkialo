@@ -56,14 +56,14 @@ export const POPUP_NOTICES: PopupNotice[] = [
   },
   {
     id: "course-feedback-2026-10",
-    title: "Course feedback",
+    title: "Your feedback, your choice",
     description:
-      "Fill every pending course feedback form in one tap. Find it any time under More or Settings.",
+      "Feedback should always be optional. No one should feel pressured to fill in a form or give a particular rating. If you choose to respond, the answers are yours — this tool is only here to make it easier. You can find it any time under More or Settings.",
     timestamp: "2026-10-22T12:00:00+05:30",
     icon: "school",
-    iconColor: Colors.status.warning,
-    isImportant: true,
-    ctaLabel: "Open",
+    iconColor: Colors.status.info,
+    isImportant: false,
+    ctaLabel: "View course feedback",
     ctaAction: "open-course-feedback",
   },
   // {

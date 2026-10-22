@@ -127,12 +127,12 @@ export default function CourseFeedbackScreen() {
     [courseOrder, courses],
   );
   const pendingIds = entries
-    .filter((entry) => entry.status === "pending")
+    .filter((entry) => ["pending", "unknown", "checking"].includes(entry.status))
     .map((entry) => entry.courseId);
   const failedIds = entries.filter((entry) => entry.status === "failed").map((entry) => entry.courseId);
   const actionIds = pendingIds.length > 0 ? pendingIds : failedIds;
   const doneCount = entries.filter((entry) => entry.status === "done").length;
-  const busy = activity !== "idle";
+  const busy = activity !== "idle" && activity !== "checking";
   const inFlight = entries.filter((entry) =>
     ["submitting", "retrying", "verifying"].includes(entry.status),
   ).length;
@@ -187,7 +187,7 @@ export default function CourseFeedbackScreen() {
           </View>
           <Pressable
             accessibilityLabel="Check again"
-            disabled={busy}
+            disabled={activity !== "idle"}
             onPress={() => void checkAll()}
             className="h-10 w-10 items-center justify-center rounded-full"
             style={{ backgroundColor: theme.backgroundSecondary, opacity: busy ? 0.5 : 1 }}
@@ -243,7 +243,7 @@ export default function CourseFeedbackScreen() {
           <View className="overflow-hidden rounded-2xl border" style={{ borderColor: theme.border }}>
             {entries.length === 0 ? (
               <View className="items-center py-10">
-                {busy ? (
+                {busy || activity === "checking" ? (
                   <ActivityIndicator color={theme.textSecondary} />
                 ) : (
                   <Text style={{ color: theme.textSecondary }}>No courses</Text>
@@ -304,7 +304,7 @@ export default function CourseFeedbackScreen() {
                               : setCourseDefault(entry.courseId, value, override?.textResponse ?? "")
                           }
                         />
-                        {entry.status === "pending" || entry.status === "failed" ? (
+                        {["pending", "failed", "unknown", "checking"].includes(entry.status) ? (
                           <Pressable
                             disabled={busy}
                             onPress={() => setConfirmIds([entry.courseId])}
@@ -359,7 +359,7 @@ export default function CourseFeedbackScreen() {
               <ActivityIndicator size="small" color={theme.background} />
             ) : null}
             <Text className="text-[15px] font-semibold" style={{ color: theme.background }}>
-              {pendingIds.length > 0 ? `Submit all (${pendingIds.length})` : failedIds.length > 0 ? `Retry failed (${failedIds.length})` : "Nothing pending"}
+              {pendingIds.length > 0 ? `Submit remaining (${pendingIds.length})` : failedIds.length > 0 ? `Retry failed (${failedIds.length})` : "Nothing pending"}
             </Text>
           </Pressable>
         </View>

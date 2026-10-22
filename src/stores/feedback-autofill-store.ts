@@ -76,6 +76,7 @@ const errorMessage = (error: unknown): string =>
 export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
   persist(
     (set, get) => {
+      let scanGeneration = 0;
       const update = (courseId: string, patch: Partial<CourseFeedbackEntry>) =>
         set((state) => {
           const current = state.courses[courseId];
@@ -88,7 +89,7 @@ export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
           };
         });
 
-      const refreshCourse = async (courseId: string) => {
+      const refreshCourse = async (courseId: string, isCurrent = () => true) => {
         update(courseId, { status: "checking" });
         try {
           const forms = await checkCourseFeedback(courseId);
@@ -101,13 +102,14 @@ export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
                 : forms.some((form) => form.state === "done")
                   ? "done"
                   : "closed";
+          if (!isCurrent()) return;
           update(courseId, {
             status,
             formUrls: pending.map((form) => form.url),
             message: null,
           });
         } catch (error) {
-          update(courseId, { status: "failed", message: errorMessage(error) });
+          if (isCurrent()) update(courseId, { status: "failed", message: errorMessage(error) });
         }
       };
 
@@ -153,10 +155,14 @@ export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
 
         checkAll: async () => {
           if (get().activity !== "idle") return;
+          const generation = ++scanGeneration;
+          const isCurrent = () => generation === scanGeneration;
           set({ activity: "checking", error: null });
           try {
             await ensureFeedbackSession();
+            if (!isCurrent()) return;
             const courses = await fetchCourses();
+            if (!isCurrent()) return;
             const now = new Date().toISOString();
             set((state) => ({
               courseOrder: courses.map((course) => course.id),
@@ -177,18 +183,26 @@ export const useFeedbackAutofillStore = create<FeedbackAutofillState>()(
                 ]),
               ),
             }));
-            await runPool(courses.map((course) => course.id), refreshCourse);
-            set({ lastCheckedAt: new Date().toISOString() });
+            await runPool(courses.map((course) => course.id), async (id) => {
+              if (isCurrent()) await refreshCourse(id, isCurrent);
+            });
+            if (isCurrent()) set({ lastCheckedAt: new Date().toISOString() });
           } catch (error) {
-            set({ error: errorMessage(error) });
+            if (isCurrent()) set({ error: errorMessage(error) });
           } finally {
-            set({ activity: "idle" });
+            if (isCurrent()) set({ activity: "idle" });
           }
         },
 
         submit: async (courseIds) => {
-          if (get().activity !== "idle") return { submitted: 0, failed: 0 };
-          set({ activity: "submitting", error: null });
+          if (get().activity !== "idle" && get().activity !== "checking") return { submitted: 0, failed: 0 };
+          scanGeneration += 1;
+          set((state) => ({
+            activity: "submitting", error: null,
+            courses: Object.fromEntries(Object.entries(state.courses).map(([id, entry]) => [
+              id, entry.status === "checking" ? { ...entry, status: "unknown" as const } : entry,
+            ])),
+          }));
           let submitted = 0;
           let failed = 0;
           try {
