@@ -5,13 +5,12 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
-  KeyboardAvoidingView,
   Modal,
-  Platform,
   Pressable,
   Text,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 interface DLInputModalProps {
   visible: boolean;
@@ -46,16 +45,18 @@ export function DLInputModal({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 items-center justify-center"
+      <KeyboardAwareScrollView
+        className="flex-1"
+        contentContainerClassName="flex-grow items-center justify-center py-6"
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={24}
       >
         <Pressable className="absolute inset-0 bg-black/60" onPress={onClose} />
         <View
           className="w-[90%] max-w-[360px] rounded-2xl p-6"
           style={{ backgroundColor: theme.background }}
         >
-          <View className="mb-1 flex-row items-center gap-2">
+          <View className="mb-4 flex-row items-center gap-2">
             <Ionicons
               name="briefcase-outline"
               size={20}
@@ -66,15 +67,9 @@ export function DLInputModal({
             </Text>
           </View>
 
-          <Text
-            className="mb-4 text-[13px]"
-            style={{ color: theme.textSecondary }}
-          >
-            Enter reason (club, activity, etc.)
-          </Text>
-
           <Input
-            placeholder="e.g. Enigma CTF, best event to ever happen"
+            placeholder="(chAi talks)"
+            accessibilityLabel="Reason"
             value={note}
             onChangeText={setNote}
             autoFocus
@@ -94,7 +89,7 @@ export function DLInputModal({
             />
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
     </Modal>
   );
 }
