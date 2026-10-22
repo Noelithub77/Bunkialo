@@ -196,20 +196,13 @@ export function SwipeableBunkItem({
             style={{ opacity: itemOpacity }}
           >
             <View className="flex-row items-center gap-3">
-              {/* source tag */}
               <View
+                accessibilityLabel={isPresent ? "Present" : isDL ? "Duty leave" : isUnknown ? "Unknown" : "Absent"}
                 className="rounded-full px-2 py-0.5"
-                style={{
-                  backgroundColor:
-                    bunk.source === "attendancePortal" || bunk.source === "lms"
-                      ? Colors.status.info
-                      : Colors.status.warning,
-                }}
+                style={{ backgroundColor: isPresent ? Colors.status.success : isDL ? Colors.status.info : isUnknown ? Colors.status.warning : Colors.status.danger }}
               >
                 <Text className="text-[10px] font-semibold text-white">
-                  {bunk.source === "attendancePortal"
-                    ? "ATTENDANCE"
-                    : bunk.source.toUpperCase()}
+                  {isPresent ? "Present" : isDL ? "DL" : isUnknown ? "Unknown" : "Abs"}
                 </Text>
               </View>
 
@@ -234,27 +227,9 @@ export function SwipeableBunkItem({
                 )}
               </View>
 
-              {/* status badges */}
-              {isPresent && (
-                <View
-                  className="flex-row items-center gap-1 rounded-full px-2 py-1"
-                  style={{ backgroundColor: Colors.status.success }}
-                >
-                  <Ionicons name="checkmark" size={10} color={Colors.white} />
-                  <Text className="text-[10px] font-semibold text-white">
-                    Present
-                  </Text>
-                </View>
-              )}
-              {isDL && (
-                <View
-                  className="flex-row items-center gap-1 rounded-full px-2 py-1"
-                  style={{ backgroundColor: Colors.status.info }}
-                >
-                  <Ionicons name="briefcase" size={10} color={Colors.white} />
-                  <Text className="text-[10px] font-semibold text-white">
-                    DL
-                  </Text>
+              {bunk.source === "manual" && (
+                <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: theme.backgroundSecondary }}>
+                  <Text className="text-[10px] font-medium" style={{ color: theme.textSecondary }}>Manual</Text>
                 </View>
               )}
 

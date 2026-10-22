@@ -131,6 +131,7 @@ const files = [
   "tests/unit/faculty-hostels.test.ts",
 
   "src/components/attendance/attendance-card.tsx",
+  "src/components/attendance/swipeable-bunk-item.tsx",
   "src/components/attendance/dl-input-modal.tsx",
   "src/components/attendance/duty-leave-modal.tsx",
   "src/components/attendance/unified-course-card.tsx",
