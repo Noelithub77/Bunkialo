@@ -15,7 +15,7 @@
     "worker:typecheck": "bun run worker:types && tsgo -p tsconfig.worker.json",
     "worker:check": "cf deploy --dry-run",
     "worker:deploy": "bun run web:build && cf deploy",
-    "lint": "oxlint . --import-plugin --react-plugin -D correctness -W suspicious -W react -W import -A react-in-jsx-scope -W react/refs -W react/set-state-in-effect -W react/immutability -W react/static-components -W react/purity -W react/preserve-manual-memoization -A react-hooks/exhaustive-deps",
+    "lint": "oxlint . --import-plugin --react-plugin -D correctness -W suspicious -W react -W import -A react-in-jsx-scope -W react/refs -W react/set-state-in-effect -W react/immutability -W react/static-components -W react/purity -W react/preserve-manual-memoization -A react-hooks/exhaustive-deps && node scripts/no-em-dash.mjs",
     "test": "bun test ./tests/unit",
     "test:attendance-live": "bun tests/integration/attendance-portal/test-attendance-portal.ts",
     "test:wifix:atomic": "bun tests/integration/wifix/test-wifix-atomic.ts",
