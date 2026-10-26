@@ -321,6 +321,7 @@ export default function DashboardScreen() {
 
   const isOldBatch =
     username?.startsWith("2022") || username?.startsWith("2023");
+  const is2024Batch = username?.startsWith("2024");
 
   const fabActions = [
     {
@@ -410,7 +411,11 @@ export default function DashboardScreen() {
             containerStyle: actionContainerStyle,
             onPress: () => {
               setShowFabMenu(false);
-              Linking.openURL("https://outpass.iiitkottayam.ac.in/app");
+              Linking.openURL(
+                is2024Batch
+                  ? "https://gatepassstud.iiitkottayam.ac.in/index.php"
+                  : "https://outpass.iiitkottayam.ac.in/app",
+              );
             },
           },
           {
