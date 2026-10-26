@@ -606,7 +606,6 @@ export default function GpaCalculatorScreen() {
           )}
 
           {courses.map((course) => {
-            const gradeColor = getGradeColor(course.grade);
             const impactPoints =
               (GRADE_POINTS[course.grade] - GRADE_POINTS.A) * course.credits;
             const impactSgpa =
@@ -634,20 +633,6 @@ export default function GpaCalculatorScreen() {
                       >
                         {" "}({course.credits})
                       </Text>
-                    </Text>
-                  </View>
-                  <View
-                    className="rounded-full border px-2.5 py-1.5"
-                    style={{
-                      backgroundColor: `${gradeColor}20`,
-                      borderColor: gradeColor,
-                    }}
-                  >
-                    <Text
-                      className="text-[12px] font-bold"
-                      style={{ color: gradeColor }}
-                    >
-                      {course.grade}
                     </Text>
                   </View>
                 </View>
