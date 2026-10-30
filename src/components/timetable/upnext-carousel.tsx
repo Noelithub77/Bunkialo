@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useBunkStore } from "@/stores/bunk-store";
-import { useGestureUiStore } from "@/stores/gesture-ui-store";
+import { useCarouselGesture } from "@/hooks/use-carousel-gesture";
 import {
   formatTimeDisplay,
   getDayName,
@@ -15,8 +15,6 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   type LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
   Pressable,
   Text,
   View,
@@ -37,9 +35,7 @@ export function UpNextCarousel({ slots, onCoursePress }: UpNextCarouselProps) {
   const theme = isDark ? Colors.dark : Colors.light;
   const bunkCourses = useBunkStore((state) => state.courses);
   const flatListRef = useRef<FlatList>(null);
-  const setHorizontalContentGestureActive = useGestureUiStore(
-    (state) => state.setHorizontalContentGestureActive,
-  );
+  const carouselGesture = useCarouselGesture();
   const [activeIndex, setActiveIndex] = useState(0);
   const [hasInitialScrolled, setHasInitialScrolled] = useState(false);
   const [carouselWidth, setCarouselWidth] = useState(DEFAULT_CAROUSEL_WIDTH);
@@ -147,9 +143,8 @@ export function UpNextCarousel({ slots, onCoursePress }: UpNextCarouselProps) {
   useEffect(() => {
     return () => {
       clearSnapTimer();
-      setHorizontalContentGestureActive(false);
     };
-  }, [clearSnapTimer, setHorizontalContentGestureActive]);
+  }, [clearSnapTimer]);
 
   // Initialize activeIndex to match initialScrollIndex to prevent jitter
   useEffect(() => {
@@ -420,18 +415,10 @@ export function UpNextCarousel({ slots, onCoursePress }: UpNextCarouselProps) {
           offset: snapInterval * index,
           index,
         })}
-        onScrollBeginDrag={() => {
-          clearSnapTimer();
-          setHorizontalContentGestureActive(true);
-        }}
-        onScrollEndDrag={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
-          const velocityX = event.nativeEvent.velocity?.x ?? 0;
-          if (Math.abs(velocityX) < 0.01) {
-            setHorizontalContentGestureActive(false);
-          }
-        }}
+        {...carouselGesture}
+        onScrollBeginDrag={clearSnapTimer}
+        onScrollEndDrag={carouselGesture.onTouchEnd}
         onMomentumScrollEnd={() => {
-          setHorizontalContentGestureActive(false);
           if (!hasInitialScrolled) {
             setHasInitialScrolled(true);
           } else {

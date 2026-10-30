@@ -7,15 +7,13 @@ import {
   type MealType,
 } from "@/data/mess";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useGestureUiStore } from "@/stores/gesture-ui-store";
+import { useCarouselGesture } from "@/hooks/use-carousel-gesture";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   type LayoutChangeEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
   Pressable,
   Text,
   View,
@@ -37,9 +35,7 @@ export function MealCarousel() {
   const isDark = colorScheme === "dark";
   const theme = isDark ? Colors.dark : Colors.light;
   const flatListRef = useRef<FlatList>(null);
-  const setHorizontalContentGestureActive = useGestureUiStore(
-    (state) => state.setHorizontalContentGestureActive,
-  );
+  const carouselGesture = useCarouselGesture();
   const now = new Date();
   const { meals, initialIndex } = getNearbyMeals(now);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
@@ -96,9 +92,8 @@ export function MealCarousel() {
   useEffect(() => {
     return () => {
       clearSnapTimer();
-      setHorizontalContentGestureActive(false);
     };
-  }, [clearSnapTimer, setHorizontalContentGestureActive]);
+  }, [clearSnapTimer]);
 
   // Initialize activeIndex to match initialIndex to prevent jitter
   useEffect(() => {
@@ -333,18 +328,10 @@ export function MealCarousel() {
           offset: snapInterval * index,
           index,
         })}
-        onScrollBeginDrag={() => {
-          clearSnapTimer();
-          setHorizontalContentGestureActive(true);
-        }}
-        onScrollEndDrag={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
-          const velocityX = event.nativeEvent.velocity?.x ?? 0;
-          if (Math.abs(velocityX) < 0.01) {
-            setHorizontalContentGestureActive(false);
-          }
-        }}
+        {...carouselGesture}
+        onScrollBeginDrag={clearSnapTimer}
+        onScrollEndDrag={carouselGesture.onTouchEnd}
         onMomentumScrollEnd={() => {
-          setHorizontalContentGestureActive(false);
           if (!hasInitialScrolledRef.current) {
             hasInitialScrolledRef.current = true;
           } else {

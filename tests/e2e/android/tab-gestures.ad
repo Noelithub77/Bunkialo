@@ -1,0 +1,49 @@
+context platform=android
+open "com.codialo.Bunkialo2"
+wait "role=group text=Mess" 30000
+# Requires an open Bunkialo session on a 1080 x 2400 phone emulator.
+# Each assertion checks selection after the complete gesture sequence.
+press "role=group text=Mess"
+wait 500
+gesture pan 850 600 -600 0 300
+gesture pan 900 1500 -650 0 300
+wait "role=group text=Bunks selected=true" 5000
+is selected "role=group text=Bunks"
+gesture pan 150 1500 650 0 300
+wait "role=group text=Mess selected=true" 5000
+is selected "role=group text=Mess"
+
+# Slow carousel drag, immediate short tab swipe, reverse, then repeat.
+gesture pan 850 600 -400 0 600
+gesture pan 850 1500 -240 0 450
+wait "role=group text=Bunks selected=true" 5000
+is selected "role=group text=Bunks"
+gesture pan 150 1500 650 0 600
+wait "role=group text=Mess selected=true" 5000
+is selected "role=group text=Mess"
+gesture pan 850 600 -600 0 150
+gesture pan 900 1500 -650 0 300
+wait "role=group text=Bunks selected=true" 5000
+is selected "role=group text=Bunks"
+
+# Leave and return while the carousel is coasting.
+press "role=group text=Mess"
+wait 500
+gesture pan 850 600 -600 0 150
+press "role=group text=Timetable"
+wait 500
+is selected "role=group text=Timetable"
+press "role=group text=Mess"
+wait 500
+gesture pan 900 1500 -650 0 300
+wait "role=group text=Bunks selected=true" 5000
+is selected "role=group text=Bunks"
+
+# Vertical scroll still works; a subsequent horizontal drag selects a whole tab.
+press "role=group text=Mess"
+wait 500
+gesture pan 500 1500 0 -650 600
+is selected "role=group text=Mess"
+gesture pan 900 1300 -650 50 500
+wait "role=group text=Bunks selected=true" 5000
+is selected "role=group text=Bunks"

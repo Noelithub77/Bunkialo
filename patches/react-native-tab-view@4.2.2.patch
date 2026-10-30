@@ -1,4 +1,5 @@
 diff --git a/lib/module/PagerViewAdapter.js b/lib/module/PagerViewAdapter.js
+index 398a63d05ed279e9fc5b55a69f4104742d4379c2..f5a28ed973d47dfda13f6cc1866595dba4aa0628 100644
 --- a/lib/module/PagerViewAdapter.js
 +++ b/lib/module/PagerViewAdapter.js
 @@ -1,7 +1,7 @@
@@ -10,7 +11,7 @@ diff --git a/lib/module/PagerViewAdapter.js b/lib/module/PagerViewAdapter.js
  import ViewPager from 'react-native-pager-view';
  import useLatestCallback from 'use-latest-callback';
  import { useAnimatedValue } from "./useAnimatedValue.js";
-@@ -28,6 +28,12 @@
+@@ -28,6 +28,12 @@ export function PagerViewAdapter({
    const pagerRef = React.useRef(null);
    const indexRef = React.useRef(index);
    const navigationStateRef = React.useRef(navigationState);
@@ -23,7 +24,7 @@ diff --git a/lib/module/PagerViewAdapter.js b/lib/module/PagerViewAdapter.js
    const position = useAnimatedValue(index);
    const offset = useAnimatedValue(0);
    React.useEffect(() => {
-@@ -60,11 +66,34 @@
+@@ -60,11 +66,34 @@ export function PagerViewAdapter({
      const {
        pageScrollState
      } = state.nativeEvent;
@@ -58,7 +59,7 @@ diff --git a/lib/module/PagerViewAdapter.js b/lib/module/PagerViewAdapter.js
          {
            const subscription = offset.addListener(({
              value
-@@ -106,7 +135,12 @@
+@@ -106,7 +135,12 @@ export function PagerViewAdapter({
            offset: offset
          }
        }], {
@@ -72,7 +73,7 @@ diff --git a/lib/module/PagerViewAdapter.js b/lib/module/PagerViewAdapter.js
        }),
        onPageSelected: e => {
          const index = e.nativeEvent.position;
-@@ -118,7 +152,12 @@
+@@ -118,7 +152,12 @@ export function PagerViewAdapter({
        },
        onPageScrollStateChanged: onPageScrollStateChanged,
        scrollEnabled: swipeEnabled,
@@ -86,7 +87,107 @@ diff --git a/lib/module/PagerViewAdapter.js b/lib/module/PagerViewAdapter.js
      })
    });
  }
+diff --git a/lib/module/PanResponderAdapter.js b/lib/module/PanResponderAdapter.js
+index 22c170523d49834810c734aafbe4c4a5746e6637..4e32fcd695071bc7e0e8cf8e9f241236b6dfb1d3 100644
+--- a/lib/module/PanResponderAdapter.js
++++ b/lib/module/PanResponderAdapter.js
+@@ -39,6 +39,9 @@ export function PanResponderAdapter({
+   const onTabSelectRef = React.useRef(onTabSelect);
+   const currentIndexRef = React.useRef(index);
+   const pendingIndexRef = React.useRef(undefined);
++  const gestureStateRef = React.useRef(null);
++  const targetObserverRef = React.useRef(null);
++  const releaseTimerRef = React.useRef(undefined);
+   const swipeVelocityThreshold = 0.15;
+   const swipeDistanceThreshold = layout.width / 1.75;
+   const jumpToIndex = useLatestCallback((index, animate = animationEnabled) => {
+@@ -102,7 +105,18 @@ export function PanResponderAdapter({
+     const diffX = layoutDirection === 'rtl' ? -gestureState.dx : gestureState.dx;
+     return isMovingHorizontally(event, gestureState) && (diffX >= DEAD_ZONE && currentIndexRef.current > 0 || diffX <= -DEAD_ZONE && currentIndexRef.current < routes.length - 1);
+   };
+-  const startGesture = () => {
++  const startGesture = (event, gestureState) => {
++    clearTimeout(releaseTimerRef.current);
++    gestureStateRef.current = { ...gestureState };
++    const target = event.nativeEvent.target;
++    if (typeof Node !== 'undefined' && target instanceof Node && typeof MutationObserver !== 'undefined') {
++      targetObserverRef.current?.disconnect();
++      targetObserverRef.current = new MutationObserver(() => {
++        const gesture = gestureStateRef.current;
++        if (gesture && !target.isConnected) finishGesture(gesture);
++      });
++      targetObserverRef.current.observe(document, { childList: true, subtree: true });
++    }
+     onSwipeStart?.();
+     if (keyboardDismissMode === 'on-drag') {
+       Keyboard.dismiss();
+@@ -112,6 +126,7 @@ export function PanResponderAdapter({
+     panX.setOffset(panX._value);
+   };
+   const respondToGesture = (_, gestureState) => {
++    gestureStateRef.current = { ...gestureState };
+     const diffX = layoutDirection === 'rtl' ? -gestureState.dx : gestureState.dx;
+     if (
+     // swiping left
+@@ -130,7 +145,12 @@ export function PanResponderAdapter({
+     }
+     panX.setValue(diffX);
+   };
+-  const finishGesture = (_, gestureState) => {
++  const finishGesture = useLatestCallback(gestureState => {
++    if (!gestureStateRef.current) return;
++    gestureStateRef.current = null;
++    targetObserverRef.current?.disconnect();
++    targetObserverRef.current = null;
++    clearTimeout(releaseTimerRef.current);
+     panX.flattenOffset();
+     onSwipeEnd?.();
+     const currentIndex = typeof pendingIndexRef.current === 'number' ? pendingIndexRef.current : currentIndexRef.current;
+@@ -142,8 +162,29 @@ export function PanResponderAdapter({
+     if (!isFinite(nextIndex)) {
+       nextIndex = currentIndex;
+     }
+-    jumpToIndex(nextIndex, true);
+-  };
++    jumpToIndex(nextIndex, animationEnabled);
++  });
++
++  React.useEffect(() => {
++    if (typeof window === 'undefined' || !window.addEventListener) return;
++    // A removed touch target never bubbles its release to React Native Web.
++    // Pointer release still reaches the window; allow the normal responder to finish first.
++    const recoverGesture = () => {
++      if (!gestureStateRef.current) return;
++      clearTimeout(releaseTimerRef.current);
++      releaseTimerRef.current = setTimeout(() => {
++        const gesture = gestureStateRef.current;
++        if (gesture) finishGesture(gesture);
++      }, 0);
++    };
++    const events = ['pointerup', 'touchend', 'touchcancel', 'blur'];
++    events.forEach(event => window.addEventListener(event, recoverGesture, true));
++    return () => {
++      targetObserverRef.current?.disconnect();
++      clearTimeout(releaseTimerRef.current);
++      events.forEach(event => window.removeEventListener(event, recoverGesture, true));
++    };
++  }, [finishGesture]);
+   const addEnterListener = useLatestCallback(listener => {
+     listenersRef.current.push(listener);
+     return () => {
+@@ -163,8 +204,8 @@ export function PanResponderAdapter({
+     onMoveShouldSetPanResponderCapture: canMoveScreen,
+     onPanResponderGrant: startGesture,
+     onPanResponderMove: respondToGesture,
+-    onPanResponderTerminate: finishGesture,
+-    onPanResponderRelease: finishGesture,
++    onPanResponderTerminate: (_, gestureState) => finishGesture(gestureState),
++    onPanResponderRelease: (_, gestureState) => finishGesture(gestureState),
+     onPanResponderTerminationRequest: () => true
+   });
+   const maxTranslate = layout.width * (routes.length - 1);
 diff --git a/src/PagerViewAdapter.tsx b/src/PagerViewAdapter.tsx
+index d4a0a0efaaa142c9193a00a4ae5743457194409f..6cd187615878dcea92a1cd77f250603ed1c47337 100644
 --- a/src/PagerViewAdapter.tsx
 +++ b/src/PagerViewAdapter.tsx
 @@ -1,5 +1,5 @@
@@ -96,7 +197,7 @@ diff --git a/src/PagerViewAdapter.tsx b/src/PagerViewAdapter.tsx
  import ViewPager, {
    type PageScrollStateChangedNativeEvent,
  } from 'react-native-pager-view';
-@@ -58,6 +58,12 @@
+@@ -58,6 +58,12 @@ export function PagerViewAdapter<T extends Route>({
    const indexRef = React.useRef<number>(index);
    const navigationStateRef = React.useRef(navigationState);
  
@@ -109,7 +210,7 @@ diff --git a/src/PagerViewAdapter.tsx b/src/PagerViewAdapter.tsx
    const position = useAnimatedValue(index);
    const offset = useAnimatedValue(0);
  
-@@ -100,11 +106,34 @@
+@@ -100,11 +106,34 @@ export function PagerViewAdapter<T extends Route>({
    ) => {
      const { pageScrollState } = state.nativeEvent;
  
@@ -145,7 +246,7 @@ diff --git a/src/PagerViewAdapter.tsx b/src/PagerViewAdapter.tsx
          const subscription = offset.addListener(({ value }) => {
            const next =
              index + (value > 0 ? Math.ceil(value) : Math.floor(value));
-@@ -161,7 +190,11 @@
+@@ -161,7 +190,11 @@ export function PagerViewAdapter<T extends Route>({
                },
              },
            ],
@@ -158,7 +259,7 @@ diff --git a/src/PagerViewAdapter.tsx b/src/PagerViewAdapter.tsx
          )}
          onPageSelected={(e) => {
            const index = e.nativeEvent.position;
-@@ -172,7 +205,16 @@
+@@ -172,7 +205,16 @@ export function PagerViewAdapter<T extends Route>({
          onPageScrollStateChanged={onPageScrollStateChanged}
          scrollEnabled={swipeEnabled}
        >
@@ -176,3 +277,105 @@ diff --git a/src/PagerViewAdapter.tsx b/src/PagerViewAdapter.tsx
        </AnimatedViewPager>
      ),
    });
+diff --git a/src/PanResponderAdapter.tsx b/src/PanResponderAdapter.tsx
+index 69a98f51c1cfcb984de30617449496042678e8c6..956c76a57e04110aee44146bd451d3a0250d9871 100644
+--- a/src/PanResponderAdapter.tsx
++++ b/src/PanResponderAdapter.tsx
+@@ -76,6 +76,9 @@ export function PanResponderAdapter<T extends Route>({
+   const onTabSelectRef = React.useRef(onTabSelect);
+   const currentIndexRef = React.useRef(index);
+   const pendingIndexRef = React.useRef<number>(undefined);
++  const gestureStateRef = React.useRef<PanResponderGestureState | null>(null);
++  const targetObserverRef = React.useRef<MutationObserver | null>(null);
++  const releaseTimerRef = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+ 
+   const swipeVelocityThreshold = 0.15;
+   const swipeDistanceThreshold = layout.width / 1.75;
+@@ -162,7 +165,18 @@ export function PanResponderAdapter<T extends Route>({
+     );
+   };
+ 
+-  const startGesture = () => {
++  const startGesture = (event: GestureResponderEvent, gestureState: PanResponderGestureState) => {
++    clearTimeout(releaseTimerRef.current);
++    gestureStateRef.current = { ...gestureState };
++    const target: unknown = event.nativeEvent.target;
++    if (typeof Node !== 'undefined' && target instanceof Node && typeof MutationObserver !== 'undefined') {
++      targetObserverRef.current?.disconnect();
++      targetObserverRef.current = new MutationObserver(() => {
++        const gesture = gestureStateRef.current;
++        if (gesture && !target.isConnected) finishGesture(gesture);
++      });
++      targetObserverRef.current.observe(document, { childList: true, subtree: true });
++    }
+     onSwipeStart?.();
+ 
+     if (keyboardDismissMode === 'on-drag') {
+@@ -178,6 +192,7 @@ export function PanResponderAdapter<T extends Route>({
+     _: GestureResponderEvent,
+     gestureState: PanResponderGestureState
+   ) => {
++    gestureStateRef.current = { ...gestureState };
+     const diffX =
+       layoutDirection === 'rtl' ? -gestureState.dx : gestureState.dx;
+ 
+@@ -204,10 +219,12 @@ export function PanResponderAdapter<T extends Route>({
+     panX.setValue(diffX);
+   };
+ 
+-  const finishGesture = (
+-    _: GestureResponderEvent,
+-    gestureState: PanResponderGestureState
+-  ) => {
++  const finishGesture = useLatestCallback((gestureState: PanResponderGestureState) => {
++    if (!gestureStateRef.current) return;
++    gestureStateRef.current = null;
++    targetObserverRef.current?.disconnect();
++    targetObserverRef.current = null;
++    clearTimeout(releaseTimerRef.current);
+     panX.flattenOffset();
+ 
+     onSwipeEnd?.();
+@@ -244,8 +261,29 @@ export function PanResponderAdapter<T extends Route>({
+       nextIndex = currentIndex;
+     }
+ 
+-    jumpToIndex(nextIndex, true);
+-  };
++    jumpToIndex(nextIndex, animationEnabled);
++  });
++
++  React.useEffect(() => {
++    if (typeof window === 'undefined' || !window.addEventListener) return;
++    // A removed touch target never bubbles its release to React Native Web.
++    // Pointer release still reaches the window; allow the normal responder to finish first.
++    const recoverGesture = () => {
++      if (!gestureStateRef.current) return;
++      clearTimeout(releaseTimerRef.current);
++      releaseTimerRef.current = setTimeout(() => {
++        const gesture = gestureStateRef.current;
++        if (gesture) finishGesture(gesture);
++      }, 0);
++    };
++    const events = ['pointerup', 'touchend', 'touchcancel', 'blur'];
++    events.forEach(event => window.addEventListener(event, recoverGesture, true));
++    return () => {
++      targetObserverRef.current?.disconnect();
++      clearTimeout(releaseTimerRef.current);
++      events.forEach(event => window.removeEventListener(event, recoverGesture, true));
++    };
++  }, [finishGesture]);
+ 
+   const addEnterListener = useLatestCallback((listener: Listener) => {
+     listenersRef.current.push(listener);
+@@ -273,8 +311,8 @@ export function PanResponderAdapter<T extends Route>({
+     onMoveShouldSetPanResponderCapture: canMoveScreen,
+     onPanResponderGrant: startGesture,
+     onPanResponderMove: respondToGesture,
+-    onPanResponderTerminate: finishGesture,
+-    onPanResponderRelease: finishGesture,
++    onPanResponderTerminate: (_, gestureState) => finishGesture(gestureState),
++    onPanResponderRelease: (_, gestureState) => finishGesture(gestureState),
+     onPanResponderTerminationRequest: () => true,
+   });
+ 
