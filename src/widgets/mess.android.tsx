@@ -23,15 +23,19 @@ export const WidgetLayout = (
   const midnight =
     Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate()) -
     props.utcOffsetMinutes * 60000;
-  const selected = props.cards
+  const meals = props.cards
     .map((card) => {
-      let start = midnight +
+      const start = midnight +
         ((card.day - local.getUTCDay() + 7) % 7) * 86400000 +
         card.startMinute * 60000;
-      if (start <= now) start += 604800000;
-      return { card, start };
+      const end = start + (card.endMinute - card.startMinute) * 60000;
+      return { card, start, end };
     })
-    .sort((a, b) => a.start - b.start)[0];
+    .sort((a, b) => a.start - b.start);
+  const selected =
+    meals.find(({ start, end }) => now >= start && now < end) ??
+    meals.find(({ start }) => start > now) ??
+    meals[0];
   const widgetWidth = environment.width ?? 180;
   const widgetHeight = environment.height ?? 180;
   const compact = widgetWidth < 220 || widgetHeight < 180;
