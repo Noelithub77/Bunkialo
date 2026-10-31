@@ -20,7 +20,7 @@ const main = async (): Promise<void> => {
     await fs.access(STATE_PATH);
   } catch {
     throw new Error(
-      "Missing hosted auth state. Run `bun run test:e2e:hosted-auth` first.",
+      "Missing hosted auth state. Run `pnpm run test:e2e:hosted-auth` first.",
     );
   }
 

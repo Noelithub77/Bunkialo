@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { presentPortalNotification, notificationAppearance } from "@/utils/portal-notification";
 import { getCalendarReminderMinutes, getCalendarReminderTime, mergeCalendarReminders } from "@/utils/calendar-reminders";
 import type { AcademicEvent, PortalNotification } from "@/types";

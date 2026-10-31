@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 
 const isWindows = process.platform === "win32";
-const bunCommand = isWindows ? "bun.exe" : "bun";
+const pnpmCommand = isWindows ? "pnpm.exe" : "pnpm";
 const forwardedArgs = process.argv.slice(2).filter((arg) => arg !== "--open");
 const shouldOpenBrowser = process.argv.slice(2).includes("--open");
 
@@ -125,7 +125,7 @@ if (portIndex >= 0 && expoArgs[portIndex].includes("=")) {
 }
 
 console.log("Building the web bundle for the local relay...");
-const build = start(bunCommand, ["run", "web:build"]);
+const build = start(pnpmCommand, ["run", "web:build"]);
 build.once("exit", (code) => {
   if (shuttingDown) return;
   if (code !== 0) {
@@ -135,14 +135,14 @@ build.once("exit", (code) => {
   }
 
   console.log(`Starting Expo hot reload on http://localhost:${expoPort}`);
-  const expo = start(bunCommand, ["x", "expo", "start", "--web", ...expoArgs]);
+  const expo = start(pnpmCommand, ["exec", "expo", "start", "--web", ...expoArgs]);
   expo.once("exit", (expoCode) => {
     if (!shuttingDown && expoCode !== 0) shutdown(expoCode ?? 1);
   });
 
   console.log(`Starting Cloudflare Worker relay on http://localhost:${relayPort}`);
-  const worker = start(bunCommand, [
-    "x",
+  const worker = start(pnpmCommand, [
+    "exec",
     "cf",
     "dev",
     "--port",

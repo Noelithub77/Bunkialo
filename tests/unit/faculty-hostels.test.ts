@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { faculties } from "@/data/faculty";
 import { hostelGroups } from "@/data/hostels";
 

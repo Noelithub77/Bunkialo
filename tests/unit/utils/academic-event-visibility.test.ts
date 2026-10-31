@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { isVisibleAcademicEvent } from "@/utils/academic-event-visibility";
 import type { AcademicEvent } from "@/types";
 const club: AcademicEvent = {

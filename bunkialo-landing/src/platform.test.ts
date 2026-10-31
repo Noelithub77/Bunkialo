@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { detectDevice, getFor, links } from "./platform.ts";
 
 test("Android phones and tablets get the Play Store", () => {

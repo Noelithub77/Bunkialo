@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { inflateSync } from "node:zlib";
 import { encodeWidgetGradient } from "@/widgets/gradient-png";
 

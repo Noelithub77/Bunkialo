@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { PortalNotification } from "@/types";
 let enabled = true;
 let permission = true;
@@ -7,14 +7,14 @@ let readFail = false;
 let waitForRead: Promise<void> | null = null;
 const reads: string[] = [];
 const deliveries: string[] = [];
-mock.module("@/stores/storage", () => ({
+vi.mock("@/stores/storage", () => ({
   zustandStorage: {
     getItem: async () => null,
     setItem: async () => {},
     removeItem: async () => {},
   },
 }));
-mock.module("@/services/attendance/attendance-api", () => ({
+vi.mock("@/services/attendance/attendance-api", () => ({
   getPortalNotifications: async () => ({ items: [], unreadCount: 0 }),
   markPortalNotificationRead: async (id: string) => {
     reads.push(id);
@@ -23,16 +23,16 @@ mock.module("@/services/attendance/attendance-api", () => ({
   },
   markAllPortalNotificationsRead: async () => {},
 }));
-mock.module("@/stores/settings-store", () => ({
+vi.mock("@/stores/settings-store", () => ({
   useSettingsStore: {
     getState: () => ({ notificationsEnabled: enabled }),
     persist: { hasHydrated: () => true },
   },
 }));
-mock.module("@/stores/attendance-store", () => ({
+vi.mock("@/stores/attendance-store", () => ({
   useAttendanceStore: { getState: () => ({ courses: [] }) },
 }));
-mock.module("@/utils/notifications", () => ({
+vi.mock("@/utils/notifications", () => ({
   hasNotificationPermissions: async () => permission,
   ensureNotificationChannels: async () => {},
   sendImmediateNotification: async (p: { identifier: string }) => {

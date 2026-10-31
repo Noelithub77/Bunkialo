@@ -1,6 +1,6 @@
 /**
  * Test script - fetches only IN PROGRESS courses
- * Run with: bun tests/integration/lms/test-scraper.ts
+ * Run with: pnpm exec tsx tests/integration/lms/test-scraper.ts
  * Required env: LMS_TEST_USERNAME, LMS_TEST_PASSWORD
  */
 

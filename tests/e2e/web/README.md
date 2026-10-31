@@ -1,13 +1,13 @@
 # Web browser checks
 
 Run against a server serving the production web export. For a local Worker with
-that export, use `bun run worker:dev --port 8091` in another terminal.
+that export, use `pnpm run worker:dev --port 8091` in another terminal.
 
 ```bash
-WEB_LOGIN_TEST_URL=http://localhost:8091 bun run test:e2e:web-login
-WEB_NOTICE_TEST_URL=http://localhost:8091 bun run test:e2e:web-notice
-WEB_NAV_TEST_URL=http://localhost:8091 bun run test:e2e:web-navigation
-WEB_NAV_TEST_URL=http://localhost:8091 WEB_NAV_WIDTH=390 WEB_NAV_HEIGHT=844 bun run test:e2e:web-navigation
+WEB_LOGIN_TEST_URL=http://localhost:8091 pnpm run test:e2e:web-login
+WEB_NOTICE_TEST_URL=http://localhost:8091 pnpm run test:e2e:web-notice
+WEB_NAV_TEST_URL=http://localhost:8091 pnpm run test:e2e:web-navigation
+WEB_NAV_TEST_URL=http://localhost:8091 WEB_NAV_WIDTH=390 WEB_NAV_HEIGHT=844 pnpm run test:e2e:web-navigation
 ```
 
 These checks use isolated browser contexts and intercept API requests with synthetic

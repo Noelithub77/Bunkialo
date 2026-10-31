@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { shouldSkipBuild } from "./ignore-build.mjs";
 const base = "a".repeat(40), head = "b".repeat(40);
 const options = { base, head, repository: "Noelithub77/Bunkialo" };

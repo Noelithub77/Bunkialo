@@ -4,7 +4,7 @@ Verified on 22 October 2026 with the configured test account on `lmsug24.iiitkot
 
 Moodle exposes feedback discovery, questions, access information, temporary and finished responses, launching an attempt, and processing pages through its official mobile web service. See [Moodle's feedback service definitions](https://github.com/moodle/moodle/blob/MOODLE_403_STABLE/mod/feedback/db/services.php).
 
-Run `bun run test:feedback-api` to repeat the capability probe with locally configured credentials. It never prints session keys or tokens.
+Run `pnpm run test:feedback-api` to repeat the capability probe with locally configured credentials. It never prints session keys or tokens.
 
 The campus deployment currently blocks those APIs:
 

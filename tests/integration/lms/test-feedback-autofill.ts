@@ -1,9 +1,9 @@
 /**
  * Live course feedback check using the app's form parser.
  *
- *   bun tests/integration/lms/test-feedback-autofill.ts                 # status of every course
- *   bun tests/integration/lms/test-feedback-autofill.ts --course-id=160 # dry run: build the answers only
- *   bun tests/integration/lms/test-feedback-autofill.ts --course-id=160 --submit [--rating=4]
+ *   pnpm exec tsx tests/integration/lms/test-feedback-autofill.ts                 # status of every course
+ *   pnpm exec tsx tests/integration/lms/test-feedback-autofill.ts --course-id=160 # dry run: build the answers only
+ *   pnpm exec tsx tests/integration/lms/test-feedback-autofill.ts --course-id=160 --submit [--rating=4]
  *
  * Submitting is limited to one course per run and ends with an LMS verification.
  * Required env: LMS_TEST_USERNAME, LMS_TEST_PASSWORD

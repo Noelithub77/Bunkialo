@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { extractCourseCode, extractCourseName } from "@/utils/course-name";
 
 describe("course name parsing", () => {

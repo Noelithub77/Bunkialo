@@ -54,8 +54,8 @@ The Vite-built login page is included in the Rust binary. If you edit the page, 
 
 ```bash
 cd cli/login-ui
-bun install --frozen-lockfile
-bun run build
+pnpm install --frozen-lockfile
+pnpm run build
 cd ../..
 cargo build --release --locked --manifest-path cli/Cargo.toml
 ```

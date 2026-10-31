@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { AssignmentEditSession, AssignmentUploadLocalFile } from "@/types";
 
 const viewHtml = `<h1>Worksheet 3</h1>
@@ -15,12 +15,12 @@ const editHtml = `<form action="/mod/assign/view.php" method="post">
   <script>M.form_filemanager.init(Y, {"maxfiles":3,"maxbytes":1000,"accepted_types":[".pdf"],"filepicker":{"repositories":{"4":{"type":"upload"}}}});</script>`;
 
 let editResponse: Promise<string> | null = null;
-const get = mock(async (url: string) => ({
+const get = vi.fn(async (url: string) => ({
   data: url.includes("editsubmission")
     ? await (editResponse ?? Promise.resolve(editHtml))
     : viewHtml,
 }));
-const post = mock(
+const post = vi.fn(
   async (
     url: string,
     _body: unknown,
@@ -35,16 +35,16 @@ const post = mock(
     return { data: viewHtml };
   },
 );
-const checkSession = mock(async () => true);
-mock.module("@/services/api", () => ({
+const checkSession = vi.fn(async () => true);
+vi.mock("@/services/api", () => ({
   api: { get, post },
   getCurrentBaseUrl: () => "https://lms.example",
 }));
-mock.module("@/services/auth/lms-auth", () => ({
+vi.mock("@/services/auth/lms-auth", () => ({
   checkSession,
   tryAutoLogin: async () => true,
 }));
-mock.module("@/stores/storage", () => ({
+vi.mock("@/stores/storage", () => ({
   zustandStorage: {
     getItem: async () => null,
     setItem: async () => {},

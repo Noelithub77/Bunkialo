@@ -174,9 +174,9 @@ You need Node 24.3+, Bun and the Expo CLI.
 ```sh
 git clone https://github.com/Noelithub77/bunkialo2.git
 cd bunkialo2
-bun install
+pnpm install
 cp .env.example .env
-bunx expo start
+pnpm exec expo start
 ```
 
 Android is the only native target; iPhone and iPad use the web app. Read [`AGENTS.md`](AGENTS.md) for the project layout and conventions, and [contributing](.github/CONTRIBUTING.md) before opening a pull request.
@@ -185,22 +185,22 @@ Android is the only native target; iPhone and iPad use the web app. Read [`AGENT
 <summary>Checks and test scripts</summary>
 
 ```sh
-bun test                # unit tests against app modules
-bun run lint
-bun run typecheck
+pnpm test                # unit tests against app modules
+pnpm run lint
+pnpm run typecheck
 ```
 
 Live LMS checks need `LMS_TEST_USERNAME` and `LMS_TEST_PASSWORD` in `.env`:
 
 ```sh
-bun run test:lms-scraper
-bun run test:dashboard
-bun run test:resources
-bun run test:downloads
-bun run test:assignment
-bun run test:assignment-submit   # uploads only with explicit --submit
-bun run test:e2e:assignment
-bun run test:e2e:feedback
+pnpm run test:lms-scraper
+pnpm run test:dashboard
+pnpm run test:resources
+pnpm run test:downloads
+pnpm run test:assignment
+pnpm run test:assignment-submit   # uploads only with explicit --submit
+pnpm run test:e2e:assignment
+pnpm run test:e2e:feedback
 ```
 
 </details>
@@ -208,12 +208,12 @@ bun run test:e2e:feedback
 <details>
 <summary>Web app on Cloudflare</summary>
 
-Use the Cloudflare `cf` CLI for web development, build checks and deployment. `bun install` installs the pinned CLI and its build runtime. The Worker configuration is in `cloudflare.config.ts`; `wrangler.config.ts` only sets the Wrangler build tool's static asset directory. Generate Worker types with `bun run worker:types`, or run `bun run worker:typecheck` to generate them and type-check the Worker.
+Use the Cloudflare `cf` CLI for web development, build checks and deployment. `pnpm install` installs the pinned CLI and its build runtime. The Worker configuration is in `cloudflare.config.ts`; `wrangler.config.ts` only sets the Wrangler build tool's static asset directory. Generate Worker types with `pnpm run worker:types`, or run `pnpm run worker:typecheck` to generate them and type-check the Worker.
 
 ```bash
-bun run web:build
-bun run worker:check
-bun run worker:deploy
+pnpm run web:build
+pnpm run worker:check
+pnpm run worker:deploy
 ```
 
 Deployments need Cloudflare authentication through `cf auth login`, or `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. The account must own the `allpyq.in` zone to serve `https://bunkialo.allpyq.in`.
@@ -225,9 +225,9 @@ Deployments need Cloudflare authentication through `cf auth login`, or `CLOUDFLA
 
 Download the latest Android development APK from [releases](https://github.com/Noelithub77/bunkialo2/releases), install it, and open the EAS Update preview link from a manually started preview run.
 
-Android build and OTA publish workflows are started by hand from **Actions → Run workflow**. The CLI release workflow runs automatically for CLI changes pushed to main. Start EAS previews with `bunx eas-cli workflow:run .eas/workflows/manual-preview.yml`; the run publishes to `manual-preview-dev` and `manual-preview-expo-go`.
+Android build and OTA publish workflows are started by hand from **Actions → Run workflow**. The CLI release workflow runs automatically for CLI changes pushed to main. Start EAS previews with `pnpm exec eas-cli workflow:run .eas/workflows/manual-preview.yml`; the run publishes to `manual-preview-dev` and `manual-preview-expo-go`.
 
-**Faculty and hostel wardens.** The Faculty tab defaults to the Manimala & MJ Apartment wardens; hostels sharing the official roster appear together. The selected group is saved locally and survives restarts, OTA updates, app upgrades and logout. `bun run fetch-faculty` refreshes faculty and hostel data from IIIT Kottayam's official pages. **Refresh Faculty and Hostel Wardens** runs on the first of each month at 00:15 UTC, or manually, and commits changed data to main. For protected main, configure `FACULTY_UPDATE_TOKEN`; otherwise the workflow uses `GITHUB_TOKEN`. It does not publish an app update.
+**Faculty and hostel wardens.** The Faculty tab defaults to the Manimala & MJ Apartment wardens; hostels sharing the official roster appear together. The selected group is saved locally and survives restarts, OTA updates, app upgrades and logout. `pnpm run fetch-faculty` refreshes faculty and hostel data from IIIT Kottayam's official pages. **Refresh Faculty and Hostel Wardens** runs on the first of each month at 00:15 UTC, or manually, and commits changed data to main. For protected main, configure `FACULTY_UPDATE_TOKEN`; otherwise the workflow uses `GITHUB_TOKEN`. It does not publish an app update.
 
 </details>
 
@@ -238,7 +238,7 @@ SDK 58's Expo Widgets powers small timetable and mess cards, with previous/next 
 
 Timetable snapshots update after schedule or course changes, after hydration, on foregrounding and on sign-out. Only display data is shared with the widgets. Android schedules inexact alarms at weekly class and meal boundaries with a 30-minute system refresh fallback; Doze can delay refreshes.
 
-Widgets need a native build for runtime `1.4.1-sdk58-widgets-v1` or later; Expo Go and older builds cannot show them. Run `bun run test:widgets` after `bunx expo prebuild --no-install` to verify the compiled layouts and paging. The tracked Expo Widgets patch supplies the `memo` stub Expo UI 58 needs during Android runtime initialization.
+Widgets need a native build for runtime `1.4.1-sdk58-widgets-v1` or later; Expo Go and older builds cannot show them. Run `pnpm run test:widgets` after `pnpm exec expo prebuild --no-install` to verify the compiled layouts and paging. The tracked Expo Widgets patch supplies the `memo` stub Expo UI 58 needs during Android runtime initialization.
 
 </details>
 
@@ -249,17 +249,17 @@ The website in [`bunkialo-landing/`](bunkialo-landing/) is a static Vite and Typ
 
 ```sh
 cd bunkialo-landing
-bun install
-bun run dev        # http://127.0.0.1:4173
-bun test
-bun run build
+pnpm install
+pnpm run dev        # http://127.0.0.1:4173
+pnpm test
+pnpm run build
 ```
 
 The animated SVGs in this README are exported from the landing page's own scenes, with Nunito and Excalifont subsets embedded. After changing a scene, rebuild, serve the page and regenerate them:
 
 ```sh
-bun run build && bunx vite preview --port 4180 &
-bun ../scripts/readme-art.ts
+pnpm run build && pnpm exec vite preview --port 4180 &
+node ../scripts/readme-art.ts
 ```
 
 See [`bunkialo-landing/README.md`](bunkialo-landing/README.md) for media and deployment.

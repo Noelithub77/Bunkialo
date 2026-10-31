@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { parseGoogleCalendarFeed } from "@/services/academic-calendar-feed";
 
 const SAMPLE_FEED = `BEGIN:VCALENDAR

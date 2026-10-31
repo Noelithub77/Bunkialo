@@ -1,4 +1,4 @@
-import { expect, mock, test } from "bun:test";
+import { expect, test, vi } from "vitest";
 import type { CourseFeedbackForm } from "@/services/feedback-autofill";
 
 const deferred = <T>() => {
@@ -12,7 +12,7 @@ const posting = deferred<void>();
 const finishPost = deferred<void>();
 let completed = false;
 const forms: CourseFeedbackForm[] = [{ url: "https://lms.example/mod/feedback/view.php?id=2", title: "Feedback", state: "pending" }];
-mock.module("@/services/feedback-autofill", () => ({
+vi.mock("@/services/feedback-autofill", () => ({
   ensureFeedbackSession: async () => {},
   checkCourseFeedback: async (id: string) => {
     if (id === "1") { checking.resolve(); return firstCheck.promise; }
@@ -20,10 +20,10 @@ mock.module("@/services/feedback-autofill", () => ({
   },
   submitFeedback: async () => { posting.resolve(); await finishPost.promise; completed = true; return "done"; },
 }));
-mock.module("@/services/lms-courses", () => ({
+vi.mock("@/services/lms-courses", () => ({
   fetchCourses: async () => [{ id: "1", name: "First" }, { id: "2", name: "Second" }],
 }));
-mock.module("@/stores/storage", () => ({
+vi.mock("@/stores/storage", () => ({
   zustandStorage: { getItem: async () => null, setItem: async () => {}, removeItem: async () => {} },
 }));
 const { useFeedbackAutofillStore } = await import("@/stores/feedback-autofill-store");

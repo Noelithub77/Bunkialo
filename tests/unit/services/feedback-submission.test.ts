@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { submitFeedbackWithTransport } from "@/services/feedback-submission";
 
 const viewUrl = "https://lms.example/mod/feedback/view.php?id=7";

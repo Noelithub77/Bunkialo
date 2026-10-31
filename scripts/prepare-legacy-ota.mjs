@@ -166,7 +166,7 @@ for (const file of files) {
   mkdirSync(dirname(resolve(destination, file)), { recursive: true });
   copyFileSync(file, resolve(destination, file));
 }
-for (const file of ["package.json", "bun.lock"]) {
+for (const file of ["package.json", "pnpm-lock.yaml"]) {
   copyFileSync(resolve("scripts/legacy-ota", file), resolve(destination, file));
 }
 const basePackage = JSON.parse(

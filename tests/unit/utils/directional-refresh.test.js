@@ -1,6 +1,7 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import fs from "node:fs";
 import vm from "node:vm";
+import { stripTypeScriptTypes } from "node:module";
 import { getRefreshGestureDirection } from "@/utils/refresh-gesture";
 
 const createRefresh = () => {
@@ -12,7 +13,7 @@ const createRefresh = () => {
     getState: () => state,
     subscribe: (callback) => { subscribe = callback; return () => {}; },
   });
-  const source = new Bun.Transpiler({ loader: "ts" }).transformSync(fs.readFileSync("src/hooks/use-directional-refresh.ts", "utf8")
+  const source = stripTypeScriptTypes(fs.readFileSync("src/hooks/use-directional-refresh.ts", "utf8")
     .replace(/^import[^\n]*;\n/gm, "").replace("export function", "function"));
   const context = vm.createContext({
     useGestureUiStore: store, getRefreshGestureDirection,

@@ -4,8 +4,8 @@
     {
       "label": "Bump Version (OTA patch)",
       "type": "shell",
-      "command": "bun",
-      "args": ["x", "npm", "version", "patch", "--no-git-tag-version"],
+      "command": "npm",
+      "args": ["version", "patch", "--no-git-tag-version"],
       "problemMatcher": [],
       "presentation": {
         "reveal": "never",
@@ -71,8 +71,8 @@
     {
       "label": "Start Expo",
       "type": "shell",
-      "command": "bunx",
-      "args": ["expo", "start"],
+      "command": "pnpm",
+      "args": ["exec", "expo", "start"],
       "group": {
         "kind": "build"
       },
@@ -86,7 +86,7 @@
     {
       "label": "Start Web",
       "type": "shell",
-      "command": "bun",
+      "command": "pnpm",
       "args": ["run", "web", "--", "--open"],
       "group": {
         "kind": "build",
@@ -108,7 +108,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "bun x npm version minor --no-git-tag-version; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; bun x npm version patch --no-git-tag-version"
+        "npm version minor --no-git-tag-version; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; npm version patch --no-git-tag-version"
       ],
       "problemMatcher": [],
       "presentation": {
@@ -144,7 +144,7 @@
     {
       "label": "Start Landing Dev",
       "type": "shell",
-      "command": "bun",
+      "command": "pnpm",
       "args": ["run", "dev"],
       "options": {
         "cwd": "${workspaceFolder}/bunkialo-landing"
@@ -153,14 +153,14 @@
         "command": "sh",
         "args": [
           "-c",
-          "(xdg-open http://127.0.0.1:4173 >/dev/null 2>&1 || true) & exec bun run dev"
+          "(xdg-open http://127.0.0.1:4173 >/dev/null 2>&1 || true) & exec pnpm run dev"
         ]
       },
       "osx": {
         "command": "sh",
         "args": [
           "-c",
-          "(open http://127.0.0.1:4173 >/dev/null 2>&1 || true) & exec bun run dev"
+          "(open http://127.0.0.1:4173 >/dev/null 2>&1 || true) & exec pnpm run dev"
         ]
       },
       "windows": {
@@ -168,7 +168,7 @@
         "args": [
           "-NoProfile",
           "-Command",
-          "Start-Process http://127.0.0.1:4173; bun run dev"
+          "Start-Process http://127.0.0.1:4173; pnpm run dev"
         ],
         "options": {
           "cwd": "${workspaceFolder}\\bunkialo-landing"

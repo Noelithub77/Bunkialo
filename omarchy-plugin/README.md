@@ -59,7 +59,7 @@ These tests run the real Quickshell service offscreen with fixture commands for 
 Run the real local round-trip test while connected to campus WiFi:
 
 ```bash
-bun run test:wifix:atomic
+pnpm run test:wifix:atomic
 ```
 
 It logs each request's exit code, HTTP status, gateway, response size, and

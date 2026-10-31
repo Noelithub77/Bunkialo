@@ -1,5 +1,5 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "expo/tsconfig.base.json",
   "compilerOptions": {
     "strict": true,
     "moduleResolution": "bundler",
@@ -8,7 +8,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["react-native", "bun"]
+    "types": ["react-native", "node"]
   },
   "include": [
     "**/*.ts",

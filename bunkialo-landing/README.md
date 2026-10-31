@@ -3,10 +3,10 @@
 A static site built with Vite and TypeScript and deployed to Vercel at <https://bunkialo.noel.is-a.dev>.
 
 ```bash
-bun install
-bun run dev      # http://127.0.0.1:4173
-bun test         # platform links and bunk math
-bun run build    # type check, then build to dist/
+pnpm install
+pnpm run dev      # http://127.0.0.1:4173
+pnpm test         # platform links and bunk math
+pnpm run build    # type check, then build to dist/
 ```
 
 ## How it loads
@@ -32,8 +32,8 @@ Stills for Wear OS and Omarchy are `avif` with a `webp` fallback. Font details a
 `../scripts/readme-art.ts` exports the hero, download buttons and the five scenes to `assets/readme/` for the repository README. Each SVG embeds a Nunito or Excalifont subset and loops its draw-on animation, which stops under reduced motion. Subsetting runs `pyftsubset` through `uvx`, and Playwright comes from the root `node_modules`.
 
 ```bash
-bun run build && bunx vite preview --port 4180 &
-bun ../scripts/readme-art.ts    # or pass another page URL
+pnpm run build && pnpm exec vite preview --port 4180 &
+node ../scripts/readme-art.ts    # or pass another page URL
 ```
 
 ## Deployment

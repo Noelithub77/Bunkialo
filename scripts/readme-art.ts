@@ -1,12 +1,15 @@
 // Regenerates the animated README art in assets/readme from the landing page's own scenes.
-// Usage: bun scripts/readme-art.ts [page URL], with the landing page served (default: vite preview).
+// Usage: node scripts/readme-art.ts [page URL], with the landing page served (default: vite preview).
+import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium, type Page } from "playwright";
 
 const url = process.argv[2] ?? "http://127.0.0.1:4180/";
-const root = join(import.meta.dir, "..", "bunkialo-landing");
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const root = join(scriptDir, "..", "bunkialo-landing");
 const out = join(root, "..", "assets", "readme");
 const fonts = { nunito: join(root, "../assets/landing/fonts/nunito.woff2"), hand: join(root, "../assets/landing/fonts/excalifont.woff2") };
 const scenes = ["name", "bunks", "portals", "wifix", "agent"];
@@ -15,8 +18,8 @@ const yellow = "#ffab00";
 /** Subsets a font to the given text and returns it as base64 woff2. */
 function subset(font: string, text: string): string {
   const file = join(mkdtempSync(join(tmpdir(), "readme-art-")), "font.woff2");
-  const run = Bun.spawnSync(["uvx", "--from", "fonttools[woff]", "pyftsubset", font, `--text=${text}`, "--flavor=woff2", "--layout-features=*", `--output-file=${file}`]);
-  if (run.exitCode !== 0) throw new Error(`pyftsubset failed: ${run.stderr.toString()}`);
+  const run = spawnSync("uvx", ["--from", "fonttools[woff]", "pyftsubset", font, `--text=${text}`, "--flavor=woff2", "--layout-features=*", `--output-file=${file}`]);
+  if (run.status !== 0) throw new Error(`pyftsubset failed: ${run.stderr.toString()}`);
   return readFileSync(file).toString("base64");
 }
 

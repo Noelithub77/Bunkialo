@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { matchCourses } from "@/services/attendance/course-matcher";
 import type { Course, PortalCourseSummary } from "@/types";
 

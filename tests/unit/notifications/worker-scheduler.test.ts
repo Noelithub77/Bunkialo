@@ -1,25 +1,25 @@
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
-import { Database } from "bun:sqlite";
-mock.module("cloudflare:workers", () => ({DurableObject: class { constructor(public ctx: unknown, public env: unknown) {} }}));
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { DatabaseSync } from "node:sqlite";
+vi.mock("cloudflare:workers", () => ({DurableObject: class { constructor(public ctx: unknown, public env: unknown) {} }}));
 const pushes: string[] = [];
-mock.module("../../../worker/push/send-push", () => ({sendReminderPush: async (input: {reminder:{id:string}}) => { pushes.push(input.reminder.id); return new Response(null,{status:201}); }}));
+vi.mock("../../../worker/push/send-push", () => ({sendReminderPush: async (input: {reminder:{id:string}}) => { pushes.push(input.reminder.id); return new Response(null,{status:201}); }}));
 const {UserSession} = await import("../../../worker/session-object");
 let clock = Date.parse("2026-10-02T10:00:00Z");
 let alarmAt: number | null = null;
-let database: Database;
+let database: DatabaseSync;
 let session: InstanceType<typeof UserSession>;
-let nowMock: ReturnType<typeof spyOn>;
-let fetchMock: ReturnType<typeof spyOn>;
+let nowMock: ReturnType<typeof vi.spyOn>;
+let fetchMock: ReturnType<typeof vi.spyOn>;
 let items: {id:string;title:string;body:string;kind:string;createdAt:string;readAt:null}[];
-const seed = (key:string,value:unknown) => database.query("INSERT OR REPLACE INTO session_values VALUES (?, ?, ?)").run(key,JSON.stringify(value),clock);
-const rowCount = (table:string) => (database.query(`SELECT COUNT(*) AS n FROM ${table}`).get() as {n:number}).n;
+const seed = (key:string,value:unknown) => database.prepare("INSERT OR REPLACE INTO session_values VALUES (?, ?, ?)").run(key,JSON.stringify(value),clock);
+const rowCount = (table:string) => (database.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get() as {n:number}).n;
 beforeEach(async () => {
- clock=Date.parse("2026-10-02T10:00:00Z"); alarmAt=null;pushes.length=0;items=[];database=new Database(":memory:");
- nowMock=spyOn(Date,"now").mockImplementation(()=>clock);
- fetchMock=spyOn(globalThis,"fetch").mockImplementation(async ()=>Response.json({items,unreadCount:items.length}));
+ clock=Date.parse("2026-10-02T10:00:00Z"); alarmAt=null;pushes.length=0;items=[];database=new DatabaseSync(":memory:");
+ nowMock=vi.spyOn(Date,"now").mockImplementation(()=>clock);
+ fetchMock=vi.spyOn(globalThis,"fetch").mockImplementation(async ()=>Response.json({items,unreadCount:items.length}));
  const storage = {sql: {exec: (query:string,...bindings:(string|number|null)[]) => {
    if(query.includes("CREATE TABLE")) {database.exec(query);return {};}
-   const rows=database.query(query).all(...bindings);
+   const rows=database.prepare(query).all(...bindings);
    return {toArray:()=>rows,one:()=>rows[0]};
  }},getAlarm:async()=>alarmAt,setAlarm:async(t:number)=>{alarmAt=t;},deleteAlarm:async()=>{alarmAt=null;}};
  const ctx={storage,blockConcurrencyWhile:async(fn:()=>Promise<void>)=>fn()};

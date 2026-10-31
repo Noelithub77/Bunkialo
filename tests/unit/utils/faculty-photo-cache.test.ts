@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { faculties } from "@/data/faculty";
 import { hostelGroups } from "@/data/hostels";
 import {
@@ -60,7 +60,7 @@ describe("persistent faculty photos", () => {
       cache("https://example.com/a.jpg"),
     ]);
     expect(first).toBe(second);
-    expect(first).toStartWith("file:///documents/");
+    expect(first).toMatch(/^file:\/\/\/documents\//);
     expect(f.count()).toBe(1);
     expect(
       await createFacultyPhotoCache(f.storage)("https://example.com/a.jpg"),

@@ -22,8 +22,8 @@ as a `1.4.1` OTA update.
 For local Android development:
 
 ```sh
-bun install
-bun run android
+pnpm install
+pnpm run android
 ```
 
 The iOS configuration registers the `com.codialo.Bunkialo2.share-extension` target
@@ -32,7 +32,7 @@ for both the app and extension when building iOS.
 
 ## Verification
 
-`bun test` covers rendering details before edit metadata finishes, deduplicated
+`pnpm test` covers rendering details before edit metadata finishes, deduplicated
 requests, draft-only uploads, file limits, capped batch progress, explicit saving
 of the same draft, deadline ordering, shared URI handling, and assignment view links.
 Android prebuild checks the generated SEND and SEND_MULTIPLE image/PDF filters.

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-use bun as package manager; keep Expo workflows consistent
+use pnpm as package manager; keep Expo workflows consistent
 ALWAYS USE NATIVEWIND (TAILWIND FOR REACT NATIVE) and preffer it over stylesheets
 **Bunkialo** - React Native (Expo) app that scrapes attendance and assignments from IIIT Kottayam Moodle LMS.
 
@@ -455,9 +455,9 @@ the managed container.
 Run the checks that match the target being changed:
 
 ```bash
-bun test
-bun run lint
-bun run typecheck
+pnpm test
+pnpm run lint
+pnpm run typecheck
 (cd android && ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64)
 (cd wear-os && ./gradlew :app:assembleDebug)
 ```
@@ -480,19 +480,19 @@ running with Google Play services.
 
 ```bash
 # Unit tests for real app modules
-bun test
+pnpm test
 # Live LMS/portal integration checks
-bun run test:lms-scraper
-bun run test:dashboard
-bun run test:resources
-bun run test:downloads
-bun run test:attendance-live
+pnpm run test:lms-scraper
+pnpm run test:dashboard
+pnpm run test:resources
+pnpm run test:downloads
+pnpm run test:attendance-live
 
 # Hosted web tests. Credentials are read locally from .env and the session is saved under artifacts/.
-bun run test:e2e:hosted-auth
-bun run test:e2e:hosted-timetable
+pnpm run test:e2e:hosted-auth
+pnpm run test:e2e:hosted-timetable
 # Add --headed to the auth command when visually debugging the hosted flow.
-bun run test:e2e:hosted-auth -- --headed
+pnpm run test:e2e:hosted-auth -- --headed
 ```
 
 ## OTA Runtime Compatibility
@@ -515,8 +515,8 @@ bun run test:e2e:hosted-auth -- --headed
 - Prefer `fetchWithSession()` (auto re-login + retry on login-page responses) for protected LMS endpoints.
 - Use `loadEnvFromRoot()` to read `.env` in scripts.
 - Hosted web tests use Playwright storage state at `artifacts/playwright/hosted-auth.json`; never commit this file or add production login bypasses.
-- Refresh hosted auth state with `bun run test:e2e:hosted-auth` when the saved Worker session expires.
+- Refresh hosted auth state with `pnpm run test:e2e:hosted-auth` when the saved Worker session expires.
 
 ---
 
-**Expo SDK**: 58 | **React Native**: 0.88.0-rc.3 | **TypeScript**: 6.0.3 (strict) | **React**: 19.3.0 | **Preferred package manager**: bun
+**Expo SDK**: 58 | **React Native**: 0.88.0-rc.3 | **TypeScript**: 6.0.3 (strict) | **React**: 19.3.0 | **Preferred package manager**: pnpm

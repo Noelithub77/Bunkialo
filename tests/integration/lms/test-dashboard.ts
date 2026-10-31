@@ -1,6 +1,6 @@
 /**
  * Test script - Dashboard Timeline API exploration
- * Run with: bun tests/integration/lms/test-dashboard.ts
+ * Run with: pnpm exec tsx tests/integration/lms/test-dashboard.ts
  * Required env: LMS_TEST_USERNAME, LMS_TEST_PASSWORD
  */
 

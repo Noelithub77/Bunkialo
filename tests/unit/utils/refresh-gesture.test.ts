@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { getRefreshGestureDirection } from "@/utils/refresh-gesture";
 
 test("horizontal swipes with downward drift never become refresh pulls", () => {

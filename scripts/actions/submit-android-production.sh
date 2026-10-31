@@ -6,7 +6,7 @@ if [ -z "${ANDROID_ARTIFACT_PATH:-}" ]; then
   exit 1
 fi
 
-bunx eas submit \
+pnpm exec eas submit \
   --platform android \
   --profile production \
   --path "${ANDROID_ARTIFACT_PATH}" \

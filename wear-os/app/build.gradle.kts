@@ -30,11 +30,14 @@ abstract class GenerateWearMessMenuTask @Inject constructor(
 
     @TaskAction
     fun generateMenu() {
+        val script = generatorScript.get().asFile
         execOperations.exec {
+            workingDir(script.parentFile.parentFile)
             commandLine(
-                "bun",
-                "run",
-                generatorScript.get().asFile.absolutePath,
+                "pnpm",
+                "exec",
+                "tsx",
+                script.absolutePath,
                 outputDirectory.file("raw/mess_menu.json").get().asFile.absolutePath,
             )
         }

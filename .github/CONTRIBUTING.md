@@ -11,8 +11,8 @@
 ## Development Setup
 
 ```bash
-bun install
-bunx expo start
+pnpm install
+pnpm exec expo start
 ```
 
 ## Android development build
@@ -22,13 +22,13 @@ Download the latest APK from the [Bunkialo2 GitHub Releases](https://github.com/
 ## Quality Checks
 
 ```bash
-bun run typecheck
-bun test
-bun run test:lms-scraper
-bun run test:assignment
-bun run test:dashboard
-bun run test:downloads
-bun run test:resources
+pnpm run typecheck
+pnpm test
+pnpm run test:lms-scraper
+pnpm run test:assignment
+pnpm run test:dashboard
+pnpm run test:downloads
+pnpm run test:resources
 ```
 
 ## Pull Request Rules

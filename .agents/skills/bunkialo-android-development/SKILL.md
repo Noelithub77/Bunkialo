@@ -24,8 +24,8 @@ Read the installed Android CLI skills when they apply:
 The cloud environment stores tools and caches outside the application source:
 
 ```bash
-export BUN_INSTALL="${BUN_INSTALL:-/workspace/.bun}"
-export PATH="$BUN_INSTALL/bin:$PATH"
+export PNPM_HOME="${PNPM_HOME:-/workspace/.pnpm}"
+export PATH="$PNPM_HOME:$PATH"
 export ANDROID_HOME="${ANDROID_HOME:-/workspace/android-sdk}"
 export ANDROID_SDK_ROOT="$ANDROID_HOME"
 export ANDROID_USER_HOME="${ANDROID_USER_HOME:-/workspace/.android}"
@@ -33,7 +33,7 @@ export ANDROID_AVD_HOME="${ANDROID_AVD_HOME:-/workspace/.android/avd}"
 export ANDROID_EMULATOR_HOME="${ANDROID_EMULATOR_HOME:-/workspace/.android}"
 export GRADLE_USER_HOME="${GRADLE_USER_HOME:-/workspace/.gradle}"
 export JAVA_HOME="${JAVA_HOME:-/workspace/jdk21}"
-export PATH="$BUN_INSTALL/bin:$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+export PATH="$PNPM_HOME:$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
 export EXPO_NO_TELEMETRY=1
 export GRADLE_OPTS="${GRADLE_OPTS:-} -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080 -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 -Djavax.net.ssl.trustStore=/workspace/java-cacerts -Djavax.net.ssl.trustStorePassword=changeit"
 ```
@@ -49,8 +49,8 @@ Install the locked JavaScript dependencies from the repository root and the
 landing app directory:
 
 ```bash
-bun install --frozen-lockfile
-(cd bunkialo-landing && bun install --frozen-lockfile)
+pnpm install --frozen-lockfile
+(cd bunkialo-landing && pnpm install --frozen-lockfile)
 ```
 
 ## SDK and emulator images
@@ -104,16 +104,16 @@ phone and watch both need Google Play services for those checks.
 Run the existing JS checks from the repo root:
 
 ```bash
-bun test
-bun run lint
-bunx tsc --noEmit
+pnpm test
+pnpm run lint
+pnpm exec tsc --noEmit
 ```
 
 Generate the ignored native Android project when it is absent, then build an
 x86_64 debug APK for the phone emulator:
 
 ```bash
-EXPO_NO_TELEMETRY=1 bunx expo prebuild --platform android --no-install
+EXPO_NO_TELEMETRY=1 pnpm exec expo prebuild --platform android --no-install
 cd android
 ./gradlew :app:assembleDebug -PreactNativeArchitectures=x86_64
 ```
@@ -125,7 +125,7 @@ cd wear-os
 ./gradlew :app:assembleDebug
 ```
 
-The root `bun test` suite covers app modules. The Wear OS module has
+The root `pnpm test` suite covers app modules. The Wear OS module has
 instrumentation tests under `app/src/androidTest/` for opening focus, mode
 switching, and reopening behavior. Build them with
 `./gradlew :app:assembleDebugAndroidTest` and run them on a connected Wear OS

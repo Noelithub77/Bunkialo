@@ -1,5 +1,6 @@
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import { stripTypeScriptTypes } from "node:module";
 import { injectManifest } from "workbox-build";
 
 const run = (command, args) => {
@@ -11,7 +12,7 @@ const run = (command, args) => {
 };
 
 run("node", ["scripts/prepare-pdf-preview.mjs"]);
-run("bunx", ["expo", "export", "--platform", "web", "--output-dir", "dist"]);
+run("pnpm", ["exec", "expo", "export", "--platform", "web", "--output-dir", "dist"]);
 
 await mkdir("dist/icons", { recursive: true });
 await Promise.all([
@@ -31,14 +32,7 @@ const pwaHead = [
 await writeFile(indexPath, indexHtml.replace("</head>", `${pwaHead}</head>`));
 
 const temporaryWorker = "dist/service-worker-source.js";
-run("bun", [
-  "build",
-  "service-worker.ts",
-  "--outfile",
-  temporaryWorker,
-  "--target",
-  "browser",
-]);
+await writeFile(temporaryWorker, stripTypeScriptTypes(await readFile("service-worker.ts", "utf8")));
 
 await injectManifest({
   globDirectory: "dist",

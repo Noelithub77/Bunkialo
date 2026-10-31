@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { budget, buffer } from "./bunk-math.ts";
 
 test("empirical budget estimate uses two bunks per credit plus one", () => {

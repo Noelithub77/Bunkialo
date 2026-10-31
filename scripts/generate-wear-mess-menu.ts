@@ -1,4 +1,4 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { MESS_MENU } from "../src/data/mess";
 
@@ -9,4 +9,4 @@ if (!outputPath) {
 }
 
 await mkdir(dirname(outputPath), { recursive: true });
-await Bun.write(outputPath, `${JSON.stringify(MESS_MENU, null, 2)}\n`);
+await writeFile(outputPath, `${JSON.stringify(MESS_MENU, null, 2)}\n`);
