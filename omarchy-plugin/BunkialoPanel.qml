@@ -15,8 +15,10 @@ Panel {
   property var hostWidget: null
   property bool settingsOpen: false
   property bool inboxOpen: false
+  property bool errorsOpen: false
   property bool wifixDetailsExpanded: false
   readonly property var service: hostWidget ? hostWidget.bunkialoService : null
+  readonly property string errorMessage: service ? String(service.errorMessage || "") : ""
   readonly property var barIdentity: hostWidget || root
   readonly property color foreground: bar ? bar.barForeground : Commons.Color.foreground
   // noshell tokens (see DESIGN.md in Noel's dotfiles): Nunito text, rounded
@@ -43,11 +45,13 @@ Panel {
   function close() {
     root.settingsOpen = false
     root.inboxOpen = false
+    root.errorsOpen = false
     root.wifixDetailsExpanded = false
     if (root.service) root.service.wifixMode = false
     root.controller.hide()
   }
   function toggle() { root.opened ? root.close() : root.open() }
+  onErrorMessageChanged: root.errorsOpen = false
   function toggleInbox() {
     root.inboxOpen = !root.inboxOpen
     if (root.inboxOpen) {
@@ -101,7 +105,10 @@ Panel {
       PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      onCloseRequested: root.close()
+      onCloseRequested: {
+        if (root.errorsOpen) root.errorsOpen = false
+        else root.close()
+      }
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onMoveRequested: function(dx, dy) {
         if (dx !== 0) {
@@ -221,6 +228,25 @@ Panel {
               }
             }
             PanelActionButton {
+              id: errorButton
+              objectName: "errorButton"
+              property bool pointerHovered: false
+              visible: root.errorMessage !== ""
+              iconText: "error_outline"
+              fontFamily: root.iconFont
+              foreground: root.tone("coral")
+              focusable: true
+              hasCursor: root.errorsOpen
+              Accessible.name: "Errors"
+              onHovered: function(hovered) { errorButton.pointerHovered = hovered }
+              onClicked: root.errorsOpen = !root.errorsOpen
+              PanelToolTip {
+                visible: errorButton.pointerHovered || errorButton.activeFocus
+                text: "Errors"
+                fontFamily: root.fontFamily
+              }
+            }
+            PanelActionButton {
               iconText: "refresh"
               tooltipText: "Refresh"
               fontFamily: root.iconFont
@@ -230,12 +256,14 @@ Panel {
             }
           }
           Text {
-            visible: !!root.service && root.service.errorMessage !== "" && !root.service.wifixMode
-            text: root.service ? root.service.errorMessage : ""
+            objectName: "errorDetails"
+            visible: root.errorsOpen && root.errorMessage !== ""
+            text: root.errorMessage
+            textFormat: Text.PlainText
             color: root.tone("coral")
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
-            elide: Text.ElideRight
+            wrapMode: Text.Wrap
             width: parent.width
           }
           Item {

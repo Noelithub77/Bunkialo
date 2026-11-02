@@ -36,6 +36,11 @@ if name == 'nmcli':
         print('10.0.0.1')
     else:
         print('wlan0:wifi:connected:IIITKottayam_5G')
+        if scenario.startswith('vpn'):
+            print('CloudflareWARP:tun:connected (externally):CloudflareWARP')
+elif name == 'ip':
+    device = 'eth0' if scenario == 'vpn-other-route' else 'CloudflareWARP'
+    print('1.1.1.1 dev ' + device + ' src 172.16.0.2')
 elif name == 'dig':
     print('10.0.0.1')
 elif name == 'curl':
@@ -54,6 +59,22 @@ elif name == 'curl':
         else:
             print('HTTP/1.1 200 OK\r\n\r\n<form action="/"><input name="magic" value="abc"></form>\nbunkialo-status:200')
     else:
+        if scenario.startswith('vpn'):
+            tunnel = '--interface' in args and args[args.index('--interface') + 1] == 'if!CloudflareWARP'
+            if scenario == 'vpn-captive' and not tunnel:
+                print('HTTP/1.1 302 Found\r\nLocation: https://auth.iiitkottayam.ac.in:1442/login\r\n\r\n\nbunkialo-status:302')
+                sys.exit(0)
+            if not tunnel or scenario == 'vpn-outage':
+                print('curl: (28) Connection timed out', file=sys.stderr)
+                sys.exit(28)
+            if '--resolve' in args or '--noproxy' not in args or not args[-1].startswith('https://'):
+                print('fixture rejected invalid VPN probe', file=sys.stderr)
+                sys.exit(9)
+            if scenario == 'vpn-unexpected':
+                print('HTTP/1.1 200 OK\r\n\r\nUnexpected page\nbunkialo-status:200')
+            else:
+                print('HTTP/1.1 204 No Content\r\n\r\n\nbunkialo-status:204')
+            sys.exit(0)
         if scenario == 'unknown':
             print('000')
             sys.exit(7)
@@ -66,7 +87,7 @@ elif name == 'curl':
         else:
             print('HTTP/1.1 302 Found\r\nLocation: https://auth.iiitkottayam.ac.in:1442/login\r\n\r\n\nbunkialo-status:302')
 '''
-            for name in ('nmcli', 'dig', 'curl'):
+            for name in ('nmcli', 'dig', 'curl', 'ip', 'gdbus'):
                 command = tools / name
                 command.write_text(network)
                 command.chmod(0o755)
@@ -81,12 +102,12 @@ Item {
     pairingCode: '{"student":"fixture-password","attendance":"fixture"}'
     onChanged: {
       if (wifixChecking) return
-      if ("''' + scenario + '''" === "login" && !parent.acted && !wifixConnected) {
+      if (("''' + scenario + '''" === "login" || "''' + scenario + '''" === "vpn-login") && !parent.acted) {
         parent.acted = true
         Qt.callLater(function() { service.connect(); service.connect() })
         return
       }
-      if ("''' + scenario + '''" === "logout" && !parent.acted && wifixConnected) {
+      if (("''' + scenario + '''" === "logout" || "''' + scenario + '''" === "vpn-logout") && !parent.acted && wifixConnected) {
         parent.acted = true
         Qt.callLater(function() { service.logout() })
         return
@@ -128,6 +149,20 @@ Item {
                 self.assertEqual((root / 'posts').read_text().splitlines(), ['post'], logs)
             if scenario == 'logout':
                 self.assertTrue((root / 'logged-out').exists(), logs)
+            if scenario in ('vpn', 'vpn-login', 'vpn-logout'):
+                self.assertIn('VPN', actual['message'], logs)
+                self.assertIn('if!CloudflareWARP', calls)
+                self.assertNotIn('IIITKottayam_5G', (root / 'wifix-ssid-cache.json').read_text()
+                                 if (root / 'wifix-ssid-cache.json').exists() else '')
+            if scenario in ('vpn-captive', 'vpn-other-route'):
+                self.assertNotIn('if!CloudflareWARP', calls)
+            if scenario in ('vpn-login', 'vpn-logout'):
+                action = scenario.removeprefix('vpn-')
+                self.assertIn(action + ' unverified', actual['message'], logs)
+                if action == 'login':
+                    self.assertEqual((root / 'posts').read_text().splitlines(), ['post'], logs)
+                else:
+                    self.assertTrue((root / 'logged-out').exists(), logs)
             return logs
 
     def test_fallback_endpoint_recovers_failed_primary(self):
@@ -141,6 +176,27 @@ Item {
 
     def test_logout_uses_interface_and_verifies(self):
         self.run_scenario('logout', False)
+
+    def test_vpn_recovers_blocked_direct_probes(self):
+        self.run_scenario('vpn', True)
+
+    def test_captive_portal_takes_priority_over_vpn(self):
+        self.run_scenario('vpn-captive', False)
+
+    def test_vpn_outage_stays_unknown(self):
+        self.run_scenario('vpn-outage', False)
+
+    def test_unexpected_vpn_response_stays_unknown(self):
+        self.run_scenario('vpn-unexpected', False)
+
+    def test_unrelated_tunnel_does_not_enable_fallback(self):
+        self.run_scenario('vpn-other-route', False)
+
+    def test_vpn_access_does_not_verify_campus_login(self):
+        self.run_scenario('vpn-login', True)
+
+    def test_vpn_access_does_not_verify_campus_logout(self):
+        self.run_scenario('vpn-logout', True)
 
 
 if __name__ == '__main__':

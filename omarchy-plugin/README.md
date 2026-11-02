@@ -9,6 +9,8 @@ information visible without opening the full app.
 The panel shows the current and upcoming timetable entries, today's meals,
 connection status, refresh controls, notifications, and settings. Its
 dashboard can be opened with `SUPER+B` after the optional shortcut setup below.
+Errors appear as a compact header button; click it to reveal the complete
+message. Click again or press Escape to close the details.
 
 ## Install
 
@@ -46,6 +48,16 @@ WiFix only handles the campus SSIDs `IIITKottayam` and `IIITKottayam_5G`. Each c
 
 Connectivity checks try Google, Microsoft, and Mozilla with short timeouts. Only the expected empty HTTP 204 or Microsoft's exact connectivity text confirms internet access. Campus portal redirects or login forms confirm a captive connection. Failed requests remain unknown; they do not become successful logout or proof of a captive portal.
 
+If every direct probe is inconclusive, WiFix checks the current IPv4 route and
+NetworkManager's connected tunnel devices. When that route uses a tunnel, it
+retries the probes over HTTPS bound to that tunnel, using normal system DNS.
+This handles VPN firewalls such as WARP's, which can block public requests
+forced onto the physical Wi-Fi interface. Confirmed tunnel access displays
+`Internet connected · VPN` and allows Bunkialo refreshes. A direct captive
+response takes priority. Tunnel access does not verify campus login/logout and
+is not saved as direct campus connectivity in the SSID cache. See
+[Cloudflare's firewall explanation](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/cloudflare-one-client/configure/route-traffic/client-architecture/#system-firewall).
+
 Login fetches the official portal form, extracts its `magic` and `4Tredir` fields, validates the form destination, and sends credentials through curl's stdin. Logout calls only the portal logout URL. Both actions verify connectivity afterward and retry verification once, without repeating the credential POST. Checks and actions are serialized and have a watchdog that stops outstanding processes. Portal certificate handling retains the existing campus-only exception. System DNS, VPN settings, and Wi-Fi connections are not modified.
 
 Run the isolated service regression tests without using personal credentials or the live desktop:
@@ -54,7 +66,18 @@ Run the isolated service regression tests without using personal credentials or 
 python3 tests/omarchy/test_wifix.py
 ```
 
-These tests run the real Quickshell service offscreen with fixture commands for fallback connectivity, unavailable checks, login, and logout.
+These tests run the real Quickshell service offscreen with fixture commands for
+fallback connectivity, unavailable checks, login, logout, and VPN routing. They
+also isolate notification commands. On Omarchy, run them in an invisible box:
+
+```sh
+omabox up bunkialo-wifix-tests --no-shell --net isolated
+omabox run -b bunkialo-wifix-tests -- python3 "$PWD/tests/omarchy/test_wifix.py"
+omabox down bunkialo-wifix-tests
+```
+
+Run `python3 tests/omarchy/test_panel.py` for the error button's isolated
+interaction and rendering check. It creates and tears down its own OmaBox.
 
 Run the real local round-trip test while connected to campus WiFi:
 

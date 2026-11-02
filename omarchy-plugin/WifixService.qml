@@ -12,6 +12,7 @@ Item {
   property string currentSsid: ""
   property string currentInterface: ""
   property string currentAddress: ""
+  property string networkDevices: ""
   property var portalDnsServers: []
   property string dnsPurpose: ""
   property string dnsHost: ""
@@ -26,6 +27,8 @@ Item {
   property string wifixMessage: ""
   property int probeIndex: 0
   property bool probeCaptive: false
+  property bool probeViaVpn: false
+  property string probeInterface: ""
   property int verificationAttempt: 0
   property int operationGeneration: 0
   property string portalRequestKind: ""
@@ -61,7 +64,7 @@ Item {
 
   function begin(action) {
     if (root.wifixChecking || deviceProc.running || ssidProc.running || metadataProc.running
-        || probeProc.running || dnsProc.running || portalProc.running) return false
+        || probeProc.running || dnsProc.running || routeProc.running || portalProc.running) return false
     if (action === "login") {
       root.autoLoginAfterCheck = false
       root.pendingLogin = false
@@ -74,7 +77,7 @@ Item {
     root.verificationAttempt = 0
     root.wifixChecking = true
     root.wifixMessage = "Checking campus Wi-Fi..."
-    operationTimeout.interval = action === "" ? 20000 : 90000
+    operationTimeout.interval = action === "" ? 35000 : 90000
     operationTimeout.restart()
     root.changed()
     deviceProc.running = true
@@ -131,19 +134,22 @@ Item {
     }
     operationTimeout.stop()
     root.wifixChecking = false
-    root.wifixConnected = state === "online"
+    root.wifixConnected = state === "online" || state === "vpn"
     root.portalCredentials = null
     if (expected !== "" && state !== expected) {
       root.wifixMessage = "WiFix " + root.portalAction + " unverified · "
-        + (state === "online" ? "still online" : state === "captive" ? "login still required" : "connectivity unavailable")
+        + (state === "online" ? "still online" : state === "vpn" ? "internet via VPN"
+          : state === "captive" ? "login still required" : "connectivity unavailable")
     } else if (state === "online") {
       root.wifixMessage = "Campus Wi-Fi connected"
     } else if (state === "captive") {
       root.wifixMessage = "Campus Wi-Fi login required"
+    } else if (state === "vpn") {
+      root.wifixMessage = "Internet connected · VPN"
     } else {
       root.wifixMessage = "Wi-Fi check unavailable · retry"
     }
-    if (state !== "unknown") {
+    if (state === "online" || state === "captive") {
       var next = Object.assign({}, root.wifixSsidCache)
       next[root.currentSsid] = { resolves: true, online: root.wifixConnected, checkedAt: Date.now() }
       root.wifixSsidCache = next
@@ -158,13 +164,22 @@ Item {
   function checkInternet() {
     root.probeIndex = 0
     root.probeCaptive = false
+    root.probeViaVpn = false
+    root.probeInterface = root.currentInterface
     root.nextProbe()
   }
 
   function nextProbe() {
     if (!root.wifixChecking) return
     if (root.probeIndex >= Wifix.CONNECTIVITY_ENDPOINTS.length) {
-      root.finish(root.probeCaptive ? "captive" : "unknown")
+      if (root.probeCaptive) root.finish("captive")
+      else if (!root.probeViaVpn) routeProc.running = true
+      else root.finish("unknown")
+      return
+    }
+    if (root.probeViaVpn) {
+      probeProc.command = Wifix.connectivityCommand(root.probeInterface, Wifix.CONNECTIVITY_ENDPOINTS[root.probeIndex], "")
+      probeProc.running = true
       return
     }
     root.dnsPurpose = "probe"
@@ -244,6 +259,7 @@ Item {
     onStarted: deviceProc.output = ""
     onExited: function(code) {
       if (!root.wifixChecking) return
+      root.networkDevices = code === 0 ? deviceProc.output : ""
       root.currentInterface = code === 0 ? Wifix.activeInterface(deviceProc.output) : ""
       if (!root.currentInterface) { root.wifixAvailable = false; root.fail("Connect to campus Wi-Fi first"); return }
       ssidProc.command = ["nmcli", "--wait", "5", "-t", "-f", "ACTIVE,SSID", "device", "wifi", "list", "ifname", root.currentInterface, "--rescan", "no"]
@@ -299,10 +315,27 @@ Item {
     onExited: function(code) {
       if (!root.wifixChecking) return
       var state = Wifix.connectivityState(probeProc.output, code, Wifix.CONNECTIVITY_ENDPOINTS[root.probeIndex])
-      console.log("[WiFix] probe=" + root.probeIndex + " state=" + state + " curl=" + code + " error=" + probeProc.error)
-      if (state === "online") { root.finish("online"); return }
-      if (state === "captive") root.probeCaptive = true
+      console.log("[WiFix] probe=" + root.probeIndex + " via=" + (root.probeViaVpn ? "vpn" : "wifi")
+        + " state=" + state + " curl=" + code + " error=" + probeProc.error)
+      if (state === "online") { root.finish(root.probeViaVpn ? "vpn" : "online"); return }
+      if (state === "captive" && !root.probeViaVpn) root.probeCaptive = true
       root.probeIndex += 1
+      root.defer(root.nextProbe)
+    }
+  }
+
+  Process {
+    id: routeProc
+    property string output: ""
+    command: ["ip", "-4", "route", "get", "1.1.1.1"]
+    stdout: StdioCollector { onStreamFinished: routeProc.output = text }
+    onStarted: routeProc.output = ""
+    onExited: function(code) {
+      if (!root.wifixChecking) return
+      root.probeInterface = code === 0 ? Wifix.routedTunnel(root.networkDevices, routeProc.output) : ""
+      if (!root.probeInterface) { root.finish("unknown"); return }
+      root.probeViaVpn = true
+      root.probeIndex = 0
       root.defer(root.nextProbe)
     }
   }
@@ -368,7 +401,7 @@ Item {
     repeat: false
     onTriggered: {
       root.fail("WiFix timed out · result unverified")
-      var processes = [deviceProc, ssidProc, metadataProc, probeProc, dnsProc, portalProc]
+      var processes = [deviceProc, ssidProc, metadataProc, probeProc, dnsProc, routeProc, portalProc]
       for (var i = 0; i < processes.length; i += 1) if (processes[i].running) processes[i].running = false
     }
   }

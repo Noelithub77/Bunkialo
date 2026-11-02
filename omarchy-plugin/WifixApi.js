@@ -47,6 +47,18 @@ function activeInterface(raw) {
   return ""
 }
 
+function routedTunnel(devices, route) {
+  var match = String(route || "").match(/\bdev\s+(\S+)/)
+  if (!match) return ""
+  var rows = String(devices || "").split("\n")
+  for (var index = 0; index < rows.length; index += 1) {
+    var fields = rows[index].split(":")
+    if (fields[0] === match[1] && ["tun", "wireguard", "vpn"].indexOf(fields[1]) >= 0
+        && /^connected(?: \(externally\))?$/.test(fields[2])) return fields[0]
+  }
+  return ""
+}
+
 function resolverAddress(raw) {
   var match = String(raw || "").match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/)
   return match && match[0] ? match[0] : ""
@@ -106,10 +118,11 @@ var CONNECTIVITY_ENDPOINTS = [
 ]
 
 function connectivityCommand(interfaceName, endpoint, address) {
-  var host = endpoint.url.match(/^http:\/\/([^/]+)/)[1]
-  return ["curl", "-q", "-4", "-sS", "--noproxy", "*", "--interface", "if!" + interfaceName,
-    "--resolve", host + ":80:" + address, "--connect-timeout", "2", "--max-time", "4", "--max-filesize", "262144", "-i",
-    "-w", "\nbunkialo-status:%{http_code}", endpoint.url]
+  var url = address ? endpoint.url : endpoint.url.replace(/^http:/, "https:")
+  var command = ["curl", "-q", "-4", "-sS", "--noproxy", "*", "--interface", "if!" + interfaceName]
+  if (address) command.push("--resolve", endpoint.url.match(/^http:\/\/([^/]+)/)[1] + ":80:" + address)
+  return command.concat(["--connect-timeout", "2", "--max-time", "4", "--max-filesize", "262144", "-i",
+    "-w", "\nbunkialo-status:%{http_code}", url])
 }
 
 function response(raw) {
