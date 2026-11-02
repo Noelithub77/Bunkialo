@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import Quickshell
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "BunkialoApi.js" as Api
 import "WifixApi.js" as Wifix
@@ -17,8 +18,18 @@ Panel {
   property bool wifixDetailsExpanded: false
   readonly property var service: hostWidget ? hostWidget.bunkialoService : null
   readonly property var barIdentity: hostWidget || root
-  readonly property color foreground: bar ? bar.barForeground : Color.foreground
-  readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
+  readonly property color foreground: bar ? bar.barForeground : Commons.Color.foreground
+  // noshell tokens (see DESIGN.md in Noel's dotfiles): Nunito text, rounded
+  // symbols, soft tiles and pastel tones that follow the theme.
+  readonly property string fontFamily: "Nunito"
+  readonly property string iconFont: "Material Symbols Rounded"
+  readonly property color paper: Commons.Color.background
+  readonly property bool light: 0.299 * paper.r + 0.587 * paper.g + 0.114 * paper.b > 0.5
+  readonly property color tile: alpha(foreground, 0.06)
+  readonly property color subtle: alpha(foreground, 0.62)
+  readonly property color faint: alpha(foreground, 0.32)
+  function alpha(color, amount) { return Qt.rgba(color.r, color.g, color.b, amount) }
+  function tone(name) { return Api.tone(name, root.light) }
   readonly property var timetableGroups: service ? Api.groupByDay(service.snapshot.timetable) : []
   readonly property var mealDays: service ? service.messMenu : []
   readonly property var todayClasses: service
@@ -102,13 +113,6 @@ Panel {
         var expanded = root.timetableExpanded && root.menuExpanded
         if ((dy > 0 && !expanded) || (dy < 0 && expanded)) root.service.toggleExpanded()
       }
-      Rectangle {
-        anchors.fill: parent
-        anchors.margins: Style.space(2)
-        color: "#000000"
-        radius: Style.cornerRadius
-        z: 0
-      }
       Flickable {
         id: verticalScroll
         anchors.fill: parent
@@ -127,32 +131,36 @@ Panel {
             width: parent.width
             spacing: Style.space(7)
             Text {
-              text: "BUNKIALO"
+              text: "Bunkialo"
               color: root.foreground
               font.family: root.fontFamily
-              font.pixelSize: Style.font.subtitle
+              font.pixelSize: Style.font.heading
               font.bold: true
-              Layout.fillWidth: true
             }
             Rectangle {
               width: Style.space(7)
               height: width
               radius: width / 2
-              color: root.service && root.service.stale ? Color.urgent
-                : root.service && root.service.loading ? Color.accent
-                : Color.accent
+              color: root.service && root.service.stale ? root.tone("coral")
+                : root.service && root.service.loading ? root.tone("butter")
+                : root.service && root.service.lastRefreshAt ? root.tone("green")
+                : root.tone("slate")
             }
             Text {
-              text: root.service && root.service.loading ? "..."
+              Layout.fillWidth: true
+              text: root.service && root.service.loading ? "Updating"
                 : root.service ? Api.formatUpdated(root.service.lastRefreshAt, root.service.now) : ""
-              color: root.service && root.service.stale ? Color.urgent : Qt.darker(root.foreground, 1.35)
+              color: root.service && root.service.stale ? root.tone("coral") : root.subtle
               font.family: root.fontFamily
               font.pixelSize: Style.font.caption
+              font.weight: Font.DemiBold
+              elide: Text.ElideRight
             }
             PanelActionButton {
               visible: !root.service || !root.service.wifixMode
-              iconText: ""
+              iconText: "wifi"
               tooltipText: "WiFix"
+              fontFamily: root.iconFont
               foreground: root.foreground
               onClicked: {
                 root.settingsOpen = false
@@ -165,7 +173,8 @@ Panel {
               }
             }
             PanelActionButton {
-              iconText: root.settingsOpen || root.inboxOpen || (root.service && root.service.wifixMode) ? "" : ""
+              iconText: root.settingsOpen || root.inboxOpen || (root.service && root.service.wifixMode) ? "arrow_back" : "settings"
+              fontFamily: root.iconFont
               tooltipText: root.settingsOpen || root.inboxOpen || (root.service && root.service.wifixMode) ? "Back" : "Settings"
               foreground: root.foreground
               onClicked: {
@@ -184,8 +193,9 @@ Panel {
               implicitHeight: inboxButton.implicitHeight
               PanelActionButton {
                 id: inboxButton
-                iconText: ""
+                iconText: "inbox"
                 tooltipText: "Inbox"
+                fontFamily: root.iconFont
                 foreground: root.foreground
                 onClicked: {
                   root.toggleInbox()
@@ -195,14 +205,15 @@ Panel {
                 visible: !!root.service && root.service.unreadCount > 0
                 anchors.right: parent.right
                 anchors.top: parent.top
-                width: Style.space(18)
+                width: Math.max(height, unreadText.implicitWidth + Style.space(6))
                 height: Style.space(14)
-                radius: width / 2
-                color: Color.urgent
+                radius: height / 2
+                color: root.tone("coral")
                 Text {
+                  id: unreadText
                   anchors.centerIn: parent
                   text: root.service && root.service.unreadCount > 9 ? "9+" : String(root.service ? root.service.unreadCount : "")
-                  color: Color.background
+                  color: Commons.Color.background
                   font.family: root.fontFamily
                   font.pixelSize: Style.font.caption
                   font.bold: true
@@ -210,8 +221,9 @@ Panel {
               }
             }
             PanelActionButton {
-              iconText: ""
+              iconText: "refresh"
               tooltipText: "Refresh"
+              fontFamily: root.iconFont
               foreground: root.foreground
               enabled: !!root.service && !root.service.loading
               onClicked: if (root.service) root.service.refresh()
@@ -220,7 +232,7 @@ Panel {
           Text {
             visible: !!root.service && root.service.errorMessage !== "" && !root.service.wifixMode
             text: root.service ? root.service.errorMessage : ""
-            color: Color.urgent
+            color: root.tone("coral")
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
             elide: Text.ElideRight
@@ -249,7 +261,7 @@ Panel {
             highlightRangeMode: ListView.StrictlyEnforceRange
             preferredHighlightBegin: (width - cardWidth) / 2
             preferredHighlightEnd: (width + cardWidth) / 2
-            highlightMoveDuration: 120
+            highlightMoveDuration: 200
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 6500
             maximumFlickVelocity: 8000
@@ -269,17 +281,19 @@ Panel {
               property bool isNext: !!classData && !!root.service && !!root.service.glance.nextClass
                 && (classData === root.service.glance.nextClass
                   || String(classData.id || "") === String(root.service.glance.nextClass.id || ""))
-              tag: !classData ? "NOW" : isCurrent ? "NOW" : isNext ? "NEXT" : "CLASS"
+              tag: !classData ? "Now" : isCurrent ? "Now" : isNext ? "Next" : "Class"
               value: classData ? classData.courseName : "Free"
               detail: classData ? Api.formatTime(classData.startTime) + "–" + Api.formatTime(classData.endTime) : ""
-              accent: classData ? Api.courseColor(classData.courseId) : Color.accent
+              accent: classData ? Api.courseColor(classData.courseId, root.light) : root.tone("lavender")
               foreground: root.foreground; fontFamily: root.fontFamily
             }
           }
           ListView {
             id: mealCarousel
             width: parent.width
-            height: Style.space(136)
+            // Fits the centred card, so a short menu leaves no gap below.
+            height: currentItem ? currentItem.implicitHeight : Style.space(90)
+            Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.2, 0, 0, 1, 1, 1] } }
             clip: true
             orientation: ListView.Horizontal
             model: root.todayMeals.length > 0 ? root.todayMeals : [null]
@@ -290,7 +304,7 @@ Panel {
             highlightRangeMode: ListView.StrictlyEnforceRange
             preferredHighlightBegin: (width - cardWidth) / 2
             preferredHighlightEnd: (width + cardWidth) / 2
-            highlightMoveDuration: 120
+            highlightMoveDuration: 200
             boundsBehavior: Flickable.StopAtBounds
             flickDeceleration: 6500
             maximumFlickVelocity: 8000
@@ -306,9 +320,9 @@ Panel {
               property var mealData: modelData
               property bool isCenter: !!mealData && !!root.service && mealData === root.service.mealGlance.center
               property bool isNext: !!mealData && !!root.service && mealData === root.service.mealGlance.next
-              tag: !mealData ? "MEAL" : isCenter
-                ? (root.service.mealGlance.centerIsCurrent ? "CURRENT MEAL" : "NEXT MEAL")
-                : isNext ? "UP NEXT" : "MEAL"
+              tag: !mealData ? "Meal" : isCenter
+                ? (root.service.mealGlance.centerIsCurrent ? "Now serving" : "Next meal")
+                : isNext ? "Up next" : "Meal"
               meal: mealData
               emptyLabel: "None"
               foreground: root.foreground; fontFamily: root.fontFamily
@@ -317,10 +331,11 @@ Panel {
           RowLayout {
             width: parent.width
             spacing: Style.space(4)
-            SectionTitle { text: root.timetableExpanded && root.menuExpanded ? "COLLAPSE" : "EXPAND"; foreground: root.foreground; fontFamily: root.fontFamily }
+            SectionTitle { text: root.timetableExpanded && root.menuExpanded ? "Week" : "Today"; foreground: root.foreground; fontFamily: root.fontFamily }
             Item { Layout.fillWidth: true }
             PanelActionButton {
-              iconText: root.timetableExpanded && root.menuExpanded ? "▴" : "▾"
+              iconText: root.timetableExpanded && root.menuExpanded ? "expand_less" : "expand_more"
+              fontFamily: root.iconFont
               tooltipText: root.timetableExpanded && root.menuExpanded ? "Collapse full view" : "Expand full view"
               foreground: root.foreground
               onClicked: if (root.service) root.service.toggleExpanded()
@@ -340,7 +355,7 @@ Panel {
             highlightRangeMode: ListView.StrictlyEnforceRange
             preferredHighlightBegin: 0
             preferredHighlightEnd: width
-            highlightMoveDuration: 120
+            highlightMoveDuration: 200
             boundsBehavior: Flickable.StopAtBounds
             interactive: count > 1
             flickDeceleration: 6500
@@ -371,7 +386,7 @@ Panel {
             highlightRangeMode: ListView.StrictlyEnforceRange
             preferredHighlightBegin: 0
             preferredHighlightEnd: width
-            highlightMoveDuration: 120
+            highlightMoveDuration: 200
             boundsBehavior: Flickable.StopAtBounds
             interactive: count > 1
             flickDeceleration: 6500
@@ -399,7 +414,7 @@ Panel {
           id: inboxColumn
           width: parent.width
           spacing: Style.space(8)
-          SectionTitle { text: "INBOX"; foreground: Color.accent; fontFamily: root.fontFamily }
+          SectionTitle { text: "Inbox"; foreground: root.foreground; fontFamily: root.fontFamily }
           Column {
             width: parent.width
             spacing: Style.space(5)
@@ -411,12 +426,27 @@ Panel {
                 onOpenRequested: function(url) { root.openUrl(url) }
               }
             }
-            Text {
+            Column {
               visible: root.snapshot.notifications.length === 0
-              text: "No notifications"
-              color: Qt.darker(root.foreground, 1.4)
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.bodySmall
+              width: parent.width
+              topPadding: Style.space(12)
+              bottomPadding: Style.space(12)
+              spacing: Style.space(4)
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "notifications_off"
+                color: root.faint
+                font.family: root.iconFont
+                font.pixelSize: Style.space(22)
+              }
+              Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "All caught up"
+                color: root.faint
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.bodySmall
+                font.weight: Font.DemiBold
+              }
             }
           }
         }
@@ -429,20 +459,13 @@ Panel {
           id: settingsColumn
           width: parent.width
           spacing: Style.space(12)
-          SectionTitle { visible: !root.service || !root.service.wifixMode; text: "ACCOUNT"; foreground: Color.accent; fontFamily: root.fontFamily }
+          SectionTitle { visible: !root.service || !root.service.wifixMode; text: "Account"; foreground: root.foreground; fontFamily: root.fontFamily }
           Text {
             visible: (!root.service || !root.service.paired) && (!root.service || !root.service.wifixMode)
-            text: "Save the shared credentials JSON once"
-            color: root.foreground
+            text: "Paste the credentials JSON once"
+            color: root.subtle
             font.family: root.fontFamily
             font.pixelSize: Style.font.bodySmall
-          }
-          PanelActionButton {
-            visible: (!root.service || !root.service.paired) && (!root.service || !root.service.wifixMode)
-            iconText: "↗"
-            tooltipText: "Open Bunkialo credentials page"
-            foreground: Color.accent
-            onClicked: root.openUrl("/pair/desktop")
           }
           RowLayout {
             visible: (!root.service || !root.service.paired) && (!root.service || !root.service.wifixMode)
@@ -454,8 +477,8 @@ Panel {
               placeholderText: "Paste credentials JSON"
               color: root.foreground
               foreground: root.foreground
-              accent: Color.accent
-              font.family: "monospace"
+              accent: Commons.Color.accent
+              font.family: root.fontFamily
               font.pixelSize: Style.font.caption
               selectByMouse: true
               password: true
@@ -463,16 +486,24 @@ Panel {
             }
             Button {
               text: "Pair"
+              radius: height / 2
               selected: true
-              accent: Color.accent
+              accent: Commons.Color.accent
               fontFamily: root.fontFamily
               onClicked: if (root.service && root.service.saveToken(settingsToken.text)) settingsToken.text = ""
+            }
+            PanelActionButton {
+              iconText: "open_in_new"
+              tooltipText: "Open Bunkialo credentials page"
+              fontFamily: root.iconFont
+              foreground: root.tone("lavender")
+              onClicked: root.openUrl("/pair/desktop")
             }
           }
           SectionTitle {
             visible: !!root.service && root.service.wifixMode
-            text: "WIFIX"
-            foreground: Color.accent
+            text: "WiFix"
+            foreground: root.foreground
             fontFamily: root.fontFamily
           }
           Column {
@@ -484,21 +515,21 @@ Panel {
               spacing: Style.space(5)
               Text {
                 text: root.service && root.service.currentSsid
-                  ? (Wifix.isCampusSsid(root.service.currentSsid) ? "✓" : "✕") : "·"
+                  ? (Wifix.isCampusSsid(root.service.currentSsid) ? "check_circle" : "cancel") : "wifi_find"
                 color: root.service && root.service.currentSsid
-                  ? (Wifix.isCampusSsid(root.service.currentSsid) ? Color.accent : Color.urgent)
-                  : Qt.darker(root.foreground, 1.3)
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.caption
-                font.bold: true
+                  ? (Wifix.isCampusSsid(root.service.currentSsid) ? root.tone("green") : root.tone("coral"))
+                  : root.faint
+                font.family: root.iconFont
+                font.pixelSize: Style.font.body
               }
               Text {
                 Layout.fillWidth: true
                 text: root.service && root.service.currentSsid
-                  ? root.service.currentSsid : "Checking this WiFi"
-                color: Qt.darker(root.foreground, 1.2)
+                  ? root.service.currentSsid : "Checking Wi-Fi"
+                color: root.subtle
                 font.family: root.fontFamily
-                font.pixelSize: Style.font.caption
+                font.pixelSize: Style.font.bodySmall
+                font.weight: Font.DemiBold
                 elide: Text.ElideRight
               }
             }
@@ -509,11 +540,13 @@ Panel {
                 visible: !!root.service && !root.service.wifixConnected
                 width: parent.width
                 height: Style.space(48)
+                radius: height / 2
                 text: root.service && root.service.wifixChecking
-                  ? "Checking campus portal..."
-                  : root.service.wifixAvailable ? "Connect to campus WiFi" : "Campus portal unavailable"
+                  ? "Checking portal"
+                  : root.service && root.service.wifixAvailable
+                    ? "Connect" : "Portal unavailable"
                 selected: true
-                accent: Color.accent
+                accent: Commons.Color.accent
                 fontFamily: root.fontFamily
                 enabled: !!root.service && root.service.wifixAvailable && !root.service.wifixChecking
                 onClicked: if (root.service) root.service.startWifixConnect()
@@ -523,10 +556,11 @@ Panel {
                 width: parent.width
                 height: Style.space(40)
                 text: "Logout"
+                radius: height / 2
                 bordered: true
-                foreground: Color.urgent
+                foreground: root.tone("coral")
                 fontFamily: root.fontFamily
-                enabled: !root.service.wifixChecking
+                enabled: !!root.service && !root.service.wifixChecking
                 onClicked: if (root.service) root.service.logoutWifix()
               }
               Column {
@@ -535,22 +569,32 @@ Panel {
                   && root.service.wifixMessage !== "Campus portal detected on this WiFi"
                 width: parent.width
                 spacing: Style.space(3)
-                Text {
-                  text: (root.wifixDetailsExpanded ? "⌄" : "›") + " WiFix details"
-                  color: Qt.darker(root.foreground, 1.5)
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.caption
-                  opacity: 0.75
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: root.wifixDetailsExpanded = !root.wifixDetailsExpanded
+                Row {
+                  spacing: Style.space(2)
+                  Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "chevron_right"
+                    rotation: root.wifixDetailsExpanded ? 90 : 0
+                    Behavior on rotation { NumberAnimation { duration: 200; easing.type: Easing.BezierSpline; easing.bezierCurve: [0.2, 0, 0, 1, 1, 1] } }
+                    color: root.subtle
+                    font.family: root.iconFont
+                    font.pixelSize: Style.font.body
                   }
+                  Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Details"
+                    color: root.subtle
+                    font.family: root.fontFamily
+                    font.pixelSize: Style.font.caption
+                    font.weight: Font.DemiBold
+                  }
+                  TapHandler { onTapped: root.wifixDetailsExpanded = !root.wifixDetailsExpanded }
+                  HoverHandler { cursorShape: Qt.PointingHandCursor }
                 }
                 Text {
                   visible: root.wifixDetailsExpanded
                   text: root.service ? root.service.wifixMessage : ""
-                  color: Qt.darker(root.foreground, 1.25)
+                  color: root.subtle
                   font.family: root.fontFamily
                   font.pixelSize: Style.font.caption
                   wrapMode: Text.Wrap
@@ -559,30 +603,28 @@ Panel {
               }
             }
           }
-          SectionTitle { visible: !root.service || !root.service.wifixMode; text: "CLASS ALERT"; foreground: Color.accent; fontFamily: root.fontFamily }
+          SectionTitle { visible: !root.service || !root.service.wifixMode; text: "Class alert"; foreground: root.foreground; fontFamily: root.fontFamily }
           RowLayout {
             visible: !root.service || !root.service.wifixMode
             width: parent.width
             spacing: Style.space(5)
             Repeater {
               model: [0, 5, 10, 15, 30]
-              Button {
+              PillChip {
                 required property int modelData
-                text: modelData + "m"
-                selected: root.service && root.service.leadMinutes === modelData
-                bordered: !selected
-                fontFamily: root.fontFamily
-                fontSize: Style.font.caption
-                horizontalPadding: Style.space(7)
+                text: modelData + " min"
+                selected: !!root.service && root.service.leadMinutes === modelData
                 onClicked: if (root.service) root.service.setLeadMinutes(modelData)
               }
             }
+            Item { Layout.fillWidth: true }
           }
           Button {
             visible: !!root.service && root.service.paired && !root.service.wifixMode
-            text: "Unpair desktop"
+            text: "Unpair"
+            radius: height / 2
             bordered: true
-            foreground: Color.urgent
+            foreground: root.tone("coral")
             fontFamily: root.fontFamily
             onClicked: if (root.service) root.service.clearToken()
           }
@@ -593,194 +635,229 @@ Panel {
   }
   }
   component SectionTitle: Text {
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property string fontFamily: Style.font.family
-    color: Qt.darker(foreground, 1.35)
+    color: root.subtle
     font.family: fontFamily
-    font.pixelSize: Style.font.caption
+    font.pixelSize: Style.font.bodySmall
     font.bold: true
-    font.letterSpacing: 1.1
   }
-  component GlanceCard: BorderSurface {
-    property string tag: ""; property string value: ""; property string detail: ""
-    property color accent: Color.accent; property color foreground: Color.foreground
-    property string fontFamily: Style.font.family
-    implicitHeight: 62; radius: Style.cornerRadius
-    color: Style.normalFillFor(foreground, accent); borderSpec: Border.controlSpec("normal", foreground, accent)
-    Rectangle {
-      width: Style.space(4); height: parent.height; color: parent.accent; radius: Style.cornerRadius
+  // A choice in a row of options: lavender tint when selected.
+  component PillChip: Rectangle {
+    id: pill
+    property string text: ""
+    property bool selected: false
+    signal clicked()
+    implicitWidth: pillLabel.implicitWidth + Style.space(18)
+    implicitHeight: pillLabel.implicitHeight + Style.space(10)
+    radius: height / 2
+    color: selected ? root.alpha(root.tone("lavender"), 0.18)
+      : root.alpha(root.foreground, pillHover.hovered ? 0.1 : 0.06)
+    Behavior on color { ColorAnimation { duration: 160 } }
+    Text {
+      id: pillLabel
+      anchors.centerIn: parent
+      text: pill.text
+      color: pill.selected ? root.tone("lavender") : root.foreground
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      font.bold: true
     }
+    HoverHandler { id: pillHover; cursorShape: Qt.PointingHandCursor }
+    TapHandler { onTapped: pill.clicked() }
+  }
+  // A soft pill naming what a card is: tone text on an 18% tint of it.
+  component TagChip: Rectangle {
+    property string text: ""
+    property color accent: Commons.Color.accent
+    implicitWidth: tagLabel.implicitWidth + Style.space(12)
+    implicitHeight: tagLabel.implicitHeight + Style.space(4)
+    radius: height / 2
+    color: root.alpha(accent, 0.18)
+    Text {
+      id: tagLabel
+      anchors.centerIn: parent
+      text: parent.text
+      color: parent.accent
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      font.bold: true
+    }
+  }
+  component GlanceCard: Rectangle {
+    id: glance
+    property string tag: ""; property string value: ""; property string detail: ""
+    property color accent: Commons.Color.accent; property color foreground: Commons.Color.foreground
+    property string fontFamily: Style.font.family
+    implicitHeight: 62; radius: 14
+    color: root.tile
     Column {
-      anchors.fill: parent; anchors.leftMargin: Style.space(11); anchors.rightMargin: Style.space(7)
+      anchors.fill: parent; anchors.leftMargin: Style.space(10); anchors.rightMargin: Style.space(10)
       anchors.topMargin: Style.space(7); anchors.bottomMargin: Style.space(6)
-      spacing: Style.space(1)
-      Text {
-        text: parent.parent.tag
-        color: parent.parent.accent
-        font.family: parent.parent.fontFamily
-        font.pixelSize: Style.font.caption
-        font.bold: true
-      }
+      spacing: Style.space(2)
+      TagChip { text: glance.tag; accent: glance.accent }
       Text {
         width: parent.width
-        text: parent.parent.value
-        color: parent.parent.foreground
-        font.family: parent.parent.fontFamily
+        text: glance.value
+        color: glance.foreground
+        font.family: glance.fontFamily
         font.pixelSize: Style.font.bodySmall
         font.bold: true
         elide: Text.ElideRight
       }
       Text {
-        text: parent.parent.detail
-        color: Qt.darker(parent.parent.foreground, 1.25)
-        font.family: parent.parent.fontFamily
+        text: glance.detail
+        color: root.subtle
+        font.family: glance.fontFamily
         font.pixelSize: Style.font.caption
+        font.weight: Font.DemiBold
       }
     }
   }
-  component MealGlanceCard: BorderSurface {
-    property string tag: "NEXT MEAL"
+  component MealGlanceCard: Rectangle {
+    id: mealCard
+    property string tag: "Next meal"
     property string emptyLabel: "Done"
     property var meal: null
     readonly property string itemText: meal && meal.items ? String(meal.items.join(" · ")) : ""
-    property color foreground: Color.foreground
+    property color foreground: Commons.Color.foreground
     property string fontFamily: Style.font.family
-    readonly property color accent: meal ? Api.mealColor(meal.type) : Color.accent
+    readonly property color accent: meal ? Api.mealColor(meal.type, root.light) : root.tone("sky")
     implicitHeight: mealColumn.implicitHeight + Style.space(16)
-    radius: Style.cornerRadius
-    color: Style.normalFillFor(foreground, accent)
-    borderSpec: Border.controlSpec("normal", foreground, accent)
-    Rectangle {
-      width: Style.space(4); height: parent.height; color: parent.accent; radius: Style.cornerRadius
-    }
+    radius: 14
+    color: root.tile
     Column {
       id: mealColumn
       anchors.left: parent.left; anchors.right: parent.right
       anchors.top: parent.top; anchors.margins: Style.space(9)
-      anchors.leftMargin: Style.space(11); anchors.rightMargin: Style.space(8)
-      spacing: Style.space(2)
-      Text {
-        text: parent.parent.tag
-        color: parent.parent.accent
-        font.family: parent.parent.fontFamily
-        font.pixelSize: Style.font.caption
-        font.bold: true
-      }
+      anchors.leftMargin: Style.space(10); anchors.rightMargin: Style.space(10)
+      spacing: Style.space(3)
       RowLayout {
         width: parent.width
         spacing: Style.space(6)
+        TagChip { text: mealCard.tag; accent: mealCard.accent }
+        Item { Layout.fillWidth: true }
         Text {
-          text: parent.parent.parent.meal ? parent.parent.parent.meal.name : parent.parent.parent.emptyLabel
-          color: parent.parent.parent.foreground
-          font.family: parent.parent.parent.fontFamily
-          font.pixelSize: Style.font.bodySmall
-          font.bold: true
-          Layout.fillWidth: true
-        }
-        Text {
-          text: parent.parent.parent.meal
-            ? parent.parent.parent.meal.startTime + "–" + parent.parent.parent.meal.endTime : ""
-          color: Qt.darker(parent.parent.parent.foreground, 1.25)
-          font.family: parent.parent.parent.fontFamily
+          text: mealCard.meal ? mealCard.meal.startTime + "–" + mealCard.meal.endTime : ""
+          color: root.subtle
+          font.family: mealCard.fontFamily
           font.pixelSize: Style.font.caption
+          font.weight: Font.DemiBold
         }
       }
       Text {
+        text: mealCard.meal ? mealCard.meal.name : mealCard.emptyLabel
+        color: mealCard.foreground
+        font.family: mealCard.fontFamily
+        font.pixelSize: Style.font.bodySmall
+        font.bold: true
+      }
+      Text {
         width: parent.width
-        text: parent.parent.itemText
-        color: Qt.darker(parent.parent.foreground, 1.05)
-        font.family: parent.parent.fontFamily
+        text: mealCard.itemText
+        color: root.subtle
+        font.family: mealCard.fontFamily
         font.pixelSize: Style.font.caption
+        font.weight: Font.DemiBold
         wrapMode: Text.Wrap
         visible: text.length > 0
       }
     }
   }
-  component DayPage: BorderSurface {
+  // A course or meal row: 12% tint of its tone with a tone dot.
+  component ToneRow: Rectangle {
+    property color accent: Commons.Color.accent
+    radius: 10
+    color: root.alpha(accent, 0.12)
+  }
+  component ToneDot: Rectangle {
+    width: Style.space(7); height: width; radius: width / 2
+  }
+  component DayPage: Rectangle {
+    id: dayPage
     property string heading: ""; property var rows: []
-    property color foreground: Color.foreground; property string fontFamily: Style.font.family
-    radius: Style.cornerRadius; color: Style.normalFillFor(foreground, Color.accent)
-    borderSpec: Border.controlSpec("normal", foreground, Color.accent)
+    property color foreground: Commons.Color.foreground; property string fontFamily: Style.font.family
+    radius: 14; color: root.tile
     Column {
       anchors.fill: parent; anchors.margins: Style.space(9); spacing: Style.space(5)
       Text {
-        text: parent.parent.heading; color: parent.parent.foreground; font.family: parent.parent.fontFamily
+        text: dayPage.heading; color: dayPage.foreground; font.family: dayPage.fontFamily
         font.pixelSize: Style.font.body; font.bold: true
       }
       Repeater {
-        model: parent.parent.rows
-        delegate: Rectangle {
+        model: dayPage.rows
+        delegate: ToneRow {
+          id: courseRow
           required property var modelData
-          width: parent.width; height: Style.space(27); radius: Style.cornerRadius
-          color: Style.normalFillFor(root.foreground, Api.courseColor(modelData.courseId))
-          Rectangle {
-            width: Style.space(3); height: parent.height; color: Api.courseColor(modelData.courseId); radius: Style.cornerRadius
-          }
+          accent: Api.courseColor(modelData.courseId, root.light)
+          width: parent.width; height: Style.space(27)
           RowLayout {
-            anchors.fill: parent; anchors.leftMargin: Style.space(8); anchors.rightMargin: Style.space(6)
-            spacing: Style.space(5)
+            anchors.fill: parent; anchors.leftMargin: Style.space(8); anchors.rightMargin: Style.space(8)
+            spacing: Style.space(6)
+            ToneDot { color: courseRow.accent }
             Text {
-              text: Api.formatTime(modelData.startTime); color: root.foreground; font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-              Layout.preferredWidth: Style.space(58)
+              text: Api.formatTime(courseRow.modelData.startTime); color: root.subtle; font.family: root.fontFamily
+              font.pixelSize: Style.font.caption; font.weight: Font.DemiBold
+              Layout.preferredWidth: Style.space(54)
             }
             Text {
-              text: modelData.courseName; color: root.foreground; font.family: root.fontFamily
+              text: courseRow.modelData.courseName; color: root.foreground; font.family: root.fontFamily
               font.pixelSize: Style.font.bodySmall; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true
             }
           }
         }
       }
       Text {
-        visible: parent.parent.rows.length === 0; text: "Free"; color: Qt.darker(parent.parent.foreground, 1.35)
-        font.family: parent.parent.fontFamily; font.pixelSize: Style.font.bodySmall
+        visible: dayPage.rows.length === 0; text: "Free"; color: root.faint
+        font.family: dayPage.fontFamily; font.pixelSize: Style.font.bodySmall; font.weight: Font.DemiBold
       }
     }
   }
-  component MealPage: BorderSurface {
+  component MealPage: Rectangle {
+    id: mealPage
     property string heading: ""; property var meals: []
-    property color foreground: Color.foreground; property string fontFamily: Style.font.family
-    radius: Style.cornerRadius; color: Style.normalFillFor(foreground, Color.accent)
-    borderSpec: Border.controlSpec("normal", foreground, Color.accent)
+    property color foreground: Commons.Color.foreground; property string fontFamily: Style.font.family
+    radius: 14; color: root.tile
     Column {
       anchors.fill: parent; anchors.margins: Style.space(9); spacing: Style.space(5)
       Text {
-        text: parent.parent.heading; color: parent.parent.foreground; font.family: parent.parent.fontFamily
+        text: mealPage.heading; color: mealPage.foreground; font.family: mealPage.fontFamily
         font.pixelSize: Style.font.body; font.bold: true
       }
       Repeater {
-        model: parent.parent.meals
-        delegate: Rectangle {
+        model: mealPage.meals
+        delegate: ToneRow {
+          id: mealRow
           required property var modelData
-          width: parent.width; height: Style.space(70); radius: Style.cornerRadius
-          color: Style.normalFillFor(root.foreground, Api.mealColor(modelData.type))
-          Rectangle {
-            width: Style.space(3); height: parent.height; color: Api.mealColor(modelData.type); radius: Style.cornerRadius
-          }
+          accent: Api.mealColor(modelData.type, root.light)
+          width: parent.width; height: Style.space(70)
           Column {
-            anchors.fill: parent; anchors.leftMargin: Style.space(8); anchors.rightMargin: Style.space(6)
-            anchors.topMargin: Style.space(4); anchors.bottomMargin: Style.space(4); spacing: Style.space(1)
+            anchors.fill: parent; anchors.leftMargin: Style.space(9); anchors.rightMargin: Style.space(8)
+            anchors.topMargin: Style.space(5); anchors.bottomMargin: Style.space(4); spacing: Style.space(2)
             RowLayout {
               width: parent.width
+              spacing: Style.space(6)
+              ToneDot { color: mealRow.accent }
               Text {
-                text: modelData.name; color: root.foreground; font.family: root.fontFamily
+                text: mealRow.modelData.name; color: root.foreground; font.family: root.fontFamily
                 font.pixelSize: Style.font.bodySmall; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true
               }
               Text {
-                text: modelData.startTime + "–" + modelData.endTime; color: root.foreground
-                font.family: root.fontFamily; font.pixelSize: Style.font.caption
+                text: mealRow.modelData.startTime + "–" + mealRow.modelData.endTime; color: root.subtle
+                font.family: root.fontFamily; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold
               }
             }
             Text {
-              width: parent.width; text: modelData.items.join(" · "); color: Qt.darker(root.foreground, 1.2)
-              font.family: root.fontFamily; font.pixelSize: Style.font.caption; wrapMode: Text.WordWrap
+              width: parent.width; text: mealRow.modelData.items.join(" · "); color: root.subtle
+              font.family: root.fontFamily; font.pixelSize: Style.font.caption
+              font.weight: Font.DemiBold; wrapMode: Text.WordWrap
             }
           }
         }
       }
       Text {
-        visible: parent.parent.meals.length === 0; text: "No menu"; color: Qt.darker(parent.parent.foreground, 1.35)
-        font.family: parent.parent.fontFamily; font.pixelSize: Style.font.bodySmall
+        visible: mealPage.meals.length === 0; text: "No menu"; color: root.faint
+        font.family: mealPage.fontFamily; font.pixelSize: Style.font.bodySmall; font.weight: Font.DemiBold
       }
     }
   }

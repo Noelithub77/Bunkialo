@@ -14,7 +14,7 @@ class WifixTests(unittest.TestCase):
     def run_scenario(self, scenario, expected):
         with tempfile.TemporaryDirectory() as task_temp:
             root = Path(task_temp)
-            for filename in ('WifixService.qml', 'WifixApi.js'):
+            for filename in ('WifixService.qml', 'WifixNotifier.qml', 'WifixApi.js'):
                 shutil.copy(PLUGIN / filename, root / filename)
             tools = root / 'tools'
             tools.mkdir()

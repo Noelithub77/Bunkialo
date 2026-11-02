@@ -5,6 +5,7 @@ import qs.Commons
 import "BunkialoApi.js" as Api
 import "BunkialoCache.js" as Cache
 import "WifixApi.js" as Wifix
+import "." as Local
 
 Item {
   id: root
@@ -311,9 +312,13 @@ Item {
 
     function showWifix(): string {
       root.wifixMode = true
-      root.detectWifix(false)
+      wifix.checkAndConnect()
       root.dataChanged()
       return "wifix"
+    }
+
+    function loginWifix(): string {
+      return wifix.connect()
     }
   }
 
@@ -447,7 +452,13 @@ Item {
     }
   }
 
-  Component.onCompleted: Qt.callLater(function() {
-    root.loadToken()
-  })
+  Component.onCompleted: {
+    Local.ServiceBridge.service = root
+    Qt.callLater(function() {
+      root.loadToken()
+    })
+  }
+  Component.onDestruction: {
+    if (Local.ServiceBridge.service === root) Local.ServiceBridge.service = null
+  }
 }

@@ -1,0 +1,4 @@
+singleton ServiceBridge 1.0 ServiceBridge.qml
+NotificationCard 1.0 NotificationCard.qml
+WifixService 1.0 WifixService.qml
+WifixNotifier 1.0 WifixNotifier.qml

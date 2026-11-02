@@ -29,7 +29,30 @@ Item {
   property int verificationAttempt: 0
   property int operationGeneration: 0
   property string portalRequestKind: ""
+  property bool autoLoginAfterCheck: false
+  property bool pendingLogin: false
+  property bool loginNoticeActive: false
   signal changed()
+  WifixNotifier { id: notifier }
+
+  function loginNotice() {
+    if (root.loginNoticeActive) return
+    root.loginNoticeActive = true
+    notifier.show("Connecting to campus Wi-Fi…", 1500)
+  }
+
+  function loginResult(message, success) {
+    if (!root.loginNoticeActive) return
+    root.loginNoticeActive = false
+    notifier.show(message, success ? 2500 : 3500)
+  }
+
+  function checkAndConnect() {
+    if (root.portalAction !== "" && root.wifixChecking) return "busy"
+    root.autoLoginAfterCheck = true
+    if (!root.wifixChecking) root.begin("")
+    return "checking"
+  }
 
   function detect(force) {
     if (root.wifixChecking) return
@@ -38,7 +61,12 @@ Item {
 
   function begin(action) {
     if (root.wifixChecking || deviceProc.running || ssidProc.running || metadataProc.running
-        || probeProc.running || dnsProc.running || portalProc.running) return
+        || probeProc.running || dnsProc.running || portalProc.running) return false
+    if (action === "login") {
+      root.autoLoginAfterCheck = false
+      root.pendingLogin = false
+      root.loginNotice()
+    }
     root.operationGeneration += 1
     root.portalAction = action
     root.portalAddress = ""
@@ -50,10 +78,19 @@ Item {
     operationTimeout.restart()
     root.changed()
     deviceProc.running = true
+    return true
   }
 
   function connect() {
-    if (!root.wifixChecking) root.begin("login")
+    if (root.wifixChecking) {
+      if (root.portalAction === "") {
+        root.pendingLogin = true
+        root.loginNotice()
+        return "queued"
+      }
+      return "busy"
+    }
+    return root.begin("login") ? "connecting" : "busy"
   }
 
   function logout() {
@@ -61,6 +98,9 @@ Item {
   }
 
   function fail(message) {
+    root.loginResult(message, false)
+    root.autoLoginAfterCheck = false
+    root.pendingLogin = false
     operationTimeout.stop()
     verificationDelay.stop()
     root.portalCredentials = null
@@ -72,6 +112,17 @@ Item {
   }
 
   function finish(state) {
+    if (root.portalAction === "" && (root.pendingLogin || root.autoLoginAfterCheck && state === "captive")) {
+      root.autoLoginAfterCheck = false
+      root.pendingLogin = false
+      operationTimeout.stop()
+      root.defer(function() {
+        root.wifixChecking = false
+        root.connect()
+      })
+      return
+    }
+    root.autoLoginAfterCheck = false
     var expected = root.portalAction === "login" ? "online" : root.portalAction === "logout" ? "captive" : ""
     if (expected !== "" && state !== expected && root.verificationAttempt < 1) {
       root.verificationAttempt += 1
@@ -98,6 +149,8 @@ Item {
       root.wifixSsidCache = next
       wifixCacheFile.setText(JSON.stringify(next) + "\n")
     }
+    if (root.portalAction === "login") root.loginResult(
+      state === "online" ? "Campus Wi-Fi connected" : root.wifixMessage, state === "online")
     root.portalAction = ""
     root.changed()
   }

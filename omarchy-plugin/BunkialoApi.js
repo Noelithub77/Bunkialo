@@ -19,17 +19,35 @@ function dayShortName(day) {
   return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][Number(day) || 0]
 }
 
-function courseColor(courseId) {
-  var colors = ["#F87171", "#FB923C", "#FBBF24", "#34D399", "#22D3EE", "#60A5FA", "#A78BFA", "#F472B6"]
+// noshell pastel pairs: [dark-bar tone, light-bar tone] (see DESIGN.md).
+var TONES = {
+  green: ["#a3d9b1", "#3d8a55"],
+  sage: ["#8fbe9c", "#4f7d5c"],
+  sky: ["#97b4dc", "#35609f"],
+  lavender: ["#b2a4dc", "#64529e"],
+  butter: ["#e3cb8c", "#8f6d1c"],
+  peach: ["#e2b08e", "#9a5c2e"],
+  coral: ["#e39a92", "#a8463e"],
+  slate: ["#b3bccb", "#56606f"]
+}
+
+function tone(name, light) {
+  var pair = TONES[name] || TONES.lavender
+  return pair[light ? 1 : 0]
+}
+
+function courseColor(courseId, light) {
+  var names = ["coral", "peach", "butter", "green", "sky", "lavender", "sage", "slate"]
   var value = String(courseId || "")
   var hash = 0
   for (var index = 0; index < value.length; index += 1)
     hash = (hash * 31 + value.charCodeAt(index)) >>> 0
-  return colors[hash % colors.length]
+  return tone(names[hash % names.length], light)
 }
 
-function mealColor(type) {
-  return ({ breakfast: "#62df15", lunch: "#1be7a3", snacks: "#b16d07", dinner: "#6d20b0" })[String(type || "")] || "#FFAB00"
+function mealColor(type, light) {
+  var name = ({ breakfast: "butter", lunch: "green", snacks: "peach", dinner: "lavender" })[String(type || "")]
+  return tone(name || "sky", light)
 }
 
 function minutes(value) {

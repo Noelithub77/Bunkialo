@@ -2,19 +2,19 @@ import QtQuick
 import Quickshell
 import qs.Ui
 import qs.Commons
+import qs.Commons as Commons
+import "." as Local
 
 BarWidget {
   id: root
 
   moduleName: "noel.bunkialo"
 
-  readonly property var bunkialoService: bar && bar.shell
-    && typeof bar.shell.serviceFor === "function"
-    ? bar.shell.serviceFor("noel.bunkialo") : null
+  readonly property var bunkialoService: Local.ServiceBridge.service
   readonly property var glance: bunkialoService ? bunkialoService.glance : ({})
   readonly property bool stale: bunkialoService ? bunkialoService.stale : false
   readonly property bool loading: bunkialoService ? bunkialoService.loading : false
-  readonly property color iconColor: Color.accent
+  readonly property color iconColor: Commons.Color.accent
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
   readonly property bool popoutSwitchClosing: panelLoader.item
     ? panelLoader.item.popoutSwitchClosing === true : false
