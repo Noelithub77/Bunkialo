@@ -32,7 +32,7 @@ pub(super) fn resolve(network: &Network, host: &str, deadline: Instant) -> CliRe
         }
     }
     Err(format!(
-        "Wi-Fi DNS could not resolve {host}: {}",
+        "Network DNS could not resolve {host}: {}",
         failures.join("; ")
     ))
 }
@@ -49,13 +49,13 @@ fn query(
         socket2::Type::DGRAM,
         Some(socket2::Protocol::UDP),
     )
-    .map_err(|error| format!("Could not create Wi-Fi DNS socket: {error}"))?;
+    .map_err(|error| format!("Could not create the DNS socket: {error}"))?;
     if let Some(interface) = interface {
         bind_interface(&socket, interface)?;
     }
     socket
         .bind(&SocketAddr::from((local, 0)).into())
-        .map_err(|error| format!("Could not bind Wi-Fi DNS address: {error}"))?;
+        .map_err(|error| format!("Could not bind the DNS address: {error}"))?;
     let socket: UdpSocket = socket.into();
     socket
         .set_read_timeout(Some(timeout))
@@ -91,18 +91,18 @@ fn bind_interface(socket: &socket2::Socket, interface: &str) -> CliResult<()> {
     #[cfg(target_os = "linux")]
     socket
         .bind_device(Some(interface.as_bytes()))
-        .map_err(|error| format!("Could not bind DNS to Wi-Fi interface {interface}: {error}"))?;
+        .map_err(|error| format!("Could not bind DNS to interface {interface}: {error}"))?;
     #[cfg(target_os = "macos")]
     {
         let name =
-            std::ffi::CString::new(interface).map_err(|_| "Invalid Wi-Fi interface name.")?;
+            std::ffi::CString::new(interface).map_err(|_| "Invalid network interface name.")?;
         // The OS reads this NUL-terminated name only for the duration of the call.
         let index = unsafe { libc::if_nametoindex(name.as_ptr()) };
-        let index = std::num::NonZeroU32::new(index).ok_or("Wi-Fi interface no longer exists.")?;
+        let index = std::num::NonZeroU32::new(index).ok_or("The network interface no longer exists.")?;
         socket
             .bind_device_by_index_v4(Some(index))
             .map_err(|error| {
-                format!("Could not bind DNS to Wi-Fi interface {interface}: {error}")
+                format!("Could not bind DNS to interface {interface}: {error}")
             })?;
     }
     #[cfg(target_os = "windows")]

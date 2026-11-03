@@ -7,10 +7,16 @@ Item {
   id: root
   property string cacheDir: ""
   property string pairingCode: ""
-  readonly property string cachePath: root.cacheDir + "/wifix-ssid-cache.json"
   readonly property string cookiePath: root.cacheDir + "/wifix.cookies"
-  property string currentSsid: ""
+  // The device being checked; portal* names the one the portal answered on.
+  property string currentNetwork: ""
   property string currentInterface: ""
+  property string currentKind: ""
+  property string portalNetwork: ""
+  property string portalInterface: ""
+  property string portalKind: ""
+  property var candidates: []
+  property int candidateIndex: 0
   property string currentAddress: ""
   property string networkDevices: ""
   property var portalDnsServers: []
@@ -20,7 +26,6 @@ Item {
   property string portalAddress: ""
   property string portalAction: ""
   property var portalCredentials: null
-  property var wifixSsidCache: ({})
   property bool wifixChecking: false
   property bool wifixAvailable: false
   property bool wifixConnected: false
@@ -41,7 +46,7 @@ Item {
   function loginNotice() {
     if (root.loginNoticeActive) return
     root.loginNoticeActive = true
-    notifier.show("Connecting to campus Wi-Fi…", 1500)
+    notifier.show("Logging in to campus portal…", 1500)
   }
 
   function loginResult(message, success) {
@@ -63,7 +68,7 @@ Item {
   }
 
   function begin(action) {
-    if (root.wifixChecking || deviceProc.running || ssidProc.running || metadataProc.running
+    if (root.wifixChecking || deviceProc.running || metadataProc.running
         || probeProc.running || dnsProc.running || routeProc.running || portalProc.running) return false
     if (action === "login") {
       root.autoLoginAfterCheck = false
@@ -76,7 +81,7 @@ Item {
     root.portalCredentials = null
     root.verificationAttempt = 0
     root.wifixChecking = true
-    root.wifixMessage = "Checking campus Wi-Fi..."
+    root.wifixMessage = "Checking campus portal..."
     operationTimeout.interval = action === "" ? 35000 : 90000
     operationTimeout.restart()
     root.changed()
@@ -141,24 +146,51 @@ Item {
         + (state === "online" ? "still online" : state === "vpn" ? "internet via VPN"
           : state === "captive" ? "login still required" : "connectivity unavailable")
     } else if (state === "online") {
-      root.wifixMessage = "Campus Wi-Fi connected"
+      root.wifixMessage = "Campus portal logged in"
     } else if (state === "captive") {
-      root.wifixMessage = "Campus Wi-Fi login required"
+      root.wifixMessage = "Campus portal login required"
     } else if (state === "vpn") {
       root.wifixMessage = "Internet connected · VPN"
     } else {
-      root.wifixMessage = "Wi-Fi check unavailable · retry"
-    }
-    if (state === "online" || state === "captive") {
-      var next = Object.assign({}, root.wifixSsidCache)
-      next[root.currentSsid] = { resolves: true, online: root.wifixConnected, checkedAt: Date.now() }
-      root.wifixSsidCache = next
-      wifixCacheFile.setText(JSON.stringify(next) + "\n")
+      root.wifixMessage = "Campus portal check unavailable · retry"
     }
     if (root.portalAction === "login") root.loginResult(
-      state === "online" ? "Campus Wi-Fi connected" : root.wifixMessage, state === "online")
+      state === "online" ? "Campus portal logged in" : root.wifixMessage, state === "online")
     root.portalAction = ""
     root.changed()
+  }
+
+  // Tries each connected device in turn; the portal host only resolves
+  // through campus DNS, so the first device that resolves it is behind the
+  // portal, whatever its SSID or link type.
+  function nextCandidate() {
+    if (!root.wifixChecking) return
+    if (root.candidateIndex >= root.candidates.length) {
+      root.wifixAvailable = false
+      root.portalNetwork = ""
+      root.portalInterface = ""
+      root.portalKind = ""
+      root.fail(root.candidates.length > 0 ? "No campus portal on this network" : "Connect to the campus network first")
+      return
+    }
+    var candidate = root.candidates[root.candidateIndex++]
+    root.currentInterface = candidate.interface
+    root.currentKind = candidate.kind
+    root.currentNetwork = candidate.name
+    metadataProc.command = ["nmcli", "-g", "IP4.ADDRESS,IP4.DNS,DHCP4.OPTION", "device", "show", candidate.interface]
+    metadataProc.running = true
+  }
+
+  function portalFound() {
+    root.wifixAvailable = true
+    root.portalNetwork = root.currentNetwork
+    root.portalInterface = root.currentInterface
+    root.portalKind = root.currentKind
+    if (root.portalAction === "") { root.checkInternet(); return }
+    if (root.portalAction === "login" && !root.readCredentials()) return
+    root.wifixMessage = root.portalAction === "logout" ? "Logging out..." : "Opening campus portal..."
+    root.changed()
+    root.requestPortal(root.portalAction === "logout" ? "logout" : "get", "")
   }
 
   function checkInternet() {
@@ -201,7 +233,7 @@ Item {
       if (root.dnsPurpose === "probe") {
         root.probeIndex += 1
         root.nextProbe()
-      } else root.fail("Campus portal DNS unavailable · retry")
+      } else root.nextCandidate()
       return
     }
     var server = root.portalDnsServers[root.portalDnsIndex++]
@@ -241,15 +273,6 @@ Item {
     }
   }
 
-  FileView {
-    id: wifixCacheFile
-    path: root.cachePath
-    printErrors: false
-    onLoaded: {
-      try { root.wifixSsidCache = JSON.parse(text()) } catch (error) { root.wifixSsidCache = ({}) }
-    }
-  }
-
   Process {
     id: deviceProc
     property string output: ""
@@ -260,26 +283,9 @@ Item {
     onExited: function(code) {
       if (!root.wifixChecking) return
       root.networkDevices = code === 0 ? deviceProc.output : ""
-      root.currentInterface = code === 0 ? Wifix.activeInterface(deviceProc.output) : ""
-      if (!root.currentInterface) { root.wifixAvailable = false; root.fail("Connect to campus Wi-Fi first"); return }
-      ssidProc.command = ["nmcli", "--wait", "5", "-t", "-f", "ACTIVE,SSID", "device", "wifi", "list", "ifname", root.currentInterface, "--rescan", "no"]
-      ssidProc.running = true
-    }
-  }
-
-  Process {
-    id: ssidProc
-    property string output: ""
-    environment: ({ LC_ALL: "C" })
-    stdout: StdioCollector { onStreamFinished: ssidProc.output = text }
-    onStarted: ssidProc.output = ""
-    onExited: function(code) {
-      if (!root.wifixChecking) return
-      root.currentSsid = code === 0 ? Wifix.activeSsid(ssidProc.output) : ""
-      root.wifixAvailable = Wifix.isCampusSsid(root.currentSsid)
-      if (!root.wifixAvailable) { root.fail("Connect to IIITKottayam Wi-Fi first"); return }
-      metadataProc.command = ["nmcli", "-g", "IP4.ADDRESS,IP4.DNS,DHCP4.OPTION", "device", "show", root.currentInterface]
-      metadataProc.running = true
+      root.candidates = Wifix.portalCandidates(root.networkDevices)
+      root.candidateIndex = 0
+      root.nextCandidate()
     }
   }
 
@@ -294,14 +300,11 @@ Item {
       var metadata = Wifix.networkMetadata(metadataProc.output)
       root.currentAddress = metadata.address
       root.portalDnsServers = metadata.dns
-      if (code !== 0 || !root.currentAddress || root.portalDnsServers.length === 0) { root.fail("Campus Wi-Fi address or DNS unavailable"); return }
-      if (root.portalAction === "") root.checkInternet()
-      else {
-        root.dnsPurpose = "portal"
-        root.dnsHost = Wifix.PORTAL_HOST
-        root.portalDnsIndex = 0
-        root.queryNextDns()
-      }
+      if (code !== 0 || !root.currentAddress || root.portalDnsServers.length === 0) { root.defer(root.nextCandidate); return }
+      root.dnsPurpose = "portal"
+      root.dnsHost = Wifix.PORTAL_HOST
+      root.portalDnsIndex = 0
+      root.queryNextDns()
     }
   }
 
@@ -354,10 +357,7 @@ Item {
         probeProc.running = true
         return
       }
-      if (root.portalAction === "login" && !root.readCredentials()) return
-      root.wifixMessage = root.portalAction === "logout" ? "Logging out..." : "Opening campus portal..."
-      root.changed()
-      root.requestPortal(root.portalAction === "logout" ? "logout" : "get", "")
+      root.portalFound()
     }
   }
 
@@ -388,7 +388,7 @@ Item {
         root.defer(function() { root.requestPortal("post", fields) })
       } else {
         root.portalCredentials = null
-        root.wifixMessage = "Verifying campus Wi-Fi " + root.portalAction + "..."
+        root.wifixMessage = "Verifying campus portal " + root.portalAction + "..."
         root.changed()
         root.defer(root.checkInternet)
       }
@@ -401,9 +401,9 @@ Item {
     repeat: false
     onTriggered: {
       root.fail("WiFix timed out · result unverified")
-      var processes = [deviceProc, ssidProc, metadataProc, probeProc, dnsProc, routeProc, portalProc]
+      var processes = [deviceProc, metadataProc, probeProc, dnsProc, routeProc, portalProc]
       for (var i = 0; i < processes.length; i += 1) if (processes[i].running) processes[i].running = false
     }
   }
-  Component.onCompleted: Qt.callLater(function() { wifixCacheFile.reload(); root.detect(false) })
+  Component.onCompleted: Qt.callLater(function() { root.detect(false) })
 }

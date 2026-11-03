@@ -27,26 +27,36 @@ root = Path(os.environ['WIFIX_FIXTURE'])
 scenario = os.environ['WIFIX_SCENARIO']
 with (root / 'calls').open('a') as log:
     log.write(name + ' ' + ' '.join(args) + '\n')
+# The portal host only resolves through campus DNS (10.0.0.1); Home is a
+# network without the portal.
+devices = {
+    'ethernet': ['wlan0:wifi:connected:Home', 'eth0:ethernet:connected:Wired connection 1'],
+    'fallthrough': ['eth0:ethernet:connected:Home wired', 'wlan0:wifi:connected:Hostel AP'],
+    'no-portal': ['wlan0:wifi:connected:Home', 'eth1:ethernet:unavailable:'],
+}.get(scenario, ['wlan0:wifi:connected:IIITKottayam_5G'])
+campus = 'eth0' if scenario == 'ethernet' else 'wlan0'
 if name == 'nmcli':
-    if 'ACTIVE,SSID' in args:
-        print('yes:IIITKottayam_5G')
-    elif any('IP4.ADDRESS' in item for item in args):
-        print('10.0.0.2/24\n10.0.0.1\ndomain_name_servers = 10.0.0.1')
-    elif 'IP4.DNS' in args:
-        print('10.0.0.1')
+    if any('IP4.ADDRESS' in item for item in args):
+        if args[-1] == campus and scenario != 'no-portal':
+            print('10.0.0.2/24\n10.0.0.1\ndomain_name_servers = 10.0.0.1')
+        else:
+            print('192.168.1.5/24\n192.168.1.1')
     else:
-        print('wlan0:wifi:connected:IIITKottayam_5G')
+        print('\n'.join(devices))
         if scenario.startswith('vpn'):
             print('CloudflareWARP:tun:connected (externally):CloudflareWARP')
 elif name == 'ip':
     device = 'eth0' if scenario == 'vpn-other-route' else 'CloudflareWARP'
     print('1.1.1.1 dev ' + device + ' src 172.16.0.2')
 elif name == 'dig':
-    print('10.0.0.1')
+    if '@10.0.0.1' in args:
+        print('10.0.0.1')
+    elif 'auth.iiitkottayam.ac.in' not in args:
+        print('203.0.113.7')
 elif name == 'curl':
     config = sys.stdin.read() if '-K' in args else ''
     if config:
-        if 'interface = "if!wlan0"' not in config or 'noproxy = "*"' not in config:
+        if 'interface = "if!' + campus + '"' not in config or 'noproxy = "*"' not in config:
             print('fixture rejected unbound portal request', file=sys.stderr)
             sys.exit(9)
         if '/logout?' in config:
@@ -112,7 +122,8 @@ Item {
         Qt.callLater(function() { service.logout() })
         return
       }
-      console.log("fixture-result:" + JSON.stringify({ connected: wifixConnected, message: wifixMessage }))
+      console.log("fixture-result:" + JSON.stringify({ connected: wifixConnected, message: wifixMessage,
+        available: wifixAvailable, interface: portalInterface, kind: portalKind, network: portalNetwork }))
       Qt.quit()
     }
   }
@@ -152,8 +163,6 @@ Item {
             if scenario in ('vpn', 'vpn-login', 'vpn-logout'):
                 self.assertIn('VPN', actual['message'], logs)
                 self.assertIn('if!CloudflareWARP', calls)
-                self.assertNotIn('IIITKottayam_5G', (root / 'wifix-ssid-cache.json').read_text()
-                                 if (root / 'wifix-ssid-cache.json').exists() else '')
             if scenario in ('vpn-captive', 'vpn-other-route'):
                 self.assertNotIn('if!CloudflareWARP', calls)
             if scenario in ('vpn-login', 'vpn-logout'):
@@ -163,7 +172,7 @@ Item {
                     self.assertEqual((root / 'posts').read_text().splitlines(), ['post'], logs)
                 else:
                     self.assertTrue((root / 'logged-out').exists(), logs)
-            return logs
+            return actual, calls
 
     def test_fallback_endpoint_recovers_failed_primary(self):
         self.run_scenario('fallback', True)
@@ -197,6 +206,23 @@ Item {
 
     def test_vpn_access_does_not_verify_campus_logout(self):
         self.run_scenario('vpn-logout', True)
+
+    def test_ethernet_behind_portal_is_preferred(self):
+        actual, calls = self.run_scenario('ethernet', False)
+        self.assertEqual((actual['available'], actual['interface'], actual['kind']), (True, 'eth0', 'ethernet'))
+        self.assertEqual(actual['message'], 'Campus portal login required')
+        self.assertIn('if!eth0', calls)
+        self.assertNotIn('if!wlan0', calls)
+
+    def test_portal_found_by_dns_not_ssid_name(self):
+        actual, _ = self.run_scenario('fallthrough', False)
+        self.assertEqual((actual['available'], actual['interface'], actual['network']), (True, 'wlan0', 'Hostel AP'))
+
+    def test_network_without_portal_is_unavailable(self):
+        actual, calls = self.run_scenario('no-portal', False)
+        self.assertEqual((actual['available'], actual['interface']), (False, ''))
+        self.assertEqual(actual['message'], 'No campus portal on this network')
+        self.assertNotIn('curl', calls)
 
 
 if __name__ == '__main__':

@@ -98,30 +98,32 @@ Moodle submissions require confirmation for draft upload, save, and final gradin
 
 `BUNKIALO_LMS_URL` may select an official `https://lmsugYY.iiitkottayam.ac.in` cohort host. The CLI also accepts `BUNKIALO_LMS_USERNAME`, `BUNKIALO_LMS_PASSWORD`, `BUNKIALO_ATTENDANCE_EMAIL`, and `BUNKIALO_ATTENDANCE_PASSWORD` for the current process; avoid passwords in shell history. The `ACADS_` names remain as compatibility fallbacks.
 
-## Campus Wi-Fi
+## Campus portal (WiFix)
 
 ```sh
 bunkialo wifix          # Log in; already-online connections are left alone
 bunkialo wifix status   # Check connectivity without logging in or out
-bunkialo wifix logout   # Log out of the campus portal; keep Wi-Fi connected
+bunkialo wifix logout   # Log out of the campus portal; stay connected
 wifix                 # Same as bunkialo wifix
 wifix status
 wifix logout
 ```
 
-Connect to `IIITKottayam` or `IIITKottayam_5G` first. WiFix discovers the active Wi-Fi interface, its IPv4 address, and its DNS servers. It prefers DHCP DNS on Linux and macOS; Windows uses the active adapter's configured DNS. It queries those servers directly, pins the campus portal's hostname to the returned address, binds requests to the Wi-Fi IPv4 address, and bypasses proxy environment settings. Linux and macOS also bind DNS and HTTP sockets to the Wi-Fi interface, preventing a VPN route from taking over. Windows verifies that the destination route selects the Wi-Fi adapter and stops with a split-tunneling message if it does not. It does not change system DNS or disconnect Wi-Fi.
+Connect to campus Wi-Fi or Ethernet first. WiFix lists the connected Ethernet and Wi-Fi links, Ethernet first, with each link's IPv4 address and DNS servers. It prefers DHCP DNS on Linux and macOS; Windows uses each adapter's configured DNS. The portal host `auth.iiitkottayam.ac.in` resolves only through campus DNS, so WiFix uses the first link whose own DNS resolves it, whatever the SSID. It pins the portal's hostname to that address, binds requests to the link's IPv4 address, and bypasses proxy environment settings. Linux and macOS also bind DNS and HTTP sockets to the link's interface, preventing a VPN route from taking over. Windows verifies that the destination route selects that adapter and stops with a split-tunneling message if it does not. It does not change system DNS or disconnect the network.
+
+On Omarchy, `wifix logout` also pauses the Bunkialo plugin's automatic login (through `omarchy-shell -q noel.bunkialo pauseWifix`) so it does not log straight back in; `wifix` resumes it. Elsewhere this step is skipped silently.
 
 Login reuses the saved LMS username/password from `bunkialo login`, or the existing LMS environment variables. If none are available, it prompts without saving them. Logout needs no credentials. Like the Omarchy plugin, certificate validation is bypassed only in the client for `https://auth.iiitkottayam.ac.in:1442`; redirects are disabled and credentials are posted only to that fixed origin. Other CLI clients keep their existing TLS verification.
 
-Connectivity checks try Google, Microsoft, and Mozilla endpoints within a 15-second network budget, with short per-request timeouts and at most three DNS servers. Google/Mozilla must return an empty HTTP 204; Microsoft must return its exact expected text. Checks report underlying connection failures and refresh a changed Wi-Fi attachment once before sending a portal action. Login succeeds only after one of those endpoints confirms internet access. Logout succeeds only after the endpoint returns the campus captive login page or redirects to the campus portal. Timeouts and unrelated errors are reported as unverified, not successful logout. WiFix performs one requested action; it does not install a background reconnect service or continuously keep the session alive.
+Connectivity checks try Google, Microsoft, and Mozilla endpoints within a 15-second network budget, with short per-request timeouts and at most three DNS servers. Google/Mozilla must return an empty HTTP 204; Microsoft must return its exact expected text. Checks report underlying connection failures and look for the portal again once if the link changed before sending a portal action. Login succeeds only after one of those endpoints confirms internet access. Logout succeeds only after the endpoint returns the campus captive login page or redirects to the campus portal. Timeouts and unrelated errors are reported as unverified, not successful logout. WiFix performs one requested action; it does not install a background reconnect service or continuously keep the session alive.
 
 Platform discovery uses these existing system tools:
 
-- Linux: NetworkManager with `nmcli`. If missing, install your distribution's `network-manager`/`NetworkManager` package and use NetworkManager to manage campus Wi-Fi.
-- macOS: the native CoreWLAN framework (via `objc2-core-wlan`) and the built-in `ipconfig` tool. Location Services permission for your terminal may be needed to reveal the connected SSID.
-- Windows: PowerShell, `netsh`, and the built-in network/CIM cmdlets. Windows location permission may be needed to reveal the connected SSID.
+- Linux: NetworkManager with `nmcli`. If missing, install your distribution's `network-manager`/`NetworkManager` package and use NetworkManager to manage the connection.
+- macOS: `networksetup` and `ipconfig`. CoreWLAN (via `objc2-core-wlan`) supplies the SSID for display when Location Services allows it; the hardware port name stands in otherwise.
+- Windows: PowerShell with the built-in network/CIM cmdlets, on physical Wi-Fi and Ethernet adapters only. The connection profile name stands in for the SSID.
 
-If the OS cannot reveal the campus SSID or more than one campus Wi-Fi interface is active, WiFix stops before sending credentials. Disconnect additional campus interfaces and check network/location permissions, then retry.
+If no connected link resolves the portal host, WiFix stops before sending credentials and lists what each link's DNS returned.
 
 ## Builds and verification
 

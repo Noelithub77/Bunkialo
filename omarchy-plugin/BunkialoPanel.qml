@@ -6,7 +6,6 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 import "BunkialoApi.js" as Api
-import "WifixApi.js" as Wifix
 Panel {
   id: root
   moduleName: "noel.bunkialo"
@@ -542,18 +541,18 @@ Panel {
               width: parent.width
               spacing: Style.space(5)
               Text {
-                text: root.service && root.service.currentSsid
-                  ? (Wifix.isCampusSsid(root.service.currentSsid) ? "check_circle" : "cancel") : "wifi_find"
-                color: root.service && root.service.currentSsid
-                  ? (Wifix.isCampusSsid(root.service.currentSsid) ? root.tone("green") : root.tone("coral"))
-                  : root.faint
+                text: !root.service || root.service.wifixChecking && !root.service.wifixAvailable ? "wifi_find"
+                  : root.service.wifixAvailable ? (root.service.wifixKind === "ethernet" ? "lan" : "check_circle") : "cancel"
+                color: !root.service || root.service.wifixChecking && !root.service.wifixAvailable ? root.faint
+                  : root.service.wifixAvailable ? root.tone("green") : root.tone("coral")
                 font.family: root.iconFont
                 font.pixelSize: Style.font.body
               }
               Text {
                 Layout.fillWidth: true
-                text: root.service && root.service.currentSsid
-                  ? root.service.currentSsid : "Checking Wi-Fi"
+                text: !root.service ? "Checking network"
+                  : root.service.wifixAvailable ? root.service.wifixNetwork
+                  : root.service.wifixChecking ? "Checking network" : "No campus portal"
                 color: root.subtle
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.bodySmall

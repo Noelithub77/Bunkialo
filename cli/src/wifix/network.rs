@@ -2,10 +2,27 @@ use crate::common::CliResult;
 use std::net::Ipv4Addr;
 use std::process::Command;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(super) enum Link {
+    Ethernet,
+    Wifi,
+}
+
+impl Link {
+    pub fn label(self) -> &'static str {
+        match self {
+            Link::Ethernet => "Ethernet",
+            Link::Wifi => "Wi-Fi",
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(super) struct Network {
     pub interface: String,
-    pub ssid: String,
+    /// The SSID or connection name, for display and change detection.
+    pub name: String,
+    pub link: Link,
     pub address: Ipv4Addr,
     pub dns: Vec<Ipv4Addr>,
 }
@@ -14,27 +31,31 @@ impl Network {
     pub fn ensure_route(&self, destination: Ipv4Addr) -> CliResult<()> {
         #[cfg(target_os = "windows")]
         {
-            let script = format!("$ErrorActionPreference='Stop'; $wifi=Get-NetIPAddress -IPAddress '{}' -AddressFamily IPv4; $route=Find-NetRoute -RemoteIPAddress '{}' | Where-Object {{ $_.CimClass.CimClassName -eq 'MSFT_NetRoute' }}; if (-not $route -or $route.InterfaceIndex -ne $wifi.InterfaceIndex) {{ throw 'Destination routes through another interface. Configure VPN split tunneling for campus Wi-Fi.' }}", self.address, destination);
+            let script = format!("$ErrorActionPreference='Stop'; $link=Get-NetIPAddress -IPAddress '{}' -AddressFamily IPv4; $route=Find-NetRoute -RemoteIPAddress '{}' | Where-Object {{ $_.CimClass.CimClassName -eq 'MSFT_NetRoute' }}; if (-not $route -or $route.InterfaceIndex -ne $link.InterfaceIndex) {{ throw 'Destination routes through another interface. Configure VPN split tunneling for the campus network.' }}", self.address, destination);
             output("powershell.exe", &["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", &script])
-                .map_err(|_| "The Windows route does not select campus Wi-Fi. Configure VPN split tunneling and retry; routes were not changed.".to_string())?;
+                .map_err(|_| "The Windows route does not select the campus network. Configure VPN split tunneling and retry; routes were not changed.".to_string())?;
         }
         #[cfg(not(target_os = "windows"))]
         let _ = destination;
         Ok(())
     }
 
-    pub fn validate(self) -> CliResult<Self> {
-        if !matches!(self.ssid.as_str(), "IIITKottayam" | "IIITKottayam_5G") {
-            return Err(format!(
-                "WiFix only handles IIITKottayam and IIITKottayam_5G; current SSID is {:?}.",
-                self.ssid
-            ));
-        }
-        if self.address.is_unspecified() || self.address.is_loopback() || self.dns.is_empty() {
-            return Err("Campus Wi-Fi has no usable IPv4 address or DNS servers.".into());
-        }
-        Ok(self)
+    fn usable(&self) -> bool {
+        !self.address.is_unspecified() && !self.address.is_loopback() && !self.dns.is_empty()
     }
+}
+
+/// Connected Ethernet and Wi-Fi links with an IPv4 address and DNS servers,
+/// Ethernet first. Any of them may sit behind the campus portal; the caller
+/// finds out by resolving the portal host through each link's own DNS.
+pub(super) fn discover() -> CliResult<Vec<Network>> {
+    Ok(candidates(links()?))
+}
+
+fn candidates(networks: Vec<Network>) -> Vec<Network> {
+    let mut networks: Vec<_> = networks.into_iter().filter(Network::usable).collect();
+    networks.sort_by_key(|network| network.link == Link::Wifi);
+    networks
 }
 
 fn output(program: &str, args: &[&str]) -> CliResult<String> {
@@ -45,10 +66,16 @@ fn output(program: &str, args: &[&str]) -> CliResult<String> {
         .map_err(|_| format!("Could not run {program}; install it or check that it is on PATH."))?;
     if !result.status.success() {
         return Err(format!(
-            "{program} could not inspect Wi-Fi. Check its service and network permissions."
+            "{program} could not inspect the network. Check its service and network permissions."
         ));
     }
     Ok(String::from_utf8_lossy(&result.stdout).trim().to_string())
+}
+
+/// Like `output`, for per-link details a link may simply not have.
+#[cfg(not(target_os = "windows"))]
+fn optional_output(program: &str, args: &[&str]) -> Option<String> {
+    output(program, args).ok().filter(|value| !value.is_empty())
 }
 
 fn ipv4(value: &str) -> CliResult<Ipv4Addr> {
@@ -58,7 +85,7 @@ fn ipv4(value: &str) -> CliResult<Ipv4Addr> {
         .next()
         .unwrap_or("")
         .parse()
-        .map_err(|_| "Active Wi-Fi has no usable IPv4 address.".into())
+        .map_err(|_| "The network has no usable IPv4 address.".into())
 }
 
 pub(super) fn dns_addresses(raw: &str) -> Vec<Ipv4Addr> {
@@ -73,91 +100,122 @@ pub(super) fn dns_addresses(raw: &str) -> Vec<Ipv4Addr> {
     result
 }
 
+/// Splits an `nmcli -t` row; values escape ":" and "\" with a backslash.
+#[cfg(any(target_os = "linux", test))]
+fn terse_fields(row: &str) -> Vec<String> {
+    let mut fields = vec![String::new()];
+    let mut chars = row.chars();
+    while let Some(ch) = chars.next() {
+        match ch {
+            '\\' => {
+                if let (Some(next), Some(field)) = (chars.next(), fields.last_mut()) {
+                    field.push(next);
+                }
+            }
+            ':' => fields.push(String::new()),
+            _ => {
+                if let Some(field) = fields.last_mut() {
+                    field.push(ch);
+                }
+            }
+        }
+    }
+    fields
+}
+
+/// Connected Wi-Fi and Ethernet devices from `nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device`.
+#[cfg(any(target_os = "linux", test))]
+fn nmcli_links(raw: &str) -> Vec<(String, Link, String)> {
+    raw.lines()
+        .filter_map(|row| {
+            let fields = terse_fields(row);
+            if fields.len() < 4 || fields[2] != "connected" || fields[0].is_empty() {
+                return None;
+            }
+            let link = match fields[1].as_str() {
+                "ethernet" => Link::Ethernet,
+                "wifi" => Link::Wifi,
+                _ => return None,
+            };
+            Some((fields[0].clone(), link, fields[3..].join(":")))
+        })
+        .collect()
+}
+
 #[cfg(target_os = "linux")]
-pub(super) fn discover() -> CliResult<Network> {
+fn links() -> CliResult<Vec<Network>> {
     let devices = output(
         "nmcli",
-        &["--wait", "5", "-t", "-f", "DEVICE,TYPE,STATE", "device"],
+        &["--wait", "5", "-t", "-f", "DEVICE,TYPE,STATE,CONNECTION", "device"],
     )?;
     let mut networks = Vec::new();
-    for line in devices.lines() {
-        let fields: Vec<_> = line.split(':').collect();
-        if fields.len() != 3 || fields[1] != "wifi" || fields[2] != "connected" {
+    for (interface, link, name) in nmcli_links(&devices) {
+        let Some(address) = optional_output("nmcli", &["-g", "IP4.ADDRESS", "device", "show", &interface])
+            .and_then(|addresses| ipv4(addresses.lines().next().unwrap_or("")).ok())
+        else {
             continue;
-        }
-        let interface = fields[0];
-        let scan = output(
-            "nmcli",
-            &[
-                "--wait",
-                "5",
-                "-t",
-                "-f",
-                "ACTIVE,SSID",
-                "device",
-                "wifi",
-                "list",
-                "ifname",
-                interface,
-                "--rescan",
-                "no",
-            ],
-        )?;
-        let ssid = scan
-            .lines()
-            .find_map(|row| row.strip_prefix("yes:"))
-            .unwrap_or("");
-        if !matches!(ssid, "IIITKottayam" | "IIITKottayam_5G") {
-            continue;
-        }
-        let addresses = output("nmcli", &["-g", "IP4.ADDRESS", "device", "show", interface])?;
-        let options = output(
-            "nmcli",
-            &["-g", "DHCP4.OPTION", "device", "show", interface],
-        )?;
+        };
+        let options = optional_output("nmcli", &["-g", "DHCP4.OPTION", "device", "show", &interface])
+            .unwrap_or_default();
         let dhcp_dns = options
             .lines()
             .find_map(|line| line.strip_prefix("domain_name_servers = "))
             .unwrap_or("");
         let mut dns = dns_addresses(dhcp_dns);
         if dns.is_empty() {
-            dns = dns_addresses(&output(
-                "nmcli",
-                &["-g", "IP4.DNS", "device", "show", interface],
-            )?);
+            dns = dns_addresses(
+                &optional_output("nmcli", &["-g", "IP4.DNS", "device", "show", &interface])
+                    .unwrap_or_default(),
+            );
         }
         networks.push(Network {
-            interface: interface.into(),
-            ssid: ssid.into(),
-            address: ipv4(addresses.lines().next().unwrap_or(""))?,
+            name: if name.is_empty() { interface.clone() } else { name },
+            interface,
+            link,
+            address,
             dns,
         });
     }
-    only_network(networks)
+    Ok(networks)
 }
 
 #[cfg(target_os = "macos")]
-pub(super) fn discover() -> CliResult<Network> {
+fn links() -> CliResult<Vec<Network>> {
     use objc2_core_wlan::CWWiFiClient;
     // CoreWLAN returns retained, typed objects; these read-only selectors require
-    // no caller-owned pointers or delegates. Missing SSID permission returns nil.
+    // no caller-owned pointers or delegates. Without Location Services
+    // permission the SSID is nil and the port name stands in.
     let client = unsafe { CWWiFiClient::sharedWiFiClient() };
-    let interfaces =
-        unsafe { client.interfaces() }.ok_or("macOS could not enumerate Wi-Fi interfaces.")?;
+    let ssids: Vec<(String, String)> = unsafe { client.interfaces() }
+        .map(|interfaces| {
+            interfaces
+                .to_vec()
+                .into_iter()
+                .filter_map(|wifi| {
+                    let interface = unsafe { wifi.interfaceName() }?.to_string();
+                    let ssid = unsafe { wifi.ssid() }?.to_string();
+                    Some((interface, ssid))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    let ports = output("/usr/sbin/networksetup", &["-listallhardwareports"])?;
     let mut networks = Vec::new();
-    for wifi in interfaces.to_vec() {
-        let Some(ssid) = (unsafe { wifi.ssid() }) else {
-            continue;
-        };
-        let ssid = ssid.to_string();
-        if !matches!(ssid.as_str(), "IIITKottayam" | "IIITKottayam_5G") {
+    let mut port = String::new();
+    for line in ports.lines() {
+        if let Some(value) = line.strip_prefix("Hardware Port: ") {
+            port = value.trim().to_string();
             continue;
         }
-        let Some(interface) = (unsafe { wifi.interfaceName() }) else {
+        let Some(interface) = line.strip_prefix("Device: ").map(str::trim) else {
             continue;
         };
-        let interface = interface.to_string();
-        let packet = output("/usr/sbin/ipconfig", &["getpacket", &interface])?;
+        let Some(address) = optional_output("/usr/sbin/ipconfig", &["getifaddr", interface])
+            .and_then(|value| ipv4(&value).ok())
+        else {
+            continue;
+        };
+        let packet = optional_output("/usr/sbin/ipconfig", &["getpacket", interface]).unwrap_or_default();
         let dns = packet
             .lines()
             .find_map(|line| {
@@ -165,37 +223,41 @@ pub(super) fn discover() -> CliResult<Network> {
                     .map(|(_, value)| value)
             })
             .unwrap_or("");
+        let link = if matches!(port.as_str(), "Wi-Fi" | "AirPort") { Link::Wifi } else { Link::Ethernet };
+        let name = ssids
+            .iter()
+            .find(|(name, _)| name == interface)
+            .map(|(_, ssid)| ssid.clone())
+            .unwrap_or_else(|| port.clone());
         networks.push(Network {
-            address: ipv4(&output("/usr/sbin/ipconfig", &["getifaddr", &interface])?)?,
-            interface,
-            ssid,
+            interface: interface.to_string(),
+            name,
+            link,
+            address,
             dns: dns_addresses(dns),
         });
     }
-    only_network(networks).map_err(|error| format!("{error} macOS may require Location Services permission for your terminal to reveal the SSID."))
+    Ok(networks)
 }
 
 #[cfg(target_os = "windows")]
-pub(super) fn discover() -> CliResult<Network> {
-    // Match each WLAN block to its adapter GUID, so Ethernet/VPN DNS cannot be selected.
+fn links() -> CliResult<Vec<Network>> {
+    // Physical adapters only, so VPN and virtual adapters are never candidates.
+    // The connection profile name is the SSID on Wi-Fi and needs no Location permission.
     let script = r#"
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
-$blocks = ((netsh wlan show interfaces) -join "`n") -split '(?:\r?\n){2,}'
 $networks = @()
-foreach ($adapter in (Get-NetAdapter | Where-Object Status -eq 'Up')) {
-    $guid = $adapter.InterfaceGuid.ToString().Trim('{}')
-    foreach ($block in $blocks) {
-        if ($block -notmatch [regex]::Escape($guid)) { continue }
-        $match = [regex]::Match($block, '(?m)^\s*SSID\s*:\s*(.+?)\s*$')
-        if (-not $match.Success) { continue }
-        $ssid = $match.Groups[1].Value
-        if ($ssid -notin @('IIITKottayam', 'IIITKottayam_5G')) { continue }
-        $ip = Get-NetIPAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4 | Where-Object AddressState -eq 'Preferred' | Select-Object -First 1
-        $config = Get-CimInstance Win32_NetworkAdapterConfiguration | Where-Object InterfaceIndex -eq $adapter.ifIndex
-        $dns = @($config.DNSServerSearchOrder | Where-Object { $_ -match '^\d+\.\d+\.\d+\.\d+$' })
-        $networks += @{ interface = $adapter.Name; ssid = $ssid; address = $ip.IPAddress; dns = $dns }
-    }
+foreach ($adapter in (Get-NetAdapter -Physical | Where-Object Status -eq 'Up')) {
+    $link = switch ($adapter.PhysicalMediaType) { 'Native 802.11' { 'wifi' } '802.3' { 'ethernet' } default { '' } }
+    if (-not $link) { continue }
+    $ip = Get-NetIPAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Where-Object AddressState -eq 'Preferred' | Select-Object -First 1
+    if (-not $ip) { continue }
+    $config = Get-CimInstance Win32_NetworkAdapterConfiguration | Where-Object InterfaceIndex -eq $adapter.ifIndex
+    $dns = @($config.DNSServerSearchOrder | Where-Object { $_ -match '^\d+\.\d+\.\d+\.\d+$' })
+    $connection = Get-NetConnectionProfile -InterfaceIndex $adapter.ifIndex -ErrorAction SilentlyContinue | Select-Object -First 1
+    $name = if ($connection -and $connection.Name) { $connection.Name } else { $adapter.Name }
+    $networks += @{ interface = $adapter.Name; link = $link; name = $name; address = $ip.IPAddress; dns = $dns }
 }
 ConvertTo-Json -InputObject @($networks) -Compress
 "#;
@@ -212,33 +274,25 @@ ConvertTo-Json -InputObject @($networks) -Compress
     #[derive(serde::Deserialize)]
     struct WindowsNetwork {
         interface: String,
-        ssid: String,
+        link: String,
+        name: String,
         address: String,
         dns: Vec<String>,
     }
     let parsed: Vec<WindowsNetwork> = serde_json::from_str(&raw)
-        .map_err(|_| "Windows did not return usable Wi-Fi metadata.".to_string())?;
-    let networks = parsed
+        .map_err(|_| "Windows did not return usable network metadata.".to_string())?;
+    Ok(parsed
         .into_iter()
-        .map(|network| {
-            Ok(Network {
+        .filter_map(|network| {
+            Some(Network {
+                address: ipv4(&network.address).ok()?,
+                link: if network.link == "wifi" { Link::Wifi } else { Link::Ethernet },
                 interface: network.interface,
-                ssid: network.ssid,
-                address: ipv4(&network.address)?,
+                name: network.name,
                 dns: dns_addresses(&network.dns.join(" ")),
             })
         })
-        .collect::<CliResult<Vec<_>>>()?;
-    only_network(networks).map_err(|error| {
-        format!("{error} Windows may require Location permission to reveal the SSID.")
-    })
-}
-
-fn only_network(mut networks: Vec<Network>) -> CliResult<Network> {
-    if networks.len() != 1 {
-        return Err("Connect exactly one Wi-Fi interface to IIITKottayam or IIITKottayam_5G first; no network settings were changed.".into());
-    }
-    networks.remove(0).validate()
+        .collect())
 }
 
 #[cfg(test)]
@@ -251,15 +305,40 @@ mod tests {
             vec![Ipv4Addr::new(10, 2, 0, 1), Ipv4Addr::new(10, 2, 0, 2)]
         );
     }
-    #[test]
-    fn refuses_non_campus_and_ambiguous_networks() {
-        let network = Network {
-            interface: "wlan0".into(),
-            ssid: "Home".into(),
+    fn network(interface: &str, link: Link, dns: Vec<Ipv4Addr>) -> Network {
+        Network {
+            interface: interface.into(),
+            name: interface.into(),
+            link,
             address: Ipv4Addr::new(10, 0, 0, 2),
-            dns: vec![Ipv4Addr::new(10, 0, 0, 1)],
-        };
-        assert!(network.validate().is_err());
-        assert!(only_network(Vec::new()).is_err());
+            dns,
+        }
+    }
+    #[test]
+    fn candidates_put_ethernet_first_and_drop_links_without_dns() {
+        let dns = vec![Ipv4Addr::new(10, 0, 0, 1)];
+        let order: Vec<_> = candidates(vec![
+            network("wlan0", Link::Wifi, dns.clone()),
+            network("eth1", Link::Ethernet, Vec::new()),
+            network("eth0", Link::Ethernet, dns),
+        ])
+        .into_iter()
+        .map(|network| network.interface)
+        .collect();
+        assert_eq!(order, ["eth0", "wlan0"]);
+    }
+    #[test]
+    fn nmcli_rows_keep_connected_wifi_and_ethernet_only() {
+        let rows = "wlp0s20f3:wifi:connected:Hostel\\:AP\n\
+                    enp4s0:ethernet:connected:Wired connection 1\n\
+                    eth1:ethernet:unavailable:\n\
+                    CloudflareWARP:tun:connected (externally):CloudflareWARP";
+        assert_eq!(
+            nmcli_links(rows),
+            vec![
+                ("wlp0s20f3".to_string(), Link::Wifi, "Hostel:AP".to_string()),
+                ("enp4s0".to_string(), Link::Ethernet, "Wired connection 1".to_string()),
+            ]
+        );
     }
 }

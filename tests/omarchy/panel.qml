@@ -7,7 +7,8 @@ ShellRoot {
   QtObject {
     id: service
     property string errorMessage: "Wi-Fi check unavailable · retry"
-    property string currentSsid: "IIITKottayam_5G"
+    property string wifixNetwork: "IIITKottayam_5G"
+    property string wifixKind: "wifi"
     property bool wifixMode: false
     property bool wifixConnected: false
     property bool wifixChecking: false

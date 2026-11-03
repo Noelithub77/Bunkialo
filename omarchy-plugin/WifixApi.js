@@ -1,4 +1,3 @@
-var CAMPUS_SSIDS = ["IIITKottayam", "IIITKottayam_5G"]
 var CONNECTIVITY_CHECK_URL = "http://connectivitycheck.gstatic.com/generate_204"
 var PORTAL_HOST = "auth.iiitkottayam.ac.in"
 var LOGIN_URL = "https://auth.iiitkottayam.ac.in:1442/login?0330598d1f22608a"
@@ -20,31 +19,32 @@ function hiddenField(html, name) {
   return reverseMatch && reverseMatch[1] !== undefined ? reverseMatch[1] : ""
 }
 
-function activeSsid(raw) {
-  var rows = String(raw || "").split("\n")
-  for (var index = 0; index < rows.length; index += 1) {
-    var row = rows[index]
-    if (row.indexOf("yes:") === 0) return row.slice(4).trim()
-    var fields = row.split(":")
-    if (fields.length >= 4 && fields[1] === "wifi" && fields[2] === "connected") {
-      return fields.slice(3).join(":").trim()
-    }
-    if (fields.length >= 3 && fields[0] === "wifi" && fields[1] === "connected") {
-      return fields.slice(2).join(":").trim()
-    }
+// nmcli -t escapes ":" and "\\" inside values with a backslash.
+function terseFields(row) {
+  var fields = [""]
+  for (var i = 0; i < row.length; i += 1) {
+    var ch = row[i]
+    if (ch === "\\" && i + 1 < row.length) fields[fields.length - 1] += row[++i]
+    else if (ch === ":") fields.push("")
+    else fields[fields.length - 1] += ch
   }
-  return ""
+  return fields
 }
 
-function activeInterface(raw) {
+// Connected Ethernet and Wi-Fi devices that might sit behind the campus
+// portal, wired first like the bar. Rows are DEVICE:TYPE:STATE:CONNECTION.
+function portalCandidates(raw) {
+  var wired = []
+  var wifi = []
   var rows = String(raw || "").split("\n")
   for (var index = 0; index < rows.length; index += 1) {
-    var fields = rows[index].split(":")
-    if (fields.length >= 4 && fields[1] === "wifi" && fields[2] === "connected") {
-      return fields[0].trim()
-    }
+    var fields = terseFields(rows[index])
+    if (fields.length < 4 || fields[2] !== "connected" || !fields[0]) continue
+    var entry = { interface: fields[0], kind: fields[1], name: fields.slice(3).join(":") || fields[0] }
+    if (fields[1] === "ethernet") wired.push(entry)
+    else if (fields[1] === "wifi") wifi.push(entry)
   }
-  return ""
+  return wired.concat(wifi)
 }
 
 function routedTunnel(devices, route) {
@@ -74,16 +74,6 @@ function dhcpDnsServers(raw) {
     servers.push(value)
   }
   return servers
-}
-
-function cachedOnline(entry) {
-  if (!entry || typeof entry !== "object") return false
-  if (typeof entry.online === "boolean") return entry.online
-  return entry.resolves === true
-}
-
-function isCampusSsid(ssid) {
-  return CAMPUS_SSIDS.indexOf(String(ssid || "").trim()) >= 0
 }
 
 function formValue(value) {

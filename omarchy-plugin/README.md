@@ -44,7 +44,7 @@ pairing record. WiFix uses the first entry locally; connecting to WiFi does not
 contact Bunkialo. Refreshing timetable or notifications still uses the
 production API.
 
-WiFix only handles the campus SSIDs `IIITKottayam` and `IIITKottayam_5G`. Each check or action refreshes the connected device, actual SSID (without a scan), IPv4 address, and DNS metadata. It prefers DHCP DNS, resolves the portal and probe hosts through those servers, and binds HTTP requests to the Wi-Fi interface. DNS queries use the Wi-Fi source address. Proxy environment variables and user curl configuration are bypassed for these requests.
+WiFix works on any connected Ethernet or Wi-Fi link behind the campus portal, Ethernet first. Each check or action lists the connected devices with their IPv4 address and DNS metadata, and uses the first whose own DNS resolves the portal host `auth.iiitkottayam.ac.in`, which only campus DNS answers; the SSID does not matter. It prefers DHCP DNS, resolves the portal and probe hosts through those servers, and binds HTTP requests to that interface. DNS queries use the link's source address. With no such link, the portal shows as unavailable. Proxy environment variables and user curl configuration are bypassed for these requests.
 
 Connectivity checks try Google, Microsoft, and Mozilla with short timeouts. Only the expected empty HTTP 204 or Microsoft's exact connectivity text confirms internet access. Campus portal redirects or login forms confirm a captive connection. Failed requests remain unknown; they do not become successful logout or proof of a captive portal.
 
@@ -52,10 +52,10 @@ If every direct probe is inconclusive, WiFix checks the current IPv4 route and
 NetworkManager's connected tunnel devices. When that route uses a tunnel, it
 retries the probes over HTTPS bound to that tunnel, using normal system DNS.
 This handles VPN firewalls such as WARP's, which can block public requests
-forced onto the physical Wi-Fi interface. Confirmed tunnel access displays
+forced onto the physical interface. Confirmed tunnel access displays
 `Internet connected · VPN` and allows Bunkialo refreshes. A direct captive
 response takes priority. Tunnel access does not verify campus login/logout and
-is not saved as direct campus connectivity in the SSID cache. See
+is not treated as direct campus connectivity. See
 [Cloudflare's firewall explanation](https://developers.cloudflare.com/cloudflare-one/team-and-resources/devices/cloudflare-one-client/configure/route-traffic/client-architecture/#system-firewall).
 
 Login fetches the official portal form, extracts its `magic` and `4Tredir` fields, validates the form destination, and sends credentials through curl's stdin. Logout calls only the portal logout URL. Both actions verify connectivity afterward and retry verification once, without repeating the credential POST. Checks and actions are serialized and have a watchdog that stops outstanding processes. Portal certificate handling retains the existing campus-only exception. System DNS, VPN settings, and Wi-Fi connections are not modified.

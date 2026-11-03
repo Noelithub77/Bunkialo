@@ -53,7 +53,9 @@ Item {
 
   signal dataChanged()
 
-  property alias currentSsid: wifix.currentSsid
+  // The connection the campus portal answered on: Wi-Fi or Ethernet.
+  readonly property string wifixNetwork: wifix.portalNetwork
+  readonly property string wifixKind: wifix.portalKind
   property alias wifixChecking: wifix.wifixChecking
   property alias wifixAvailable: wifix.wifixAvailable
   property alias wifixConnected: wifix.wifixConnected
@@ -184,8 +186,8 @@ Item {
   function maybeStartRefresh() {
     if (!root.pendingRefresh || root.wifixChecking) return
     root.pendingRefresh = false
-    if (Wifix.isCampusSsid(root.currentSsid) && !root.wifixConnected) {
-      root.setError(root.wifixMessage || "Campus Wi-Fi unavailable · retry before refreshing")
+    if (root.wifixAvailable && !root.wifixConnected) {
+      root.setError(root.wifixMessage || "Campus portal login required · retry before refreshing")
       return
     }
     if (!root.paired || fetchProc.running || cacheDirProc.running) return
@@ -319,6 +321,11 @@ Item {
 
     function loginWifix(): string {
       return wifix.connect()
+    }
+
+    function logoutWifix(): string {
+      wifix.logout()
+      return "logging-out"
     }
   }
 

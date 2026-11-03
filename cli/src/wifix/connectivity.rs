@@ -74,10 +74,10 @@ pub(super) fn probe(network: &Network) -> Connectivity {
             Ok(Connectivity::Online) => return Connectivity::Online,
             Ok(Connectivity::Captive) => captive = true,
             Ok(Connectivity::Unavailable) => eprintln!(
-                "Wi-Fi check {} returned an unexpected response.",
+                "Connectivity check {} returned an unexpected response.",
                 endpoint.url
             ),
-            Err(error) => eprintln!("Wi-Fi check {}: {error}", endpoint.url),
+            Err(error) => eprintln!("Connectivity check {}: {error}", endpoint.url),
         }
     }
     if captive {
@@ -106,7 +106,7 @@ fn probe_endpoint(
         .resolve(host, SocketAddr::from((address, 80)))
         .timeout(timeout)
         .build()
-        .map_err(|error| format!("Could not create Wi-Fi HTTP client: {error}"))?;
+        .map_err(|error| format!("Could not create the network HTTP client: {error}"))?;
     let response = client.get(endpoint.url).send().map_err(request_error)?;
     let status = response.status().as_u16();
     let location = response

@@ -9,6 +9,7 @@ use network::Network;
 use reqwest::blocking::Client;
 use scraper::Html;
 use std::net::{Ipv4Addr, SocketAddr};
+use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
 use url::Url;
 
@@ -17,37 +18,39 @@ const PORTAL_BASE: &str = "https://auth.iiitkottayam.ac.in:1442";
 const LOGIN_PATH: &str = "/login?0330598d1f22608a";
 const LOGOUT_PATH: &str = "/logout?0307020009020400";
 pub(crate) fn run(command: Option<WifixCommand>) -> CliResult<()> {
-    let mut network = network::discover()?;
+    let (mut network, mut portal_address) = locate()?;
     let mut refreshes = 0;
-    let (network, before) = loop {
+    let before = loop {
         println!(
-            "Campus Wi-Fi: {} ({}, {})",
-            network.ssid, network.interface, network.address
+            "Campus {}: {} ({}, {})",
+            network.link.label(),
+            network.name,
+            network.interface,
+            network.address
         );
         let state = probe(&network);
-        let fresh = network::discover()?;
-        if fresh.interface == network.interface
-            && fresh.ssid == network.ssid
-            && fresh.address == network.address
-        {
-            break (fresh, state);
+        let unchanged = network::discover()?.iter().any(|fresh| {
+            fresh.interface == network.interface
+                && fresh.name == network.name
+                && fresh.address == network.address
+        });
+        if unchanged {
+            break state;
         }
         if refreshes >= 1 {
             return Err(
-                "Wi-Fi changed repeatedly during the check. Wait for it to settle, then retry."
+                "The network changed repeatedly during the check. Wait for it to settle, then retry."
                     .into(),
             );
         }
-        eprintln!(
-            "Wi-Fi changed during the check; refreshing the connection before any portal action."
-        );
-        network = fresh;
+        eprintln!("The network changed during the check; finding the campus portal again before any portal action.");
+        (network, portal_address) = locate()?;
         refreshes += 1;
     };
     match command {
         Some(WifixCommand::Status) => {
             println!(
-                "Wi-Fi status: {}",
+                "Campus network status: {}",
                 match before {
                     Connectivity::Online => "online",
                     Connectivity::Captive => "campus login required",
@@ -55,38 +58,64 @@ pub(crate) fn run(command: Option<WifixCommand>) -> CliResult<()> {
                 }
             );
             if before == Connectivity::Unavailable {
-                Err("Could not establish campus Wi-Fi connectivity.".into())
+                Err("Could not establish campus network connectivity.".into())
             } else {
                 Ok(())
             }
         }
         Some(WifixCommand::Logout) => {
+            // Pause first so the shell's auto-login does not undo this logout.
+            notify_shell("pauseWifix");
             if before == Connectivity::Captive {
-                println!("Campus Wi-Fi is already logged out.");
+                println!("The campus network is already logged out.");
                 return Ok(());
             }
-            let address = dns::resolve(
-                &network,
-                PORTAL_HOST,
-                Instant::now() + Duration::from_secs(6),
-            )?;
-            let portal = portal_client(&network, address)?;
+            let portal = portal_client(&network, portal_address)?;
             logout(&portal, &network)
         }
         _ => {
+            notify_shell("resumeWifix");
             if before == Connectivity::Online {
-                println!("Campus Wi-Fi is already online.");
+                println!("The campus network is already online.");
                 return Ok(());
             }
-            let address = dns::resolve(
-                &network,
-                PORTAL_HOST,
-                Instant::now() + Duration::from_secs(6),
-            )?;
-            let portal = portal_client(&network, address)?;
+            let portal = portal_client(&network, portal_address)?;
             let (username, password) = credentials("lms")?;
             login(&portal, &network, &username, &password)
         }
+    }
+}
+
+/// The first connected link behind the campus portal. The portal host only
+/// resolves through campus DNS, so this works for any SSID and for Ethernet.
+fn locate() -> CliResult<(Network, Ipv4Addr)> {
+    let networks = network::discover()?;
+    if networks.is_empty() {
+        return Err("Connect to campus Wi-Fi or Ethernet first; no network settings were changed.".into());
+    }
+    let mut failures = Vec::new();
+    for network in networks {
+        match dns::resolve(&network, PORTAL_HOST, Instant::now() + Duration::from_secs(6)) {
+            Ok(address) => return Ok((network, address)),
+            Err(error) => failures.push(format!("{} {}: {error}", network.link.label(), network.interface)),
+        }
+    }
+    Err(format!(
+        "No connected network reaches the campus portal; no network settings were changed. {}",
+        failures.join("; ")
+    ))
+}
+
+/// Tells the Omarchy Bunkialo plugin about a logout or login made here, so its
+/// automatic campus login pauses or resumes. Best effort: elsewhere this is a no-op.
+fn notify_shell(method: &str) {
+    if cfg!(target_os = "linux") {
+        let _ = Command::new("omarchy-shell")
+            .args(["-q", "noel.bunkialo", method])
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
     }
 }
 
@@ -139,7 +168,7 @@ fn login(portal: &Client, network: &Network, username: &str, password: &str) -> 
         return Err(format!("Campus login returned HTTP {}.", response.status()));
     }
     verify(network, Connectivity::Online)?;
-    println!("Campus Wi-Fi login verified: internet access is available.");
+    println!("Campus login verified: internet access is available.");
     Ok(())
 }
 
@@ -187,9 +216,7 @@ fn logout(portal: &Client, network: &Network) -> CliResult<()> {
         ));
     }
     verify(network, Connectivity::Captive)?;
-    println!(
-        "Campus Wi-Fi logout verified: portal login is required again. Wi-Fi remains connected."
-    );
+    println!("Campus logout verified: portal login is required again. The network stays connected.");
     Ok(())
 }
 

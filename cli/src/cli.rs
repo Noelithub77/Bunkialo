@@ -42,7 +42,7 @@ pub(crate) struct Cli {
 pub(crate) enum Command {
     #[command(about = "Open a local browser page to connect LMS and attendance accounts")]
     Login,
-    #[command(about = "Log in to campus Wi-Fi using its own DNS and saved LMS credentials")]
+    #[command(about = "Log in to the campus portal on Wi-Fi or Ethernet using saved LMS credentials")]
     Wifix {
         #[command(subcommand)]
         command: Option<WifixCommand>,
@@ -69,11 +69,11 @@ pub(crate) enum Command {
 
 #[derive(Subcommand)]
 pub(crate) enum WifixCommand {
-    #[command(about = "Log in to campus Wi-Fi (also the default wifix action)")]
+    #[command(about = "Log in to the campus portal (also the default wifix action)")]
     Login,
-    #[command(about = "Log out of the campus portal while keeping Wi-Fi connected")]
+    #[command(about = "Log out of the campus portal while staying connected")]
     Logout,
-    #[command(about = "Check campus Wi-Fi connectivity without logging in or out")]
+    #[command(about = "Check campus portal connectivity without logging in or out")]
     Status,
 }
 
@@ -203,7 +203,7 @@ pub(crate) enum AttendanceCommand {
 }
 
 #[derive(Parser)]
-#[command(name = "wifix", about = "Log in to campus Wi-Fi", version)]
+#[command(name = "wifix", about = "Log in to the campus portal", version)]
 pub(crate) struct WifixCli {
     #[command(subcommand)]
     pub(crate) command: Option<WifixCommand>,
