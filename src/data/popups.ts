@@ -56,21 +56,22 @@ export const POPUP_NOTICES: PopupNotice[] = [
     imageSourceLight: require("../../assets/icons/allpyq_light.png"),
     customContent: AllpyqLaunchPopupContent,
   },
-  {
-    id: "course-feedback-2026-10",
-    title: "Your feedback, your choice",
-    description:
-      "Feedback should always be optional. No one should feel pressured to fill in a form or give a particular rating. If you choose to respond, the answers are yours. This tool is only here to make it easier. You can find it any time under More or Settings.",
-    timestamp: "2026-10-22T12:00:00+05:30",
-    icon: "school",
-    iconColor: Colors.status.info,
-    isImportant: false,
-    ctaLabel: "View course feedback",
-    ctaAction: "open-course-feedback",
-  },
+  // Feedback season is over; the tool stays under More and Settings.
+  // {
+  //   id: "course-feedback-2026-10",
+  //   title: "Your feedback, your choice",
+  //   description:
+  //     "Feedback should always be optional. No one should feel pressured to fill in a form or give a particular rating. If you choose to respond, the answers are yours. This tool is only here to make it easier. You can find it any time under More or Settings.",
+  //   timestamp: "2026-10-22T12:00:00+05:30",
+  //   icon: "school",
+  //   iconColor: Colors.status.info,
+  //   isImportant: false,
+  //   ctaLabel: "View course feedback",
+  //   ctaAction: "open-course-feedback",
+  // },
   {
     id: "star-on-github-2026-11",
-    title: "Thank you for using Bunkialo",
+    title: "Glad to be part of your sem",
     description:
       "If it helped you in any way, a star on GitHub helps other students find it. Bunkialo is fully open source, and we are looking for contributors.",
     timestamp: "2026-11-07T12:00:00+05:30",
