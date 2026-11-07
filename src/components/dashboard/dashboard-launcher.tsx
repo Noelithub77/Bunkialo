@@ -1,4 +1,4 @@
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -11,14 +11,13 @@ type LauncherItem = {
   key: string;
   label: string;
   icon: ComponentProps<typeof Ionicons>["name"];
-  colors: readonly [string, string];
   route?: "/gpa" | "/more";
   url?: string;
 };
 
 const FAB_SIZE = 58;
 const FAB_BOTTOM = 96;
-const GRID_GAP = 8;
+const ACTION_SIZE = 44;
 
 const OUTPASS_URL = "https://outpass.iiitkottayam.ac.in/app";
 const GATEPASS_URL = "https://gatepassstud.iiitkottayam.ac.in/index.php";
@@ -26,16 +25,16 @@ const FEASTON: LauncherItem = {
   key: "feaston",
   label: "Feaston",
   icon: "restaurant-outline",
-  colors: ["#FDA4AF", "#E11D48"],
   url: "https://feaston.iiitkottayam.ac.in/dashboard",
 };
 
-export function getLauncherItems(username: string | null, isDark: boolean): LauncherItem[] {
+/** Top to bottom, so the last item sits closest to the button. */
+export function getLauncherItems(username: string | null): LauncherItem[] {
   const isOldBatch = username?.startsWith("2022") || username?.startsWith("2023");
   const batchItems: LauncherItem[] = isOldBatch
     ? [
-        { key: "outpass-rfid", label: "Outpass RFID", icon: "card-outline", colors: ["#6EE7B7", "#059669"], url: OUTPASS_URL },
-        { key: "outpass-fingerprint", label: "Fingerprint", icon: "finger-print-outline", colors: ["#5EEAD4", "#0D9488"], url: GATEPASS_URL },
+        { key: "outpass-rfid", label: "Outpass RFID", icon: "card-outline", url: OUTPASS_URL },
+        { key: "outpass-fingerprint", label: "Outpass fingerprint", icon: "finger-print-outline", url: GATEPASS_URL },
         FEASTON,
       ]
     : [
@@ -43,30 +42,17 @@ export function getLauncherItems(username: string | null, isDark: boolean): Laun
           key: "outpass",
           label: "Outpass",
           icon: "exit-outline",
-          colors: ["#6EE7B7", "#059669"],
           url: username?.startsWith("2024") ? GATEPASS_URL : OUTPASS_URL,
         },
         FEASTON,
-        { key: "allpyq", label: "AllPYQ", icon: "book-outline", colors: ["#C4B5FD", "#7C3AED"], url: "https://allpyq.in" },
+        { key: "allpyq", label: "AllPYQ", icon: "book-outline", url: "https://allpyq.in" },
       ];
 
   return [
-    { key: "gpa", label: "GPA", icon: "calculator-outline", colors: ["#FFD36B", "#FF9800"], route: "/gpa" },
-    {
-      key: "attendance",
-      label: "Attendance",
-      icon: "calendar-outline",
-      colors: ["#7CB4FF", "#2563EB"],
-      url: "https://attendance.iiitkottayam.ac.in/",
-    },
+    { key: "more", label: "More", icon: "ellipsis-horizontal", route: "/more" },
+    { key: "gpa", label: "GPA calculator", icon: "calculator-outline", route: "/gpa" },
+    { key: "attendance", label: "Attendance", icon: "calendar-outline", url: "https://attendance.iiitkottayam.ac.in/" },
     ...batchItems,
-    {
-      key: "more",
-      label: "More",
-      icon: "ellipsis-horizontal",
-      colors: isDark ? ["#5A5A5A", "#262626"] : ["#8A8A8A", "#4A4A4A"],
-      route: "/more",
-    },
   ];
 }
 
@@ -75,7 +61,6 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
   const theme = isDark ? Colors.dark : Colors.light;
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [gridWidth, setGridWidth] = useState(0);
   const [progress] = useState(() => new Animated.Value(0));
 
   const toggle = useCallback(
@@ -111,8 +96,6 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
     else if (item.url) void Linking.openURL(item.url);
   };
 
-  const tileWidth = gridWidth > 0 ? (gridWidth - GRID_GAP * 2) / 3 : 0;
-
   return (
     <View pointerEvents="box-none" style={{ position: "absolute", inset: 0 }}>
       {mounted ? (
@@ -121,7 +104,7 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
             style={{
               position: "absolute",
               inset: 0,
-              backgroundColor: isDark ? "rgba(0,0,0,0.55)" : "rgba(15,15,15,0.25)",
+              backgroundColor: isDark ? "rgba(0,0,0,0.78)" : "rgba(15,15,15,0.4)",
               opacity: progress,
             }}
           >
@@ -133,80 +116,61 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
           </Animated.View>
 
           <View
-            pointerEvents="box-none"
-            className="absolute left-4 right-4 items-end"
-            style={{ bottom: FAB_BOTTOM + FAB_SIZE + 12 }}
+            pointerEvents={open ? "box-none" : "none"}
+            className="absolute items-end gap-3.5"
+            style={{
+              right: 16 + (FAB_SIZE - ACTION_SIZE) / 2,
+              bottom: FAB_BOTTOM + FAB_SIZE + 16,
+            }}
           >
-            <Animated.View
-              pointerEvents={open ? "auto" : "none"}
-              style={{
-                width: "100%",
-                maxWidth: 380,
-                overflow: "hidden",
-                borderRadius: 30,
-                borderWidth: 1,
-                padding: 12,
-                borderColor: theme.border,
-                opacity: progress,
-                transformOrigin: "bottom right",
-                transform: [
-                  { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) },
-                  { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
-                ],
-                shadowColor: Colors.black,
-                shadowOffset: { width: 0, height: 18 },
-                shadowOpacity: isDark ? 0.5 : 0.14,
-                shadowRadius: 36,
-                elevation: 14,
-              }}
-            >
-              <LinearGradient
-                colors={isDark ? Gradients.dark.sheet : Gradients.light.sheet}
-                style={{ position: "absolute", inset: 0 }}
-              />
-              <View
-                className="flex-row flex-wrap"
-                style={{ gap: GRID_GAP }}
-                onLayout={(event) => setGridWidth(event.nativeEvent.layout.width)}
-              >
-                {items.map((item) => (
+            {items.map((item, index) => {
+              // Rows nearest the button appear first.
+              const start = Math.min((items.length - 1 - index) * 0.07, 0.35);
+              const appear = progress.interpolate({
+                inputRange: [start, start + 0.55],
+                outputRange: [0, 1],
+                extrapolate: "clamp",
+              });
+              return (
+                <Animated.View
+                  key={item.key}
+                  style={{
+                    opacity: appear,
+                    transform: [{ translateY: appear.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+                  }}
+                >
                   <Pressable
-                    key={item.key}
                     accessibilityRole={item.url ? "link" : "button"}
                     accessibilityLabel={item.label}
                     accessibilityHint={item.url ? "Opens in your browser" : undefined}
                     onPress={() => openItem(item)}
-                    className="items-center gap-2 rounded-[22px] border px-1 pb-3 pt-3.5 active:opacity-70"
-                    style={{
-                      width: tileWidth,
-                      backgroundColor: theme.backgroundSecondary,
-                      borderColor: theme.border,
-                    }}
+                    className="flex-row items-center gap-3 active:opacity-70"
                   >
-                    {item.url ? (
-                      <View className="absolute right-2.5 top-2.5">
-                        <Feather name="arrow-up-right" size={12} color={theme.textSecondary} />
-                      </View>
-                    ) : null}
-                    <LinearGradient
-                      colors={item.colors}
-                      start={{ x: 0.2, y: 0 }}
-                      end={{ x: 0.8, y: 1 }}
-                      style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 16 }}
+                    <View
+                      className="rounded-full px-3 py-1.5"
+                      style={{
+                        backgroundColor: isDark ? "rgba(24,24,24,0.92)" : "rgba(255,255,255,0.95)",
+                      }}
                     >
-                      <Ionicons name={item.icon} size={21} color={Colors.white} />
-                    </LinearGradient>
-                    <Text
-                      className="text-center text-[12px] font-semibold"
-                      style={{ color: theme.text }}
-                      numberOfLines={1}
+                      <Text className="text-[13px] font-semibold" style={{ color: theme.text }}>
+                        {item.label}
+                      </Text>
+                    </View>
+                    <View
+                      className="items-center justify-center rounded-full border"
+                      style={{
+                        width: ACTION_SIZE,
+                        height: ACTION_SIZE,
+                        backgroundColor: theme.backgroundSecondary,
+                        borderColor: theme.border,
+                      }}
                     >
-                      {item.label}
-                    </Text>
+                      <Ionicons name={item.icon} size={20} color={theme.text} />
+                    </View>
                   </Pressable>
-                ))}
-              </View>
-            </Animated.View>
+                </Animated.View>
+              );
+            })}
           </View>
         </>
       ) : null}

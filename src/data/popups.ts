@@ -70,7 +70,7 @@ export const POPUP_NOTICES: PopupNotice[] = [
   },
   {
     id: "star-on-github-2026-11",
-    title: "Did Bunkialo help you?",
+    title: "Thank you for using Bunkialo",
     description:
       "If it helped you in any way, a star on GitHub helps other students find it. Bunkialo is fully open source, and we are looking for contributors.",
     timestamp: "2026-11-07T12:00:00+05:30",

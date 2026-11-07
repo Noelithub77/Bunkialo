@@ -300,7 +300,7 @@ export default function DashboardScreen() {
   const isHydratingFromCache = !hasHydrated && isEmpty;
 
   const themeIconName = isDark ? "moon-outline" : "sunny-outline";
-  const launcherItems = getLauncherItems(username, isDark);
+  const launcherItems = getLauncherItems(username);
 
   const refreshGesture = useDirectionalRefresh(handleRefresh);
 
