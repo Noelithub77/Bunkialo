@@ -65,7 +65,7 @@ jobs:
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         env:
-          EXPO_USE_BUN: "1"
+          PNPM_CONFIG_STRICT_DEP_BUILDS: "false"
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           expo-version: latest
@@ -139,7 +139,7 @@ jobs:
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         env:
-          EXPO_USE_BUN: "1"
+          PNPM_CONFIG_STRICT_DEP_BUILDS: "false"
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           expo-version: latest
@@ -206,7 +206,7 @@ jobs:
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
         env:
-          EXPO_USE_BUN: "1"
+          PNPM_CONFIG_STRICT_DEP_BUILDS: "false"
         with:
           token: ${{ secrets.EXPO_TOKEN }}
           expo-version: latest
