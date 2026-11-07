@@ -80,7 +80,12 @@ export const POPUP_NOTICES: PopupNotice[] = [
     ctaIcon: "logo-github",
     ctaAction: "open-url",
     ctaUrl: "https://github.com/Noelithub77/bunkialo2",
-    dismissLabel: "Not now",
+    closeButton: true,
+    secondaryCta: {
+      label: "Check out my other projects",
+      icon: "open-outline",
+      url: "https://noel.is-a.dev/projects",
+    },
     hero: StarHero,
     prompt: { firstShowAfterDays: 1, snoozeDays: 5 },
   },

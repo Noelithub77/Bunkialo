@@ -10,6 +10,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -271,12 +272,35 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
         {hasCta ? (
           <PillButton label={current.ctaLabel ?? "Open"} icon={current.ctaIcon} onPress={runCta} />
         ) : null}
-        <PillButton
-          variant="ghost"
-          label={current.dismissLabel ?? "Got it"}
-          onPress={() => close("dismiss")}
-        />
+        {current.secondaryCta ? (
+          <PillButton
+            variant="soft"
+            accessibilityRole="link"
+            className="mt-1.5"
+            label={current.secondaryCta.label}
+            icon={current.secondaryCta.icon}
+            onPress={() => {
+              if (current.secondaryCta) void Linking.openURL(current.secondaryCta.url);
+            }}
+          />
+        ) : null}
+        {current.closeButton ? null : (
+          <PillButton variant="ghost" label="Got it" onPress={() => close("dismiss")} />
+        )}
       </View>
+
+      {current.closeButton ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          hitSlop={8}
+          onPress={() => close("dismiss")}
+          className="absolute right-3.5 top-3.5 h-8 w-8 items-center justify-center rounded-full active:opacity-70"
+          style={{ backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)" }}
+        >
+          <Ionicons name="close" size={18} color={theme.textSecondary} />
+        </Pressable>
+      ) : null}
     </View>
   );
 

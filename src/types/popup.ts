@@ -48,7 +48,14 @@ export interface PopupNotice {
   ctaIcon?: ComponentProps<typeof Ionicons>["name"];
   ctaAction?: PopupCtaAction;
   ctaUrl?: string;
-  dismissLabel?: string;
+  /** Replaces the "Got it" button with a corner close button. */
+  closeButton?: boolean;
+  /** A link under the main action; the popup stays open. */
+  secondaryCta?: {
+    label: string;
+    icon?: ComponentProps<typeof Ionicons>["name"];
+    url: string;
+  };
   hero?: ComponentType;
   customContent?: ComponentType<PopupCustomContentProps>;
   highlights?: PopupHighlight[];
