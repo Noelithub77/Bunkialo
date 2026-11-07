@@ -247,7 +247,7 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
               backgroundColor:
                 isDark && Platform.OS !== "web"
                   ? "rgba(0,0,0,0.82)"
-                  : "rgba(0,0,0,0.28)",
+                  : "rgba(0,0,0,0.45)",
             }}
           >
             <Pressable className="absolute inset-0" onPress={onClose} />
