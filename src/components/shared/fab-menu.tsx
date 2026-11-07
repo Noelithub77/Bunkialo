@@ -1,64 +1,41 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
-import { Animated, BackHandler, Linking, Platform, Pressable, Text, View } from "react-native";
+import { Animated, BackHandler, Platform, Pressable, Text, View } from "react-native";
 import { Colors, Gradients } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
-type LauncherItem = {
+type IconName = ComponentProps<typeof Ionicons>["name"];
+
+export type FabMenuItem = {
   key: string;
   label: string;
-  icon: ComponentProps<typeof Ionicons>["name"];
-  route?: "/gpa" | "/more";
-  url?: string;
+  icon: IconName;
+  onPress: () => void;
+  /** Tints the action circle for add and active-mode actions. */
+  tone?: "success" | "info";
+  opensExternally?: boolean;
 };
 
 const FAB_SIZE = 58;
-const FAB_BOTTOM = 96;
 const ACTION_SIZE = 44;
 
-const OUTPASS_URL = "https://outpass.iiitkottayam.ac.in/app";
-const GATEPASS_URL = "https://gatepassstud.iiitkottayam.ac.in/index.php";
-const FEASTON: LauncherItem = {
-  key: "feaston",
-  label: "Feaston",
-  icon: "restaurant-outline",
-  url: "https://feaston.iiitkottayam.ac.in/dashboard",
-};
+const lightButton = ["#FFFFFF", "#F0F0F0"] as const;
 
-/** Top to bottom, so the last item sits closest to the button. */
-export function getLauncherItems(username: string | null): LauncherItem[] {
-  const isOldBatch = username?.startsWith("2022") || username?.startsWith("2023");
-  const batchItems: LauncherItem[] = isOldBatch
-    ? [
-        { key: "outpass-rfid", label: "Outpass RFID", icon: "card-outline", url: OUTPASS_URL },
-        { key: "outpass-fingerprint", label: "Outpass fingerprint", icon: "finger-print-outline", url: GATEPASS_URL },
-        FEASTON,
-      ]
-    : [
-        {
-          key: "outpass",
-          label: "Outpass",
-          icon: "exit-outline",
-          url: username?.startsWith("2024") ? GATEPASS_URL : OUTPASS_URL,
-        },
-        FEASTON,
-        { key: "allpyq", label: "AllPYQ", icon: "book-outline", url: "https://allpyq.in" },
-      ];
-
-  return [
-    { key: "more", label: "More", icon: "ellipsis-horizontal", route: "/more" },
-    { key: "gpa", label: "GPA calculator", icon: "calculator-outline", route: "/gpa" },
-    { key: "attendance", label: "Attendance", icon: "calendar-outline", url: "https://attendance.iiitkottayam.ac.in/" },
-    ...batchItems,
-  ];
-}
-
-export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
+/** Floating squircle button that fans a labelled list upwards. Rows run top to bottom. */
+export function FabMenu({
+  items,
+  icon = "grid",
+  bottom = 96,
+}: {
+  items: FabMenuItem[];
+  icon?: IconName;
+  bottom?: number;
+}) {
   const isDark = useColorScheme() === "dark";
   const theme = isDark ? Colors.dark : Colors.light;
+  const iconColor = isDark ? Gradients.accent[0] : theme.text;
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [progress] = useState(() => new Animated.Value(0));
@@ -90,10 +67,9 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
     return () => subscription.remove();
   }, [open, toggle]);
 
-  const openItem = (item: LauncherItem) => {
+  const runItem = (item: FabMenuItem) => {
     toggle(false);
-    if (item.route) router.push(item.route);
-    else if (item.url) void Linking.openURL(item.url);
+    item.onPress();
   };
 
   return (
@@ -120,7 +96,7 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
             className="absolute items-end gap-3.5"
             style={{
               right: 16 + (FAB_SIZE - ACTION_SIZE) / 2,
-              bottom: FAB_BOTTOM + FAB_SIZE + 16,
+              bottom: bottom + FAB_SIZE + 16,
             }}
           >
             {items.map((item, index) => {
@@ -131,6 +107,12 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
                 outputRange: [0, 1],
                 extrapolate: "clamp",
               });
+              const toneColor =
+                item.tone === "success"
+                  ? Colors.status.success
+                  : item.tone === "info"
+                    ? Colors.status.info
+                    : null;
               return (
                 <Animated.View
                   key={item.key}
@@ -140,10 +122,10 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
                   }}
                 >
                   <Pressable
-                    accessibilityRole={item.url ? "link" : "button"}
+                    accessibilityRole={item.opensExternally ? "link" : "button"}
                     accessibilityLabel={item.label}
-                    accessibilityHint={item.url ? "Opens in your browser" : undefined}
-                    onPress={() => openItem(item)}
+                    accessibilityHint={item.opensExternally ? "Opens in your browser" : undefined}
+                    onPress={() => runItem(item)}
                     className="flex-row items-center gap-3 active:opacity-70"
                   >
                     <View
@@ -161,11 +143,11 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
                       style={{
                         width: ACTION_SIZE,
                         height: ACTION_SIZE,
-                        backgroundColor: theme.backgroundSecondary,
-                        borderColor: theme.border,
+                        backgroundColor: toneColor ?? theme.backgroundSecondary,
+                        borderColor: toneColor ?? theme.border,
                       }}
                     >
-                      <Ionicons name={item.icon} size={20} color={theme.text} />
+                      <Ionicons name={item.icon} size={20} color={toneColor ? Colors.white : theme.text} />
                     </View>
                   </Pressable>
                 </Animated.View>
@@ -182,19 +164,19 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
         onPress={() => toggle(!open)}
         className="absolute right-4 overflow-hidden rounded-[22px] border active:opacity-90"
         style={{
-          bottom: FAB_BOTTOM,
+          bottom,
           width: FAB_SIZE,
           height: FAB_SIZE,
-          borderColor: "rgba(255,255,255,0.1)",
+          borderColor: isDark ? "rgba(255,255,255,0.1)" : theme.border,
           shadowColor: Colors.black,
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.35,
-          shadowRadius: 18,
-          elevation: 10,
+          shadowOffset: { width: 0, height: isDark ? 10 : 6 },
+          shadowOpacity: isDark ? 0.35 : 0.16,
+          shadowRadius: isDark ? 18 : 14,
+          elevation: isDark ? 10 : 6,
         }}
       >
         <LinearGradient
-          colors={Gradients.graphite}
+          colors={isDark ? Gradients.graphite : lightButton}
           start={{ x: 0.2, y: 0 }}
           end={{ x: 0.8, y: 1 }}
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
@@ -206,7 +188,7 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
               transform: [{ rotate: progress.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "90deg"] }) }],
             }}
           >
-            <Ionicons name="grid" size={22} color={Gradients.accent[0]} />
+            <Ionicons name={icon} size={22} color={iconColor} />
           </Animated.View>
           <Animated.View
             style={{
@@ -215,7 +197,7 @@ export function DashboardLauncher({ items }: { items: LauncherItem[] }) {
               transform: [{ rotate: progress.interpolate({ inputRange: [0, 1], outputRange: ["-90deg", "0deg"] }) }],
             }}
           >
-            <Ionicons name="close" size={26} color={Gradients.accent[0]} />
+            <Ionicons name="close" size={26} color={iconColor} />
           </Animated.View>
         </LinearGradient>
       </Pressable>

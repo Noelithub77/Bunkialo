@@ -20,7 +20,8 @@ import { useIsFocused } from "expo-router";
 import { router } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { FAB, Portal } from "react-native-paper";
+import { Portal } from "react-native-paper";
+import { FabMenu } from "@/components/shared/fab-menu";
 
 const VIEW_MODES: ViewMode[] = ["upnext", "calendar"];
 
@@ -38,8 +39,6 @@ export default function AcademicCalendarScreen() {
     setViewMode,
     selectedDate,
     setSelectedDate,
-    showFabMenu,
-    setShowFabMenu,
     isEditMode,
     toggleEditMode,
     setEditMode,
@@ -59,13 +58,12 @@ export default function AcademicCalendarScreen() {
     }
   }, [currentTerm, today, selectedDate, setSelectedDate]);
 
-  // reset FAB and edit mode when leaving screen
+  // reset edit mode when leaving screen
   useEffect(() => {
     if (!isFocused) {
-      setShowFabMenu(false);
       setEditMode(false);
     }
-  }, [isFocused, setShowFabMenu, setEditMode]);
+  }, [isFocused, setEditMode]);
 
   // base events for current term
   const baseEvents = useMemo(
@@ -90,11 +88,6 @@ export default function AcademicCalendarScreen() {
 
     return [...mergedBase, ...customForTerm];
   }, [baseEvents, customEvents, overrides, currentTerm.id]);
-
-  const handleToggleEditMode = () => {
-    toggleEditMode();
-    if (showFabMenu) setShowFabMenu(false);
-  };
 
   return (
     <Container>
@@ -181,71 +174,37 @@ export default function AcademicCalendarScreen() {
       {/* FAB menu */}
       {isFocused && (
         <Portal>
-          <FAB.Group
-            open={showFabMenu}
-            visible={true}
-            icon={showFabMenu ? "close" : isEditMode ? "check" : "plus"}
-            color={Colors.white}
-            style={{ position: "absolute", right: 0, bottom: 80 }}
-            backdropColor="rgba(0,0,0,0.5)"
-            fabStyle={{
-              backgroundColor: showFabMenu
-                ? theme.textSecondary
-                : isEditMode
-                  ? Colors.status.info
-                  : Colors.status.success,
-            }}
-            actions={[
+          <FabMenu
+            icon={isEditMode ? "checkmark" : "add"}
+            items={[
               {
-                icon: "export",
-                label: "Export to Calendar",
-                color: theme.text,
-                style: { backgroundColor: theme.backgroundSecondary },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  openModal({ type: "export" });
-                },
+                key: "export",
+                label: "Export to calendar",
+                icon: "share-outline",
+                onPress: () => openModal({ type: "export" }),
               },
               {
-                icon: "history",
+                key: "changes",
                 label: "Changes",
-                color: theme.text,
-                style: { backgroundColor: theme.backgroundSecondary },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  openModal({ type: "changes" });
-                },
+                icon: "time-outline",
+                onPress: () => openModal({ type: "changes" }),
               },
               {
+                key: "edit",
+                label: isEditMode ? "Done editing" : "Edit events",
                 icon: "pencil",
-                label: isEditMode ? "Done Editing" : "Edit Events",
-                color: isEditMode ? Colors.white : theme.text,
-                style: {
-                  backgroundColor: isEditMode
-                    ? Colors.status.info
-                    : theme.backgroundSecondary,
-                },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  handleToggleEditMode();
-                },
+                tone: isEditMode ? "info" : undefined,
+                onPress: toggleEditMode,
               },
               {
-                icon: "plus",
-                label: "Add Event",
-                color: Colors.white,
-                style: { backgroundColor: Colors.status.success },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  openModal({
-                    type: "event-editor",
-                    event: null,
-                    mode: "create",
-                  });
-                },
+                key: "add",
+                label: "Add event",
+                icon: "add",
+                tone: "success",
+                onPress: () =>
+                  openModal({ type: "event-editor", event: null, mode: "create" }),
               },
             ]}
-            onStateChange={({ open }) => setShowFabMenu(open)}
           />
         </Portal>
       )}

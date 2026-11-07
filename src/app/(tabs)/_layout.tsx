@@ -6,7 +6,8 @@ import { scheduleIdleTask } from "@/utils/scheduling";
 import { Ionicons } from "@expo/vector-icons";
 import MaterialBottomTabs from "expo-router/js-top-tabs";
 import { startTransition, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const unstable_settings = { anchor: "index" };
@@ -135,6 +136,9 @@ export default function TabLayout() {
   return (
     <MaterialBottomTabs
       screenListeners={{
+        tabPress: () => {
+          if (Platform.OS !== "web") void Haptics.selectionAsync();
+        },
         swipeStart: () => useGestureUiStore.getState().setTabSwipeActive(true),
         swipeEnd: () => useGestureUiStore.getState().setTabSwipeActive(false),
       }}

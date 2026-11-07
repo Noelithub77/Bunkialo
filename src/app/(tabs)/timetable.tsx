@@ -37,7 +37,8 @@ import {
   View,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { FAB, Portal } from "react-native-paper";
+import { Portal } from "react-native-paper";
+import { FabMenu } from "@/components/shared/fab-menu";
 
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   const colorScheme = useColorScheme();
@@ -106,7 +107,6 @@ export default function TimetableScreen() {
   } = useWearTimetableStore();
   const [refreshing, setRefreshing] = useState(false);
   const [showSlotConflictModal, setShowSlotConflictModal] = useState(false);
-  const [showFabMenu, setShowFabMenu] = useState(false);
   const [showTimetableExport, setShowTimetableExport] = useState(false);
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
   const [showWearTimetableModal, setShowWearTimetableModal] = useState(false);
@@ -154,7 +154,6 @@ export default function TimetableScreen() {
       setSelectedDay(getDefaultDay());
       scheduleTimetableRecompute();
       return () => {
-        setShowFabMenu(false);
         setIsCourseEditMode(false);
         recomputeTaskRef.current?.cancel();
       };
@@ -273,7 +272,6 @@ export default function TimetableScreen() {
       addCustomCourse({ courseName, alias, credits, color, slots: slotsInput });
       scheduleTimetableRecompute();
       setShowCreateCourseModal(false);
-      setShowFabMenu(false);
       setTimeout(openConflictModalIfNeeded, 100);
     },
     [addCustomCourse, openConflictModalIfNeeded, scheduleTimetableRecompute],
@@ -285,7 +283,6 @@ export default function TimetableScreen() {
       setManualSlots(courseId, slotsInput);
       scheduleTimetableRecompute();
       setShowCourseEditModal(false);
-      setShowFabMenu(false);
       setTimeout(openConflictModalIfNeeded, 100);
     },
     [
@@ -531,65 +528,36 @@ export default function TimetableScreen() {
 
       {isFocused && (
         <Portal>
-          <FAB.Group
-            open={showFabMenu}
-            visible={true}
-            icon={showFabMenu ? "close" : "menu"}
-            color={isDark ? Colors.gray[200] : Colors.gray[700]}
-            style={{ position: "absolute", right: 0, bottom: 80 }}
-            backdropColor="rgba(0,0,0,0.45)"
-            fabStyle={{
-              backgroundColor: showFabMenu
-                ? Colors.gray[800]
-                : theme.backgroundSecondary,
-            }}
-            actions={[
+          <FabMenu
+            icon="menu"
+            items={[
               {
-                icon: "calendar-export",
+                key: "export",
                 label: "Export Timetable (.ics)",
-                color: theme.text,
-                style: { backgroundColor: theme.backgroundSecondary },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  setShowTimetableExport(true);
-                },
+                icon: "download-outline",
+                onPress: () => setShowTimetableExport(true),
               },
               {
-                icon: "watch-variant",
+                key: "wear",
                 label: "Wear OS timetable",
-                color: theme.text,
-                style: { backgroundColor: theme.backgroundSecondary },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  setShowWearTimetableModal(true);
-                },
+                icon: "watch-outline",
+                onPress: () => setShowWearTimetableModal(true),
               },
               {
-                icon: "plus",
+                key: "add",
                 label: "Add Course",
-                color: Colors.white,
-                style: { backgroundColor: Colors.status.success },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  setShowCreateCourseModal(true);
-                },
+                icon: "add",
+                tone: "success",
+                onPress: () => setShowCreateCourseModal(true),
               },
               {
-                icon: "pencil",
+                key: "edit",
                 label: isCourseEditMode ? "Exit Edit Mode" : "Edit Courses",
-                color: isCourseEditMode ? Colors.white : theme.text,
-                style: {
-                  backgroundColor: isCourseEditMode
-                    ? Colors.status.info
-                    : theme.backgroundSecondary,
-                },
-                onPress: () => {
-                  setShowFabMenu(false);
-                  setIsCourseEditMode((prev) => !prev);
-                },
+                icon: "pencil",
+                tone: isCourseEditMode ? "info" : undefined,
+                onPress: () => setIsCourseEditMode((prev) => !prev),
               },
             ]}
-            onStateChange={({ open }) => setShowFabMenu(open)}
           />
         </Portal>
       )}

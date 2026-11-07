@@ -26,7 +26,8 @@ import {
   Text,
   View,
 } from "react-native";
-import { FAB, Portal } from "react-native-paper";
+import { Portal } from "react-native-paper";
+import { FabMenu } from "@/components/shared/fab-menu";
 
 export default function AttendanceScreen() {
   const colorScheme = useColorScheme();
@@ -56,8 +57,6 @@ export default function AttendanceScreen() {
     showTooltip,
     setShowTooltip,
     isEditMode,
-    showFabMenu,
-    setShowFabMenu,
     openModal,
     activeModal,
     closeModal,
@@ -144,13 +143,6 @@ export default function AttendanceScreen() {
       setOffline(false);
     }
   }, [isOffline, lastSyncTime, setOffline]);
-
-  // close FAB on blur
-  useFocusEffect(
-    useCallback(() => {
-      return () => setShowFabMenu(false);
-    }, [setShowFabMenu]),
-  );
 
   const handleTabChange = (tab: "absences" | "courses") => {
     Haptics.selectionAsync();
@@ -362,77 +354,49 @@ export default function AttendanceScreen() {
       {/* FAB - Attendance actions on all subtabs */}
       {isFocused && (
         <Portal>
-          <FAB.Group
-            open={showFabMenu}
-            visible={true}
-            icon={showFabMenu ? "close" : "menu"}
-            color={isDark ? Colors.gray[200] : Colors.gray[700]}
-            style={{ position: "absolute", right: 0, bottom: 80 }}
-            backdropColor={isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)"}
-            fabStyle={{
-              backgroundColor: showFabMenu
-                ? Colors.gray[800]
-                : theme.backgroundSecondary,
-            }}
-            actions={
+          <FabMenu
+            icon="menu"
+            items={
               activeTab === "absences"
                 ? [
                     {
-                      icon: "briefcase-arrow-left-right-outline",
+                      key: "export-dl",
                       label: "Export/Import DL",
-                      color: theme.text,
-                      style: { backgroundColor: theme.backgroundSecondary },
+                      icon: "swap-horizontal-outline",
                       onPress: () =>
-                        openModal({
-                          type: "bunk-transfer",
-                          scope: "duty-leave",
-                        }),
+                        openModal({ type: "bunk-transfer", scope: "duty-leave" }),
                     },
                     {
-                      icon: "calendar-sync-outline",
-                      label: "Export/Import All Bunks",
-                      color: theme.text,
-                      style: { backgroundColor: theme.backgroundSecondary },
+                      key: "export-all",
+                      label: "Export/Import all bunks",
+                      icon: "sync-outline",
                       onPress: () =>
-                        openModal({
-                          type: "bunk-transfer",
-                          scope: "all-bunks",
-                        }),
+                        openModal({ type: "bunk-transfer", scope: "all-bunks" }),
                     },
                   ]
                 : [
                     {
-                      icon: "history",
+                      key: "changes",
                       label: "Changes",
-                      color: theme.text,
-                      style: { backgroundColor: theme.backgroundSecondary },
+                      icon: "time-outline",
                       onPress: () => openModal({ type: "changes" }),
                     },
                     {
+                      key: "edit",
+                      label: isEditMode ? "Done editing" : "Edit courses",
                       icon: "pencil",
-                      label: isEditMode ? "Done Editing" : "Edit Courses",
-                      color: isEditMode ? Colors.white : theme.text,
-                      style: {
-                        backgroundColor: isEditMode
-                          ? Colors.status.info
-                          : theme.backgroundSecondary,
-                      },
+                      tone: isEditMode ? "info" : undefined,
                       onPress: handleToggleEditMode,
                     },
                     {
-                      icon: "plus",
-                      label: "Add Course",
-                      color: Colors.white,
-                      style: { backgroundColor: Colors.status.success },
+                      key: "add",
+                      label: "Add course",
+                      icon: "add",
+                      tone: "success",
                       onPress: handleOpenCreateCourse,
                     },
                   ]
             }
-            onStateChange={({ open }) => setShowFabMenu(open)}
-            onPress={() => {
-              if (showFabMenu)
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }}
           />
         </Portal>
       )}

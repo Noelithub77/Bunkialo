@@ -1,6 +1,7 @@
 import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";
 import { startBackgroundRefresh } from "@/background/dashboard-background";
-import { DashboardLauncher, getLauncherItems } from "@/components/dashboard/dashboard-launcher";
+import { getLauncherItems } from "@/components/dashboard/launcher-items";
+import { FabMenu } from "@/components/shared/fab-menu";
 import { EventCard } from "@/components/dashboard/event-card";
 import { NoticesModal } from "@/components/dashboard/notices-modal";
 import { NoticePopup } from "@/components/dashboard/popup/notice-popup";
@@ -475,7 +476,7 @@ export default function DashboardScreen() {
 
       {isFocused && (
         <Portal>
-          <DashboardLauncher items={launcherItems} />
+          <FabMenu items={launcherItems} />
         </Portal>
       )}
 

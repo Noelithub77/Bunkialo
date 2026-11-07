@@ -34,7 +34,6 @@ interface AttendanceUIState {
   activeTab: TabType;
   showTooltip: boolean;
   isEditMode: boolean;
-  showFabMenu: boolean;
   activeModal: ModalState;
 }
 
@@ -43,7 +42,6 @@ interface AttendanceUIActions {
   setShowTooltip: (show: boolean) => void;
   setIsEditMode: (edit: boolean) => void;
   toggleEditMode: () => void;
-  setShowFabMenu: (show: boolean) => void;
   openModal: (modal: ModalState) => void;
   closeModal: () => void;
   resetUI: () => void;
@@ -53,7 +51,6 @@ const initialState: AttendanceUIState = {
   activeTab: "courses",
   showTooltip: false,
   isEditMode: false,
-  showFabMenu: false,
   activeModal: null,
 };
 
@@ -62,11 +59,10 @@ export const useAttendanceUIStore = create<
 >()((set) => ({
   ...initialState,
 
-  setActiveTab: (tab) => set({ activeTab: tab, showFabMenu: false }),
+  setActiveTab: (tab) => set({ activeTab: tab }),
   setShowTooltip: (show) => set({ showTooltip: show }),
   setIsEditMode: (edit) => set({ isEditMode: edit }),
   toggleEditMode: () => set((state) => ({ isEditMode: !state.isEditMode })),
-  setShowFabMenu: (show) => set({ showFabMenu: show }),
   openModal: (modal) => set({ activeModal: modal }),
   closeModal: () => set({ activeModal: null }),
   resetUI: () => set(initialState),
