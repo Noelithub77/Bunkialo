@@ -17,19 +17,27 @@ export function useNotificationPlacement(
   useLayoutEffect(() => {
     if (!visible || !anchored) return;
     let active = true;
-    // Let the dashboard finish its responsive layout before measuring on resize.
-    const frame = requestAnimationFrame(() => {
+    let frame = 0;
+    let last: { right: number; bottom: number } | null = null;
+    // Header icons can shift after the panel opens (icon fonts load late), so
+    // follow the bell while the panel is open and update only when it moves.
+    const measure = () => {
       anchorRef.current?.measureInWindow((x, y, anchorWidth, anchorHeight) => {
-        if (active) {
-          setAnchor({ right: x + anchorWidth, bottom: y + anchorHeight });
+        if (!active) return;
+        const next = { right: x + anchorWidth, bottom: y + anchorHeight };
+        if (!last || last.right !== next.right || last.bottom !== next.bottom) {
+          last = next;
+          setAnchor(next);
         }
+        frame = requestAnimationFrame(measure);
       });
-    });
+    };
+    frame = requestAnimationFrame(measure);
     return () => {
       active = false;
       cancelAnimationFrame(frame);
     };
-  }, [anchorRef, anchored, height, visible, width]);
+  }, [anchorRef, anchored, visible]);
 
   const top = Math.max(
     insets.top + 16,

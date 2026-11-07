@@ -6,6 +6,7 @@ import { NotificationListItem } from "@/components/dashboard/notification-list-i
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { Colors } from "@/constants/theme";
 import { POPUP_NOTICES } from "@/data/popups";
+import { isAnnouncement } from "@/services/popup-queue";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ATTENDANCE_PORTAL_URL } from "@/services/auth/attendance-auth";
 import { usePopupStore } from "@/stores/popup-store";
@@ -103,6 +104,7 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
 
     const appItems: NotificationInboxItem[] = POPUP_NOTICES.filter(
       (notice) =>
+        isAnnouncement(notice) &&
         isNotificationRecent(notice.timestamp) &&
         !dismissedPopupIds.includes(notice.id),
     ).map((notice) => ({

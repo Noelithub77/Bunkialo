@@ -1,5 +1,6 @@
 import { AllpyqLaunchPopupContent } from "@/components/dashboard/popup/allpyq-launch-popup-content";
 import { ReleasePopupContent } from "@/components/dashboard/popup/release-popup-content";
+import { StarHero } from "@/components/dashboard/popup/star-hero";
 import { Colors } from "@/constants/theme";
 import type { PopupNotice } from "@/types";
 
@@ -9,10 +10,11 @@ export const POPUP_NOTICES: PopupNotice[] = [
     title: "Bunkialo v1.5",
     description: "Faster assignments and file previews in v1.5, plus new ways to use Bunkialo.",
     timestamp: "2026-10-19T12:00:00+05:30",
+    icon: "sparkles",
     iconColor: Colors.status.info,
     isImportant: true,
     ctaLabel: "Update",
-    ctaPlacement: "header",
+    ctaIcon: "download-outline",
     ctaAction: "open-url",
     ctaUrl: "https://github.com/Noelithub77/Bunkialo/releases/tag/v1.5.0(64)",
     highlights: [
@@ -58,13 +60,28 @@ export const POPUP_NOTICES: PopupNotice[] = [
     id: "course-feedback-2026-10",
     title: "Your feedback, your choice",
     description:
-      "Feedback should always be optional. No one should feel pressured to fill in a form or give a particular rating. If you choose to respond, the answers are yours — this tool is only here to make it easier. You can find it any time under More or Settings.",
+      "Feedback should always be optional. No one should feel pressured to fill in a form or give a particular rating. If you choose to respond, the answers are yours. This tool is only here to make it easier. You can find it any time under More or Settings.",
     timestamp: "2026-10-22T12:00:00+05:30",
     icon: "school",
     iconColor: Colors.status.info,
     isImportant: false,
     ctaLabel: "View course feedback",
     ctaAction: "open-course-feedback",
+  },
+  {
+    id: "star-on-github-2026-11",
+    title: "Did Bunkialo help you?",
+    description:
+      "If it helped you in any way, a star on GitHub helps other students find it. Bunkialo is fully open source, and we are looking for contributors.",
+    timestamp: "2026-11-07T12:00:00+05:30",
+    iconColor: Colors.accent,
+    ctaLabel: "Star on GitHub",
+    ctaIcon: "logo-github",
+    ctaAction: "open-url",
+    ctaUrl: "https://github.com/Noelithub77/bunkialo2",
+    dismissLabel: "Not now",
+    hero: StarHero,
+    prompt: { firstShowAfterDays: 1, snoozeDays: 5 },
   },
   // {
   //   id: "menu-update-2026-03",

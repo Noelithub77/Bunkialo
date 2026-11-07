@@ -81,17 +81,21 @@ export const Colors = {
 
 // Gradient presets for LinearGradient
 export const Gradients = {
+  accent: ["#FFC94D", "#FF9800"] as const,
+  graphite: ["#2C2C2C", "#121212"] as const,
   dark: {
     card: ["#171717", "#0A0A0A"],
     header: ["#262626", "#171717"],
     button: ["#262626", "#171717"],
     overlay: ["rgba(0,0,0,0)", "rgba(0,0,0,0.8)"],
+    sheet: ["#181818", "#0B0B0B"] as const,
   },
   light: {
     card: ["#FFFFFF", "#F5F5F5"],
     header: ["#FAFAFA", "#F5F5F5"],
     button: ["#262626", "#171717"],
     overlay: ["rgba(255,255,255,0)", "rgba(255,255,255,0.8)"],
+    sheet: ["#FFFFFF", "#FAFAF7"] as const,
   },
 };
 

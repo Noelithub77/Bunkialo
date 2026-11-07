@@ -1,5 +1,6 @@
 import { useDirectionalRefresh } from "@/hooks/use-directional-refresh";
 import { startBackgroundRefresh } from "@/background/dashboard-background";
+import { DashboardLauncher, getLauncherItems } from "@/components/dashboard/dashboard-launcher";
 import { EventCard } from "@/components/dashboard/event-card";
 import { NoticesModal } from "@/components/dashboard/notices-modal";
 import { NoticePopup } from "@/components/dashboard/popup/notice-popup";
@@ -10,6 +11,7 @@ import { Container } from "@/components/ui/container";
 import { WifixQuickAction } from "@/components/wifix/wifix-quick-action";
 import { Colors } from "@/constants/theme";
 import { POPUP_NOTICES } from "@/data/popups";
+import { getUnseenAnnouncements } from "@/services/popup-queue";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAttendanceStore } from "@/stores/attendance-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -28,7 +30,6 @@ import { router, useFocusEffect, useIsFocused } from "expo-router";
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from "react";
 import {
   ActivityIndicator,
-  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -36,7 +37,7 @@ import {
   View,
 } from "react-native";
 
-import { FAB, Portal } from "react-native-paper";
+import { Portal } from "react-native-paper";
 
 const formatSyncTime = (timestamp: number | null): string => {
   if (!timestamp) return "";
@@ -80,18 +81,13 @@ export default function DashboardScreen() {
   );
   const toggleTheme = useSettingsStore((state) => state.toggleTheme);
   const [showOverdue, setShowOverdue] = useState(false);
-  const [showFabMenu, setShowFabMenu] = useState(false);
   const [showDevInfo, setShowDevInfo] = useState(false);
   const notificationBellRef = useRef<ComponentRef<typeof View> | null>(null);
   const [showNoticesModal, setShowNoticesModal] = useState(false);
   const hasUnseenPopups = usePopupStore(
     (state) =>
       state.hasHydrated &&
-      POPUP_NOTICES.some(
-        (popup) =>
-          !state.seenPopupIds.includes(popup.id) &&
-          !state.dismissedPopupIds.includes(popup.id),
-      ),
+      getUnseenAnnouncements(POPUP_NOTICES, state).length > 0,
   );
   const hasUnreadPortalNotices = usePortalNotificationStore((state) =>
     state.items.some((item) => !item.readAt),
@@ -279,7 +275,6 @@ export default function DashboardScreen() {
 
       return () => {
         task?.cancel();
-        setShowFabMenu(false);
       };
     }, [
       fetchDashboard,
@@ -288,7 +283,6 @@ export default function DashboardScreen() {
       lastSyncTime,
       queueInvisibleAttendanceRefresh,
       refreshIntervalMinutes,
-      setShowFabMenu,
     ]),
   );
 
@@ -305,145 +299,8 @@ export default function DashboardScreen() {
   const isEmpty = upcomingEvents.length === 0 && overdueEvents.length === 0;
   const isHydratingFromCache = !hasHydrated && isEmpty;
 
-  const actionLabelStyle = {
-    color: theme.text,
-    fontSize: 13,
-    fontWeight: "600" as const,
-  };
-
-  const actionContainerStyle = {
-    backgroundColor: isDark ? "rgba(24,24,24,0.92)" : "rgba(255,255,255,0.95)",
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  };
   const themeIconName = isDark ? "moon-outline" : "sunny-outline";
-
-  const isOldBatch =
-    username?.startsWith("2022") || username?.startsWith("2023");
-  const is2024Batch = username?.startsWith("2024");
-
-  const fabActions = [
-    {
-      icon: "dots-horizontal",
-      label: "More",
-      color: theme.text,
-      style: { backgroundColor: theme.backgroundSecondary },
-      labelStyle: actionLabelStyle,
-      containerStyle: actionContainerStyle,
-      onPress: () => {
-        setShowFabMenu(false);
-        router.push("/more");
-      },
-    },
-    {
-      icon: "calculator-variant",
-      label: "GPA Calculator",
-      color: theme.text,
-      style: { backgroundColor: theme.backgroundSecondary },
-      labelStyle: actionLabelStyle,
-      containerStyle: actionContainerStyle,
-      onPress: () => {
-        setShowFabMenu(false);
-        router.push("/gpa");
-      },
-    },
-    {
-      icon: "calendar-account",
-      label: "Attendance",
-      color: theme.text,
-      style: { backgroundColor: theme.backgroundSecondary },
-      labelStyle: actionLabelStyle,
-      containerStyle: actionContainerStyle,
-      onPress: () => {
-        setShowFabMenu(false);
-        Linking.openURL("https://attendance.iiitkottayam.ac.in/");
-      },
-    },
-    ...(isOldBatch
-      ? [
-          {
-            icon: "open-in-new",
-            label: "Outpass-RFID",
-            color: theme.text,
-            style: { backgroundColor: theme.backgroundSecondary },
-            labelStyle: actionLabelStyle,
-            containerStyle: actionContainerStyle,
-            onPress: () => {
-              setShowFabMenu(false);
-              Linking.openURL("https://outpass.iiitkottayam.ac.in/app");
-            },
-          },
-          {
-            icon: "open-in-new",
-            label: "Outpass-fingerprint",
-            color: theme.text,
-            style: { backgroundColor: theme.backgroundSecondary },
-            labelStyle: actionLabelStyle,
-            containerStyle: actionContainerStyle,
-            onPress: () => {
-              setShowFabMenu(false);
-              Linking.openURL(
-                "https://gatepassstud.iiitkottayam.ac.in/index.php",
-              );
-            },
-          },
-          {
-            icon: "food",
-            label: "Feaston",
-            color: theme.text,
-            style: { backgroundColor: theme.backgroundSecondary },
-            labelStyle: actionLabelStyle,
-            containerStyle: actionContainerStyle,
-            onPress: () => {
-              setShowFabMenu(false);
-              Linking.openURL("https://feaston.iiitkottayam.ac.in/dashboard");
-            },
-          },
-        ]
-      : [
-          {
-            icon: "open-in-new",
-            label: "Outpass",
-            color: theme.text,
-            style: { backgroundColor: theme.backgroundSecondary },
-            labelStyle: actionLabelStyle,
-            containerStyle: actionContainerStyle,
-            onPress: () => {
-              setShowFabMenu(false);
-              Linking.openURL(
-                is2024Batch
-                  ? "https://gatepassstud.iiitkottayam.ac.in/index.php"
-                  : "https://outpass.iiitkottayam.ac.in/app",
-              );
-            },
-          },
-          {
-            icon: "food",
-            label: "Feaston",
-            color: theme.text,
-            style: { backgroundColor: theme.backgroundSecondary },
-            labelStyle: actionLabelStyle,
-            containerStyle: actionContainerStyle,
-            onPress: () => {
-              setShowFabMenu(false);
-              Linking.openURL("https://feaston.iiitkottayam.ac.in/dashboard");
-            },
-          },
-          {
-            icon: "open-in-new",
-            label: "AllPYQ",
-            color: theme.text,
-            style: { backgroundColor: theme.backgroundSecondary },
-            labelStyle: actionLabelStyle,
-            containerStyle: actionContainerStyle,
-            onPress: () => {
-              setShowFabMenu(false);
-              Linking.openURL("https://allpyq.in");
-            },
-          },
-        ]),
-  ];
+  const launcherItems = getLauncherItems(username, isDark);
 
   const refreshGesture = useDirectionalRefresh(handleRefresh);
 
@@ -482,7 +339,7 @@ export default function DashboardScreen() {
             )}
           </View>
           <View className="flex-row items-center gap-2">
-            <Pressable onPress={toggleTheme} className="p-2">
+            <Pressable onPress={toggleTheme} accessibilityLabel="Toggle theme" accessibilityRole="button" className="p-2">
               <Ionicons
                 name={themeIconName}
                 size={20}
@@ -507,14 +364,14 @@ export default function DashboardScreen() {
                 />
               )}
             </Pressable>
-            <Pressable onPress={() => setShowDevInfo(true)} className="p-2">
+            <Pressable onPress={() => setShowDevInfo(true)} accessibilityLabel="About" accessibilityRole="button" className="p-2">
               <Ionicons
                 name="information-circle-outline"
                 size={20}
                 color={theme.textSecondary}
               />
             </Pressable>
-            <Pressable onPress={() => router.push("/settings")} className="p-2">
+            <Pressable onPress={() => router.push("/settings")} accessibilityLabel="Settings" accessibilityRole="button" className="p-2">
               <Ionicons
                 name="settings-outline"
                 size={20}
@@ -618,21 +475,7 @@ export default function DashboardScreen() {
 
       {isFocused && (
         <Portal>
-          <FAB.Group
-            open={showFabMenu}
-            visible={true}
-            icon={showFabMenu ? "close" : "menu"}
-            color={isDark ? Colors.gray[200] : Colors.gray[700]}
-            style={{ position: "absolute", right: 0, bottom: 80 }}
-            backdropColor={isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.15)"}
-            fabStyle={{
-              backgroundColor: showFabMenu
-                ? Colors.gray[800]
-                : theme.backgroundSecondary,
-            }}
-            actions={fabActions}
-            onStateChange={({ open }) => setShowFabMenu(open)}
-          />
+          <DashboardLauncher items={launcherItems} />
         </Portal>
       )}
 

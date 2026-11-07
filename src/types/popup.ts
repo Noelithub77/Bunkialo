@@ -1,4 +1,5 @@
-import type { ComponentType } from "react";
+import type { Ionicons } from "@expo/vector-icons";
+import type { ComponentProps, ComponentType } from "react";
 import type { ImageSourcePropType } from "react-native";
 
 export type PopupIconType =
@@ -10,6 +11,7 @@ export type PopupIconType =
   | "fast-food"
   | "restaurant"
   | "school"
+  | "sparkles"
   | "star";
 
 export type PopupCtaAction = "open-course-feedback" | "open-url";
@@ -23,7 +25,12 @@ export interface PopupHighlight {
 
 export interface PopupCustomContentProps {
   popup: PopupNotice;
-  onClose: () => void;
+}
+
+/** A recurring ask, such as starring the repo, rather than a one-off announcement. */
+export interface PopupPrompt {
+  firstShowAfterDays: number;
+  snoozeDays: number;
 }
 
 export interface PopupNotice {
@@ -38,9 +45,12 @@ export interface PopupNotice {
   iconColor?: string;
   isImportant?: boolean;
   ctaLabel?: string;
-  ctaPlacement?: "header";
+  ctaIcon?: ComponentProps<typeof Ionicons>["name"];
   ctaAction?: PopupCtaAction;
   ctaUrl?: string;
+  dismissLabel?: string;
+  hero?: ComponentType;
   customContent?: ComponentType<PopupCustomContentProps>;
   highlights?: PopupHighlight[];
+  prompt?: PopupPrompt;
 }

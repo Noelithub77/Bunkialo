@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { zustandStorage } from "./storage";
 import { POPUP_NOTICES } from "@/data/popups";
+import { getSnoozeEnd, getUnseenAnnouncements } from "@/services/popup-queue";
 
 const VALID_POPUP_IDS = new Set(POPUP_NOTICES.map((popup) => popup.id));
 
@@ -87,12 +88,27 @@ const extractDismissedPopupIds = (value: unknown): string[] | null => {
   return dismissed === undefined ? null : normalizePopupIds(dismissed);
 };
 
+const extractSnoozedUntil = (value: unknown): Record<string, string> => {
+  if (!value || typeof value !== "object") return {};
+  const entries = Object.entries(value).filter(
+    (entry): entry is [string, string] =>
+      VALID_POPUP_IDS.has(entry[0]) && typeof entry[1] === "string",
+  );
+  return Object.fromEntries(entries);
+};
+
+const extractFirstOpenedAt = (value: unknown): string | null =>
+  typeof value === "string" && !Number.isNaN(Date.parse(value)) ? value : null;
+
 interface PopupState {
   seenPopupIds: string[];
   notifiedPopupIds: string[];
   dismissedPopupIds: string[];
+  snoozedUntil: Record<string, string>;
+  firstOpenedAt: string | null;
   hasHydrated: boolean;
   markAsSeen: (id: string) => void;
+  snoozePopup: (id: string, days: number) => void;
   markAsNotified: (id: string) => void;
   markAllAsSeen: () => void;
   dismissPopups: (ids: string[]) => void;
@@ -109,6 +125,8 @@ export const usePopupStore = create<PopupState>()(
       seenPopupIds: [],
       notifiedPopupIds: [],
       dismissedPopupIds: [],
+      snoozedUntil: {},
+      firstOpenedAt: null,
       hasHydrated: false,
 
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
@@ -124,6 +142,16 @@ export const usePopupStore = create<PopupState>()(
             seenPopupIds: [...state.seenPopupIds, id],
           };
         });
+      },
+
+      snoozePopup: (id, days) => {
+        if (!VALID_POPUP_IDS.has(id)) return;
+        set((state) => ({
+          snoozedUntil: {
+            ...state.snoozedUntil,
+            [id]: getSnoozeEnd(days, Date.now()),
+          },
+        }));
       },
 
       markAsNotified: (id: string) => {
@@ -162,6 +190,7 @@ export const usePopupStore = create<PopupState>()(
           dismissedPopupIds: state.dismissedPopupIds.filter((id) =>
             validIds.has(id),
           ),
+          snoozedUntil: extractSnoozedUntil(state.snoozedUntil),
         }));
       },
 
@@ -170,23 +199,15 @@ export const usePopupStore = create<PopupState>()(
       },
 
       hasUnseenPopups: () => {
-        const { hasHydrated, seenPopupIds, dismissedPopupIds } = get();
-        if (!hasHydrated) return false;
-        return POPUP_NOTICES.some(
-          (popup) =>
-            !seenPopupIds.includes(popup.id) &&
-            !dismissedPopupIds.includes(popup.id),
-        );
+        const state = get();
+        if (!state.hasHydrated) return false;
+        return getUnseenAnnouncements(POPUP_NOTICES, state).length > 0;
       },
 
       getUnseenPopups: () => {
-        const { hasHydrated, seenPopupIds, dismissedPopupIds } = get();
-        if (!hasHydrated) return [];
-        return POPUP_NOTICES.filter(
-          (popup) =>
-            !seenPopupIds.includes(popup.id) &&
-            !dismissedPopupIds.includes(popup.id),
-        );
+        const state = get();
+        if (!state.hasHydrated) return [];
+        return getUnseenAnnouncements(POPUP_NOTICES, state);
       },
     }),
     {
@@ -207,11 +228,17 @@ export const usePopupStore = create<PopupState>()(
               notifiedPopupIds !== null ||
               dismissedPopupIds !== null
             ) {
+              const persisted: { snoozedUntil?: unknown; firstOpenedAt?: unknown } =
+                parsed && typeof parsed === "object" && "state" in parsed
+                  ? parsed.state
+                  : {};
               return JSON.stringify({
                 state: {
                   seenPopupIds: seenPopupIds ?? [],
                   notifiedPopupIds: notifiedPopupIds ?? [],
                   dismissedPopupIds: dismissedPopupIds ?? [],
+                  snoozedUntil: extractSnoozedUntil(persisted?.snoozedUntil),
+                  firstOpenedAt: extractFirstOpenedAt(persisted?.firstOpenedAt),
                 },
                 version: 0,
               });
@@ -229,8 +256,13 @@ export const usePopupStore = create<PopupState>()(
         seenPopupIds: state.seenPopupIds,
         notifiedPopupIds: state.notifiedPopupIds,
         dismissedPopupIds: state.dismissedPopupIds,
+        snoozedUntil: state.snoozedUntil,
+        firstOpenedAt: state.firstOpenedAt,
       }),
       onRehydrateStorage: () => (state) => {
+        if (state && !state.firstOpenedAt) {
+          usePopupStore.setState({ firstOpenedAt: new Date().toISOString() });
+        }
         state?.pruneExpiredPopups();
         state?.setHasHydrated(true);
       },
