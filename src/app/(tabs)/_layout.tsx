@@ -11,6 +11,7 @@ import { ActivityIndicator, Platform, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export const unstable_settings = { anchor: "index" };
+const SWIPE_LAND_WINDOW_MS = 700;
 const PRIMARY_TAB_WARMUP_PRELOADERS = [
   () => import("./timetable"),
   () => import("./mess"),
@@ -41,6 +42,8 @@ export default function TabLayout() {
   const [lazyEnabled, setLazyEnabled] = useState(true);
   const [lazyPreloadDistance, setLazyPreloadDistance] = useState(0);
   const hasStartedTabWarmup = useRef(false);
+  const isSwipingRef = useRef(false);
+  const swipeEndedAtRef = useRef(0);
   const primaryIdleCancelRef = useRef<(() => void) | null>(null);
   const secondaryIdleCancelRef = useRef<(() => void) | null>(null);
   const fullMountIdleCancelRef = useRef<(() => void) | null>(null);
@@ -139,8 +142,23 @@ export default function TabLayout() {
         tabPress: () => {
           if (Platform.OS !== "web") void Haptics.selectionAsync();
         },
-        swipeStart: () => useGestureUiStore.getState().setTabSwipeActive(true),
-        swipeEnd: () => useGestureUiStore.getState().setTabSwipeActive(false),
+        swipeStart: () => {
+          isSwipingRef.current = true;
+          useGestureUiStore.getState().setTabSwipeActive(true);
+        },
+        swipeEnd: () => {
+          isSwipingRef.current = false;
+          swipeEndedAtRef.current = Date.now();
+          useGestureUiStore.getState().setTabSwipeActive(false);
+        },
+        // The pager settles after swipeEnd, so a focus shortly after a swipe is the swipe landing.
+        focus: () => {
+          const landedFromSwipe =
+            isSwipingRef.current || Date.now() - swipeEndedAtRef.current < SWIPE_LAND_WINDOW_MS;
+          if (!landedFromSwipe) return;
+          swipeEndedAtRef.current = 0;
+          if (Platform.OS !== "web") void Haptics.selectionAsync();
+        },
       }}
       backBehavior="initialRoute"
       tabBarPosition="bottom"
