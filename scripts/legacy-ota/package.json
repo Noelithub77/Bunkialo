@@ -129,5 +129,6 @@
         "react-native-vector-icons"
       ]
     }
-  }
+  },
+  "packageManager": "pnpm@12.16.1"
 }

@@ -1,4 +1,4 @@
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 
 export default requireOptionalNativeModule<{
   setSchedule(boundaries: number[]): Promise<void>;

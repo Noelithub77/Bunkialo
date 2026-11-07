@@ -1,4 +1,4 @@
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { downloadLmsResourceWithSession } from "@/services/lms-download";
 import type { AttachmentPreview, PdfAttachmentDocument } from "@/types";
 import {

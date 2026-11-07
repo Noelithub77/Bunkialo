@@ -1,6 +1,6 @@
 import { isRunningInExpoGo } from "expo";
 import { File } from "expo-file-system";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { widgetsDirectory } from "expo-widgets";
 import { Platform } from "react-native";
 import WidgetRefresh from "../../modules/widget-refresh";

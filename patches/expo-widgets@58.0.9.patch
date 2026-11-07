@@ -1,30 +1,8 @@
-diff --git a/bundle/react-stub.ts b/bundle/react-stub.ts
---- a/bundle/react-stub.ts
-+++ b/bundle/react-stub.ts
-@@ -28,3 +28,7 @@
- });
-
- export const useContext = <T>(context: StubContext<T>): T => context._currentValue;
-+
-+// Expo UI 58 evaluates memoized LazyItems when importing the widget globals.
-+// Widgets render once per snapshot, so memoization is an identity operation.
-+export const memo = <T>(component: T): T => component;
-diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt b/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
---- a/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
-+++ b/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
-@@ -25,7 +25,7 @@
-     val layout = WidgetsLayoutRegistry.layout(appContext, widgetName)
-       ?: return createErrorRoot("No layout found for $widgetName")
-     val props = WidgetsLayoutRegistry.props(appContext, widgetName)
--    val environment = getWidgetEnvironment(appContext)
-+    val environment = getWidgetEnvironment(appContext) + mapOf("width" to size.width.value, "height" to size.height.value)
-     val node = evaluateLayout(appContext, layout, props, environment)
-
-     return node.toPeekRoot(appContext, widgetName, size)
 diff --git a/android/build.gradle b/android/build.gradle
+index 56272ed30567a6597e18b4a7a45dfc85e405db87..ee98f219fd05f0317bdd343abe890e0a18eef237 100644
 --- a/android/build.gradle
 +++ b/android/build.gradle
-@@ -109,4 +109,8 @@
+@@ -109,6 +109,10 @@ def generateExpoWidgetsLayoutRegistry = tasks.register("generateExpoWidgetsLayou
    inputs.file file("$expoWidgetsPackageDir/scripts/build-layout-registry.mjs")
    inputs.file file("$expoWidgetsPackageDir/bundle/layout-registry-entry.js")
    inputs.files(expoWidgetsLayoutRegistryConfigFile)
@@ -33,11 +11,14 @@ diff --git a/android/build.gradle b/android/build.gradle
 +    include "widgets/**", "data/mess.ts"
 +  })
    outputs.file(expoWidgetsLayoutRegistryOutput)
+ 
+   def command = [
 diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt b/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
+index 58ad313651e42925c7a9e3c7d68d0793ed09134b..0e0267a1bb93d1cf30bacc0fac8e9291cafe62d5 100644
 --- a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
 +++ b/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.kt
-@@ -4,6 +4,10 @@
-
+@@ -4,6 +4,10 @@ package expo.modules.widgets
+ 
  import android.annotation.SuppressLint
  import android.content.Context
 +import android.content.Intent
@@ -47,7 +28,7 @@ diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.
  import android.graphics.Color as AndroidColor
  import androidx.compose.ui.unit.DpSize
  import androidx.compose.ui.unit.TextUnit
-@@ -123,6 +127,17 @@
+@@ -123,6 +127,17 @@ private class WidgetConverterContext(
  internal fun ReadableMap.toPeekRoot(context: Context, source: String, size: DpSize): Emittable {
    val converterContext = WidgetConverterContext(context, size)
    return EmittableColumn().also { root ->
@@ -64,4 +45,42 @@ diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetEmittableTree.
 +    }
      root.children += toPeekNodes(converterContext, source)
    }
+ }
+diff --git a/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt b/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
+index 1d044a5ebc4c20064e6d453533ef56798b71b459..5254e5d5f0ce6a25c808ee92bca7314aac072489 100644
+--- a/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
++++ b/android/src/main/java/expo/modules/widgets/ExpoWidgetsPeekWidget.kt
+@@ -25,7 +25,7 @@ internal class ExpoWidgetsPeekWidget(
+     val layout = WidgetsLayoutRegistry.layout(appContext, widgetName)
+       ?: return createErrorRoot("No layout found for $widgetName")
+     val props = WidgetsLayoutRegistry.props(appContext, widgetName)
+-    val environment = getWidgetEnvironment(appContext)
++    val environment = getWidgetEnvironment(appContext) + mapOf("width" to size.width.value, "height" to size.height.value)
+     val node = evaluateLayout(appContext, layout, props, environment)
+ 
+     return node.toPeekRoot(appContext, widgetName, size)
+diff --git a/bundle/react-stub.ts b/bundle/react-stub.ts
+index dc78634f06d13b7272197056d0f829ab9e0f793f..5a5b8e90b9056e52da9aecce7c02e07a351e3bf5 100644
+--- a/bundle/react-stub.ts
++++ b/bundle/react-stub.ts
+@@ -28,3 +28,7 @@ export const createContext = <T>(defaultValue: T): StubContext<T> => ({
+ });
+ 
+ export const useContext = <T>(context: StubContext<T>): T => context._currentValue;
++
++// Expo UI 58 evaluates memoized LazyItems when importing the widget globals.
++// Widgets render once per snapshot, so memoization is an identity operation.
++export const memo = <T>(component: T): T => component;
+diff --git a/scripts/build-layout-registry.mjs b/scripts/build-layout-registry.mjs
+index d52a60e342c8e0a8a1d78f7174da5e60e6bd1c53..13d4c0324af3c7b448953faf25e0ab4b1bfe5d25 100644
+--- a/scripts/build-layout-registry.mjs
++++ b/scripts/build-layout-registry.mjs
+@@ -154,6 +154,7 @@ function createLayoutRegistry(expectedWidgets, capturedLayouts) {
+   return registry;
+ }
+ 
+-if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
++// pnpm links packages, so compare real paths instead of the invoked symlink path.
++if (process.argv[1] && fs.realpathSync(path.resolve(process.argv[1])) === __filename) {
+   await main();
  }
