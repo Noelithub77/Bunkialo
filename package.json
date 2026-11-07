@@ -115,6 +115,7 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.29.7",
     "@cloudflare/vitest-pool-workers": "^0.21.1",
     "@cloudflare/workers-types": "^5.20260812.1",
     "@types/node": "^25.2.1",
