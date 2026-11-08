@@ -281,6 +281,7 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
             icon={current.secondaryCta.icon}
             onPress={() => {
               if (current.secondaryCta) void Linking.openURL(current.secondaryCta.url);
+              close("dismiss");
             }}
           />
         ) : null}
