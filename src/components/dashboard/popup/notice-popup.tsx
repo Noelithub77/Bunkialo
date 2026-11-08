@@ -320,7 +320,7 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
           style={{
             position: "absolute",
             inset: 0,
-            backgroundColor: isDark ? "rgba(0,0,0,0.82)" : "rgba(15,15,15,0.5)",
+            backgroundColor: isDark ? "rgba(0,0,0,0.94)" : "rgba(15,15,15,0.72)",
             opacity: progress,
           }}
         >
