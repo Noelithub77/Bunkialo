@@ -31,6 +31,8 @@ export interface PopupCustomContentProps {
 export interface PopupPrompt {
   firstShowAfterDays: number;
   snoozeDays: number;
+  /** Users who first opened the app before this ISO date skip the first-use delay. */
+  existingUsersBefore?: string;
 }
 
 export interface PopupNotice {

@@ -87,7 +87,11 @@ export const POPUP_NOTICES: PopupNotice[] = [
       url: "https://noel.is-a.dev/projects",
     },
     hero: StarHero,
-    prompt: { firstShowAfterDays: 1, snoozeDays: 5 },
+    prompt: {
+      firstShowAfterDays: 1,
+      snoozeDays: 5,
+      existingUsersBefore: "2026-11-08T08:00:00Z",
+    },
   },
   // {
   //   id: "menu-update-2026-03",

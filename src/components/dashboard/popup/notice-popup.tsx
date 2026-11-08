@@ -122,11 +122,11 @@ export function NoticePopup({ anchorRef }: { anchorRef: RefObject<ComponentRef<t
   }, [progress, visible]);
 
   useEffect(() => {
-    if (visible && current && isAnnouncement(current)) markAsSeen(current.id);
+    if (visible && current) markAsSeen(current.id);
   }, [current, markAsSeen, visible]);
 
   useEffect(() => {
-    if (!current || !isAnnouncement(current) || !notificationsEnabled) return;
+    if (!current || !notificationsEnabled) return;
     if (notifiedPopupIds.includes(current.id)) return;
 
     void (async () => {

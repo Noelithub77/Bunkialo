@@ -6,7 +6,7 @@ import { NotificationListItem } from "@/components/dashboard/notification-list-i
 import { ConfirmModal } from "@/components/modals/confirm-modal";
 import { Colors } from "@/constants/theme";
 import { POPUP_NOTICES } from "@/data/popups";
-import { isAnnouncement } from "@/services/popup-queue";
+import { isNoticeListed } from "@/services/popup-queue";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { ATTENDANCE_PORTAL_URL } from "@/services/auth/attendance-auth";
 import { usePopupStore } from "@/stores/popup-store";
@@ -71,6 +71,7 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
   const prunePortal = usePortalNotificationStore((state) => state.pruneExpired);
   const seenPopupIds = usePopupStore((state) => state.seenPopupIds);
   const dismissedPopupIds = usePopupStore((state) => state.dismissedPopupIds);
+  const firstOpenedAt = usePopupStore((state) => state.firstOpenedAt);
   const markPopupSeen = usePopupStore((state) => state.markAsSeen);
   const dismissPopups = usePopupStore((state) => state.dismissPopups);
   const prunePopups = usePopupStore((state) => state.pruneExpiredPopups);
@@ -104,7 +105,7 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
 
     const appItems: NotificationInboxItem[] = POPUP_NOTICES.filter(
       (notice) =>
-        isAnnouncement(notice) &&
+        isNoticeListed(notice, { seenPopupIds, firstOpenedAt }) &&
         isNotificationRecent(notice.timestamp) &&
         !dismissedPopupIds.includes(notice.id),
     ).map((notice) => ({
@@ -142,7 +143,7 @@ export function NoticesModal({ visible, onClose, anchorRef }: NoticesModalProps)
           new Date(first.createdAt).getTime() ||
         first.id.localeCompare(second.id),
     );
-  }, [courses, dismissedPopupIds, isDark, portalItems, seenPopupIds]);
+  }, [courses, dismissedPopupIds, firstOpenedAt, isDark, portalItems, seenPopupIds]);
 
   const filteredNotifications = React.useMemo(
     () =>

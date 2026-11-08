@@ -12,7 +12,7 @@ import { Container } from "@/components/ui/container";
 import { WifixQuickAction } from "@/components/wifix/wifix-quick-action";
 import { Colors } from "@/constants/theme";
 import { POPUP_NOTICES } from "@/data/popups";
-import { getUnseenAnnouncements } from "@/services/popup-queue";
+import { hasUnreadNotices } from "@/services/popup-queue";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useAttendanceStore } from "@/stores/attendance-store";
 import { useAuthStore } from "@/stores/auth-store";
@@ -86,9 +86,7 @@ export default function DashboardScreen() {
   const notificationBellRef = useRef<ComponentRef<typeof View> | null>(null);
   const [showNoticesModal, setShowNoticesModal] = useState(false);
   const hasUnseenPopups = usePopupStore(
-    (state) =>
-      state.hasHydrated &&
-      getUnseenAnnouncements(POPUP_NOTICES, state).length > 0,
+    (state) => state.hasHydrated && hasUnreadNotices(POPUP_NOTICES, state),
   );
   const hasUnreadPortalNotices = usePortalNotificationStore((state) =>
     state.items.some((item) => !item.readAt),
