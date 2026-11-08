@@ -100,6 +100,10 @@ const extractSnoozedUntil = (value: unknown): Record<string, string> => {
 const extractFirstOpenedAt = (value: unknown): string | null =>
   typeof value === "string" && !Number.isNaN(Date.parse(value)) ? value : null;
 
+// Saved state without a first-open date comes from before it was tracked, so the
+// user is not new and prompts should not wait out their first-use delay.
+const LEGACY_FIRST_OPENED_AT = new Date(0).toISOString();
+
 interface PopupState {
   seenPopupIds: string[];
   notifiedPopupIds: string[];
@@ -238,7 +242,9 @@ export const usePopupStore = create<PopupState>()(
                   notifiedPopupIds: notifiedPopupIds ?? [],
                   dismissedPopupIds: dismissedPopupIds ?? [],
                   snoozedUntil: extractSnoozedUntil(persisted?.snoozedUntil),
-                  firstOpenedAt: extractFirstOpenedAt(persisted?.firstOpenedAt),
+                  firstOpenedAt:
+                    extractFirstOpenedAt(persisted?.firstOpenedAt) ??
+                    LEGACY_FIRST_OPENED_AT,
                 },
                 version: 0,
               });
