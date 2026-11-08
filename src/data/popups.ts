@@ -73,7 +73,7 @@ export const POPUP_NOTICES: PopupNotice[] = [
     id: "star-on-github-2026-11",
     title: "Glad to be part of your sem",
     description:
-      "If Bunkialo has helped you in any way, please consider giving us a star on GitHub. It means a lot to us. Bunkialo is fully open source, and we welcome contributions that make the app better for the whole community.",
+      "If Bunkialo has helped you in any way, please consider giving us a star on GitHub. It means a lot to us. Bunkialo is fully open source too, and we welcome contributions and would be happy for it to be maintained and improved fully by the community.",
     timestamp: "2026-11-07T12:00:00+05:30",
     iconColor: Colors.accent,
     ctaLabel: "Star on GitHub",
